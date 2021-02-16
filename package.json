@@ -1,0 +1,26 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "esmaster": "github:elastic/elasticsearch-js",
+    "express": "^4.17.1",
+    "fast-xml-parser": "^3.17.4",
+    "fs-extra": "^9.0.1",
+    "graphql": "^15.3.0",
+    "he": "^1.2.0",
+    "iconv-lite": "^0.6.2",
+    "luxon": "^1.25.0",
+    "mongodb": "^3.6.2",
+    "natural": "^2.1.5",
+    "oracledb": "^5.0.0",
+    "string-similarity": "^4.0.2"
+  }
+}
