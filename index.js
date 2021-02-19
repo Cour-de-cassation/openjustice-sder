@@ -43,7 +43,7 @@ function main() {
     juricaOffset = 0
   }
 
-  if (jurinetOffset < 2000 || juricaOffset < 2000) {
+  if (jurinetOffset < 5000 || juricaOffset < 5000) {
     console.log('Continuing long batch...')
     runScript(path.join(__dirname, 'import.js'), false, (err) => {
       if (err) throw err

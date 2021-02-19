@@ -9,8 +9,8 @@ const { MongoClient } = require('mongodb')
 const crypto = require('crypto')
 const needle = require('needle')
 const batchSize = 500
-const roundSize = 250000
-const maxOffset = 500000
+const roundSize = 10000
+const maxOffset = 900000
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION)
 
 console.log('Setup...')
@@ -362,7 +362,7 @@ async function mainShort() {
   await jurinetSource.connect()
   const jurinetResult = await jurinetSource.getBatch({
     offset: 0,
-    limit: 2000,
+    limit: 5000,
     all: true,
     titrage: true,
     order: jurinetOrder
@@ -471,7 +471,7 @@ async function mainShort() {
 
       jurinetOffset++
     }
-    console.log(`Jurinet (latest 2000) New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Error: ${errorCount}.`)
+    console.log(`Jurinet (latest 5000) New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Error: ${errorCount}.`)
     await client.close()
   }
 
@@ -479,7 +479,7 @@ async function mainShort() {
   await juricaSource.connect()
   const juricaResult = await juricaSource.getBatch({
     offset: 0,
-    limit: 2000,
+    limit: 5000,
     all: true,
     titrage: false,
     order: juricaOrder
@@ -576,7 +576,7 @@ async function mainShort() {
 
       juricaOffset++
     }
-    console.log(`Jurica (latest 2000) New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Error: ${errorCount}.`)
+    console.log(`Jurica (latest 5000) New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Error: ${errorCount}.`)
     await client.close()
   }
 
