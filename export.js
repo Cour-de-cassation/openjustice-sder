@@ -2,6 +2,7 @@ require('dotenv').config()
 const { MongoClient } = require('mongodb')
 const fs = require('fs')
 const needle = require('needle')
+const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION)
 
 console.log('Setup...')
 
@@ -28,15 +29,17 @@ async function main() {
     // const cursor = await decisions.find({ sourceName: 'jurica' }, { allowDiskUse: true }).skip(skip).sort({ sourceId: -1 }).limit(1000)
     while (cont && (document = await cursor.next())) {
       const source = await rawJurinet.findOne({ _id: document.sourceId })
-      if (cont && source.AUT_CREATION !== 'WINCI' && document.jurisdictionCode === 'CC' && document.pseudoText && document.zoning && document.zoning.zones) {
+      if (cont && source.AUT_CREATION !== 'WINCI' && document.jurisdictionCode === 'CC' && document.pseudoText && document.zoning && document.zoning.zones && document._version === decisionsVersion) {
         count++
         console.log(count, document._id, document.sourceId)
-  	const response = await needle('post', 'http://dev.opj.intranet.justice.gouv.fr/index',  { index: 'openjustice_0', document: document }, {
-    		json: true
-  	})
-  	console.log(response.body)
-	fs.appendFileSync('export.txt', JSON.stringify(document) + '\n')
-        if (count > 40000) {
+        /*
+        const response = await needle('post', 'http://dev.opj.intranet.justice.gouv.fr/index', { index: 'openjustice_0', document: document }, {
+          json: true
+        })
+        console.log(response.body)
+        */
+        fs.appendFileSync('export.txt', JSON.stringify(document) + '\n')
+        if (count >= 50000) {
           cont = false
         }
       }
@@ -58,11 +61,12 @@ async function main() {
 
   await client.close()
 
+  /*
   const response = await needle('post', 'http://dev.opj.intranet.justice.gouv.fr/refresh', { index: 'openjustice_0' }, {
-  	json: true
+    json: true
   })
   console.log(response.body)
-
+  */
   console.log('Teardown...')
 
   console.log('Exit.')
