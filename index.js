@@ -5,7 +5,7 @@ const path = require('path')
 function runScript(scriptPath, shortFlag, callback) {
   let invoked = false
   const process = childProcess.fork(scriptPath, [shortFlag ? 'short' : 'long'], {
-    cwd: '/home/sebc/jurinet/'
+    cwd: '/home/openjustice/openjustice-sder/'
   })
   process.on('error', (err) => {
     if (invoked) return
@@ -48,7 +48,7 @@ function main() {
     runScript(path.join(__dirname, 'import.js'), false, (err) => {
       if (err) throw err
       console.log('Long batch to be continued...')
-      setTimeout(main, 60000)
+      setTimeout(main, 15 * 60 * 1000)
     })
   } else {
     console.log('Running short loop...')
@@ -59,7 +59,7 @@ function main() {
       runScript(path.join(__dirname, 'import.js'), false, (err) => {
         if (err) throw err
         console.log('Long batch to be continued...')
-        setTimeout(main, 60000)
+        setTimeout(main, 15 * 60 * 1000)
       })
     })
   }

@@ -135,7 +135,7 @@ async function main() {
       const hash = crypto.createHash('md5').update(JSON.stringify(row)).digest('hex')
       if (jurinetHashes[row[process.env.MONGO_ID]] === undefined) {
         try {
-          await collection.insertOne(row)
+          await collection.insertOne(row, { bypassDocumentValidation: true })
           jurinetHashes[row[process.env.MONGO_ID]] = hash
           newCount++
         } catch (e) {
@@ -144,7 +144,7 @@ async function main() {
         }
       } else if (jurinetHashes[row[process.env.MONGO_ID]] !== hash) {
         try {
-          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row)
+          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true })
           jurinetHashes[row[process.env.MONGO_ID]] = hash
           updated = true
           updateCount++
@@ -170,10 +170,10 @@ async function main() {
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
-            await decisions.insertOne(normDec)
+            await decisions.insertOne(normDec, { bypassDocumentValidation: true })
             normalizeCount++
           } else if (normalized.locked === false) {
-            if (updated === true || normalized._version !== decisionsVersion || normalized.zoning === undefined || (normalized.zoning && normalized.zoning.detail)) {
+            if (updated === true || normalized._version !== decisionsVersion || !normalized.zoning || (normalized.zoning && normalized.zoning.detail)) {
               let normDec = JurinetUtils.Normalize(row, normalized)
               if (normDec.pseudoText) {
                 try {
@@ -186,7 +186,7 @@ async function main() {
                 normDec.zoning = undefined
               }
               normDec._version = decisionsVersion
-              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec)
+              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, { bypassDocumentValidation: true })
               normalizeCount++
             }
           }
@@ -261,7 +261,7 @@ async function main() {
       const hash = crypto.createHash('md5').update(JSON.stringify(row)).digest('hex')
       if (juricaHashes[row[process.env.MONGO_ID]] === undefined) {
         try {
-          await collection.insertOne(row)
+          await collection.insertOne(row, { bypassDocumentValidation: true })
           juricaHashes[row[process.env.MONGO_ID]] = hash
           newCount++
         } catch (e) {
@@ -270,7 +270,7 @@ async function main() {
         }
       } else if (juricaHashes[row[process.env.MONGO_ID]] !== hash) {
         try {
-          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row)
+          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true })
           juricaHashes[row[process.env.MONGO_ID]] = hash
           updated = true
           updateCount++
@@ -295,10 +295,10 @@ async function main() {
             normDec.zoning = undefined
           }
           normDec._version = decisionsVersion
-          await decisions.insertOne(normDec)
+          await decisions.insertOne(normDec, { bypassDocumentValidation: true })
           normalizeCount++
         } else if (normalized.locked === false) {
-          if (updated === true || normalized._version !== decisionsVersion || normalized.zoning === undefined || (normalized.zoning && normalized.zoning.detail)) {
+          if (updated === true || normalized._version !== decisionsVersion || !normalized.zoning || (normalized.zoning && normalized.zoning.detail)) {
             let normDec = JuricaUtils.Normalize(row, normalized)
             if (normDec.pseudoText) {
               try {
@@ -311,7 +311,7 @@ async function main() {
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
-            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec)
+            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, { bypassDocumentValidation: true })
             normalizeCount++
           }
         }
@@ -398,7 +398,7 @@ async function mainShort() {
       const hash = crypto.createHash('md5').update(JSON.stringify(row)).digest('hex')
       if (jurinetHashes[row[process.env.MONGO_ID]] === undefined) {
         try {
-          await collection.insertOne(row)
+          await collection.insertOne(row, { bypassDocumentValidation: true })
           jurinetHashes[row[process.env.MONGO_ID]] = hash
           newCount++
         } catch (e) {
@@ -407,7 +407,7 @@ async function mainShort() {
         }
       } else if (jurinetHashes[row[process.env.MONGO_ID]] !== hash) {
         try {
-          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row)
+          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true })
           jurinetHashes[row[process.env.MONGO_ID]] = hash
           updated = true
           updateCount++
@@ -433,10 +433,10 @@ async function mainShort() {
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
-            await decisions.insertOne(normDec)
+            await decisions.insertOne(normDec, { bypassDocumentValidation: true })
             normalizeCount++
           } else if (normalized.locked === false) {
-            if (updated === true || normalized._version !== decisionsVersion || normalized.zoning === undefined || (normalized.zoning && normalized.zoning.detail)) {
+            if (updated === true || normalized._version !== decisionsVersion || !normalized.zoning || (normalized.zoning && normalized.zoning.detail)) {
               let normDec = JurinetUtils.Normalize(row, normalized)
               if (normDec.pseudoText) {
                 try {
@@ -449,7 +449,7 @@ async function mainShort() {
                 normDec.zoning = undefined
               }
               normDec._version = decisionsVersion
-              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec)
+              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, { bypassDocumentValidation: true })
               normalizeCount++
             }
           }
@@ -515,7 +515,7 @@ async function mainShort() {
       const hash = crypto.createHash('md5').update(JSON.stringify(row)).digest('hex')
       if (juricaHashes[row[process.env.MONGO_ID]] === undefined) {
         try {
-          await collection.insertOne(row)
+          await collection.insertOne(row, { bypassDocumentValidation: true })
           juricaHashes[row[process.env.MONGO_ID]] = hash
           newCount++
         } catch (e) {
@@ -524,7 +524,7 @@ async function mainShort() {
         }
       } else if (juricaHashes[row[process.env.MONGO_ID]] !== hash) {
         try {
-          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row)
+          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true })
           juricaHashes[row[process.env.MONGO_ID]] = hash
           updated = true
           updateCount++
@@ -549,10 +549,10 @@ async function mainShort() {
             normDec.zoning = undefined
           }
           normDec._version = decisionsVersion
-          await decisions.insertOne(normDec)
+          await decisions.insertOne(normDec, { bypassDocumentValidation: true })
           normalizeCount++
         } else if (normalized.locked === false) {
-          if (updated === true || normalized._version !== decisionsVersion || normalized.zoning === undefined || (normalized.zoning && normalized.zoning.detail)) {
+          if (updated === true || normalized._version !== decisionsVersion || !normalized.zoning || (normalized.zoning && normalized.zoning.detail)) {
             let normDec = JuricaUtils.Normalize(row, normalized)
             if (normDec.pseudoText) {
               try {
@@ -565,7 +565,7 @@ async function mainShort() {
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
-            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec)
+            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, { bypassDocumentValidation: true })
             normalizeCount++
           }
         }
@@ -605,7 +605,7 @@ async function getZones(id, source, text) {
     source: source,
     text: text
   })
-  const response = await needle('post', 'http://127.0.0.1:8090/zonage', zoneData, {
+  const response = await needle('post', 'http://10.16.64.7:8090/zonage', zoneData, {
     json: true
   })
   delete response.body.arret_id
