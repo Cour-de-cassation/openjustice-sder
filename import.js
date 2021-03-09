@@ -92,19 +92,19 @@ if (juricaEmptyRoundCount > roundSize || juricaOffset > maxOffset) {
 }
 
 function parseError(e) {
-	if (e) {
-		let error = {}
+  if (e) {
+    let error = {}
 
-		try {
-			Object.getOwnPropertyNames(e).forEach(function (key) {
-				error[key] = e[key]
-			})
-		} catch (ignore) {}
+    try {
+      Object.getOwnPropertyNames(e).forEach(function (key) {
+        error[key] = e[key]
+      })
+    } catch (ignore) { }
 
-		return error
-	} else {
-		return 'unknown'
-	}
+    return error
+  } else {
+    return 'unknown'
+  }
 }
 
 /* MAIN LOOP */
@@ -178,17 +178,17 @@ async function main() {
             if (normDec.pseudoText) {
               try {
                 normDec.zoning = await getZones(normDec.sourceId, normDec.sourceName, normDec.pseudoText)
-		if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
-			fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
-	      		console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
-		}
+                if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
+                  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
+                  console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
+                }
               } catch (e) {
-		fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
-	      	console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
+                fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
                 normDec.zoning = undefined
               }
             } else {
-	      console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
+              console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
@@ -200,14 +200,17 @@ async function main() {
               if (normDec.pseudoText) {
                 try {
                   normDec.zoning = await getZones(normDec.sourceId, normDec.sourceName, normDec.pseudoText)
-		  if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
-			fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
-		  }
+                  if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
+                    fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
+                    console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
+                  }
                 } catch (e) {
-		  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                  console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
                   normDec.zoning = undefined
                 }
               } else {
+                console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
                 normDec.zoning = undefined
               }
               normDec._version = decisionsVersion
@@ -312,14 +315,17 @@ async function main() {
           if (normDec.pseudoText) {
             try {
               normDec.zoning = await getZones(normDec.sourceId, normDec.sourceName, normDec.pseudoText)
-	      if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
-		fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
-	      }
+              if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
+                fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
+                console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
+              }
             } catch (e) {
-	      fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+              fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+              console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
               normDec.zoning = undefined
             }
           } else {
+            console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
             normDec.zoning = undefined
           }
           normDec._version = decisionsVersion
@@ -331,14 +337,17 @@ async function main() {
             if (normDec.pseudoText) {
               try {
                 normDec.zoning = await getZones(normDec.sourceId, normDec.sourceName, normDec.pseudoText)
-	        if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
-		  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
-	        }
+                if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
+                  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
+                  console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
+                }
               } catch (e) {
-	        fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
                 normDec.zoning = undefined
               }
             } else {
+              console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
@@ -456,14 +465,17 @@ async function mainShort() {
             if (normDec.pseudoText) {
               try {
                 normDec.zoning = await getZones(normDec.sourceId, normDec.sourceName, normDec.pseudoText)
-	        if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
-		  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
-	        }
+                if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
+                  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
+                  console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
+                }
               } catch (e) {
-	        fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
                 normDec.zoning = undefined
               }
             } else {
+              console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
@@ -475,14 +487,17 @@ async function mainShort() {
               if (normDec.pseudoText) {
                 try {
                   normDec.zoning = await getZones(normDec.sourceId, normDec.sourceName, normDec.pseudoText)
-	          if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
-		    fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
-	          }
+                  if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
+                    fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
+                    console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
+                  }
                 } catch (e) {
-	          fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurinet.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                  console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
                   normDec.zoning = undefined
                 }
               } else {
+                console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
                 normDec.zoning = undefined
               }
               normDec._version = decisionsVersion
@@ -578,14 +593,17 @@ async function mainShort() {
           if (normDec.pseudoText) {
             try {
               normDec.zoning = await getZones(normDec.sourceId, normDec.sourceName, normDec.pseudoText)
-	      if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
-	        fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
-	      }
+              if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
+                fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
+                console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
+              }
             } catch (e) {
-	      fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+              fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+              console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
               normDec.zoning = undefined
             }
           } else {
+            console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
             normDec.zoning = undefined
           }
           normDec._version = decisionsVersion
@@ -597,14 +615,17 @@ async function mainShort() {
             if (normDec.pseudoText) {
               try {
                 normDec.zoning = await getZones(normDec.sourceId, normDec.sourceName, normDec.pseudoText)
-	        if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
-	          fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
-	        }
+                if (!normDec.zoning || (normDec.zoning && normDec.zoning.detail)) {
+                  fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(normDec.zoning) }) + '\n')
+                  console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(normDec.zoning))
+                }
               } catch (e) {
-	        fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                fs.appendFileSync(path.join(__dirname, 'zoningerror_jurica.log'), JSON.stringify({ id: normDec.sourceId, error: parseError(e) }) + '\n')
+                console.error(normDec.sourceName, normDec.sourceId, 'zoning error', parseError(e))
                 normDec.zoning = undefined
               }
             } else {
+              console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion

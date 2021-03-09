@@ -62,7 +62,7 @@ class JuricaUtils {
       dateCreation.setSeconds(0)
       dateCreation.setMilliseconds(0)
     }
-    
+
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
       sourceId: document._id,
