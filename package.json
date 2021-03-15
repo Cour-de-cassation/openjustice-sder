@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --config jestconfig.json"
   },
   "author": "",
   "license": "ISC",
@@ -22,5 +22,8 @@
     "natural": "^2.1.5",
     "oracledb": "^5.0.0",
     "string-similarity": "^4.0.2"
+  },
+  "devDependencies": {
+    "jest": "26.6.3"
   }
 }
