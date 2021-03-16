@@ -48,7 +48,7 @@ function main() {
     runScript(path.join(__dirname, 'import.js'), false, (err) => {
       if (err) throw err
       console.log('Long batch to be continued...')
-      setTimeout(main, 15 * 60 * 1000)
+      setTimeout(main, 60 * 60 * 1000)
     })
   } else {
     console.log('Running short loop...')
@@ -59,7 +59,7 @@ function main() {
       runScript(path.join(__dirname, 'import.js'), false, (err) => {
         if (err) throw err
         console.log('Long batch to be continued...')
-        setTimeout(main, 15 * 60 * 1000)
+        setTimeout(main, 60 * 60 * 1000)
       })
     })
   }
