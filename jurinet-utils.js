@@ -164,6 +164,7 @@ class JurinetUtils {
 
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
+      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
       sourceId: document._id,
       sourceName: 'jurinet',
       jurisdictionId: undefined,
@@ -190,7 +191,9 @@ class JurinetUtils {
         reference: []
       },
       parties: {},
-      locked: false
+      locked: false,
+      labelStatus: 'toBeTreated',
+      labelTreatments: []
     }
 
     if (cleanedXml && cleanedXml.numpourvois && cleanedXml.numpourvois[0] && cleanedXml.numpourvois[0].numpourvoi) {
@@ -226,6 +229,18 @@ class JurinetUtils {
           normalizedDecision.analysis.reference.push(normalizedReference)
         }
       })
+    }
+
+    if (previousVersion) {
+      if (previousVersion.labelStatus) {
+        normalizedDecision.labelStatus = previousVersion.labelStatus
+      }
+      if (previousVersion.labelTreatments) {
+        normalizedDecision.labelTreatments = previousVersion.labelTreatments
+      }
+      if (previousVersion._version) {
+        normalizedDecision._version = previousVersion._version
+      }
     }
 
     return normalizedDecision

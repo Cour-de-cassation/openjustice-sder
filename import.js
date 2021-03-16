@@ -188,7 +188,6 @@ async function main() {
                 normDec.zoning = undefined
               }
             } else {
-              // console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
@@ -210,7 +209,6 @@ async function main() {
                   normDec.zoning = undefined
                 }
               } else {
-                // console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
                 normDec.zoning = undefined
               }
               normDec._version = decisionsVersion
@@ -325,7 +323,6 @@ async function main() {
               normDec.zoning = undefined
             }
           } else {
-            // console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
             normDec.zoning = undefined
           }
           normDec._version = decisionsVersion
@@ -347,7 +344,6 @@ async function main() {
                 normDec.zoning = undefined
               }
             } else {
-              // console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
@@ -475,7 +471,6 @@ async function mainShort() {
                 normDec.zoning = undefined
               }
             } else {
-              // console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
@@ -497,7 +492,6 @@ async function mainShort() {
                   normDec.zoning = undefined
                 }
               } else {
-                // console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
                 normDec.zoning = undefined
               }
               normDec._version = decisionsVersion
@@ -603,7 +597,6 @@ async function mainShort() {
               normDec.zoning = undefined
             }
           } else {
-            // console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
             normDec.zoning = undefined
           }
           normDec._version = decisionsVersion
@@ -625,7 +618,6 @@ async function mainShort() {
                 normDec.zoning = undefined
               }
             } else {
-              // console.error(normDec.sourceName, normDec.sourceId, 'no pseudonymized text')
               normDec.zoning = undefined
             }
             normDec._version = decisionsVersion
