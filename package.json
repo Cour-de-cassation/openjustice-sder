@@ -23,7 +23,8 @@
     "mongodb": "^3.6.2",
     "natural": "^2.1.5",
     "oracledb": "^5.0.0",
-    "string-similarity": "^4.0.2"
+    "string-similarity": "^4.0.2",
+    "walkdir": "^0.4.1"
   },
   "devDependencies": {
     "eslint": "^6.6.0",
