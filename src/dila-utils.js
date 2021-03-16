@@ -1,5 +1,5 @@
-const parser = require('fast-xml-parser')
-const he = require('he')
+const parser = require('fast-xml-parser');
+const he = require('he');
 
 const parserOptions = {
   attributeNamePrefix: '$',
@@ -14,29 +14,27 @@ const parserOptions = {
   cdataTagName: false,
   parseTrueNumberOnly: false,
   arrayMode: true,
-  trimValues: true
-}
+  trimValues: true,
+};
 
 class DilaUtils {
-
   static CleanXML(xml) {
-    
-    return xml
+    return xml;
   }
 
   static XMLToJSON(xml, opt) {
-    opt = opt || {}
-    opt.filter = opt.filter || false
-    opt.htmlDecode = opt.htmlDecode || false
-    opt.toLowerCase = opt.toLowerCase || false
-    let valid = false
+    opt = opt || {};
+    opt.filter = opt.filter || false;
+    opt.htmlDecode = opt.htmlDecode || false;
+    opt.toLowerCase = opt.toLowerCase || false;
+    let valid = false;
 
-    valid = parser.validate(xml)
+    valid = parser.validate(xml);
     if (valid === true) {
       // Convert the XML document to JSON:
-      let finalData = parser.parse(xml, parserOptions)
+      let finalData = parser.parse(xml, parserOptions);
 
-      finalData = finalData.DOCUMENT[0]
+      finalData = finalData.DOCUMENT[0];
 
       if (opt.filter === true) {
         // Remove some undesirable data:
@@ -44,61 +42,59 @@ class DilaUtils {
 
       if (opt.htmlDecode === true) {
         // HTML-decode JSON values:
-        finalData = HtmlDecode(finalData)
+        finalData = HtmlDecode(finalData);
       }
 
       if (opt.toLowerCase === true) {
         // Convert JSON keys to lower case:
-        finalData = ConvertKeysToLowerCase(finalData)
+        finalData = ConvertKeysToLowerCase(finalData);
       }
 
-      return finalData
+      return finalData;
     } else {
-      throw new Error(`Invalid XML document: ${valid}.`)
+      throw new Error(`Invalid XML document: ${valid}.`);
     }
   }
 
-  static Normalize(document, previousVersion) {
-  
-  }
+  static Normalize(document, previousVersion) {}
 }
 
 function ConvertKeysToLowerCase(obj) {
-  let output = {}
+  let output = {};
   for (let i in obj) {
     if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
-      output[i.toLowerCase()] = ConvertKeysToLowerCase(obj[i])
+      output[i.toLowerCase()] = ConvertKeysToLowerCase(obj[i]);
     } else if (Object.prototype.toString.apply(obj[i]) === '[object Array]') {
       if (output[i.toLowerCase()] === undefined) {
-        output[i.toLowerCase()] = []
+        output[i.toLowerCase()] = [];
       }
-      output[i.toLowerCase()].push(ConvertKeysToLowerCase(obj[i][0]))
+      output[i.toLowerCase()].push(ConvertKeysToLowerCase(obj[i][0]));
     } else {
-      output[i.toLowerCase()] = obj[i]
+      output[i.toLowerCase()] = obj[i];
     }
   }
-  return output
+  return output;
 }
 
 function HtmlDecode(obj) {
-  let output = {}
+  let output = {};
   for (let i in obj) {
     if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
-      output[i] = HtmlDecode(obj[i])
+      output[i] = HtmlDecode(obj[i]);
     } else if (Object.prototype.toString.apply(obj[i]) === '[object Array]') {
       if (output[i] === undefined) {
-        output[i] = []
+        output[i] = [];
       }
-      output[i].push(HtmlDecode(obj[i][0]))
+      output[i].push(HtmlDecode(obj[i][0]));
     } else {
       try {
-        output[i] = he.decode(obj[i])
+        output[i] = he.decode(obj[i]);
       } catch (ignore) {
-        output[i] = obj[i]
+        output[i] = obj[i];
       }
     }
   }
-  return output
+  return output;
 }
 
-exports.DilaUtils = DilaUtils
+exports.DilaUtils = DilaUtils;

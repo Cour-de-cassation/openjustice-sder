@@ -64,6 +64,7 @@ class JuricaUtils {
 
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
+      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
       sourceId: document._id,
       sourceName: 'jurica',
       jurisdictionId: document.JDEC_ID_JURIDICTION,
@@ -101,7 +102,21 @@ class JuricaUtils {
       },
       parties: {},
       locked: false,
+      labelStatus: 'toBeTreated',
+      labelTreatments: [],
     };
+
+    if (previousVersion) {
+      if (previousVersion.labelStatus) {
+        normalizedDecision.labelStatus = previousVersion.labelStatus;
+      }
+      if (previousVersion.labelTreatments) {
+        normalizedDecision.labelTreatments = previousVersion.labelTreatments;
+      }
+      if (previousVersion._version) {
+        normalizedDecision._version = previousVersion._version;
+      }
+    }
 
     return normalizedDecision;
   }
