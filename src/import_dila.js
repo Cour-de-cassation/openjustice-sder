@@ -46,7 +46,7 @@ function flatten(src, dest) {
 
 /* MAIN LOOP */
 async function main() {
-  const fileStream = fs.createReadStream(path.join(__dirname, 'dila_import.json'));
+  const fileStream = fs.createReadStream(path.join(__dirname, '..', 'data', 'dila_import.json'));
   const rl = readline.createInterface({
     input: fileStream,
     crlfDelay: Infinity,
