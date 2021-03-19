@@ -1,100 +1,118 @@
 const parser = require('fast-xml-parser');
+const iconv = require('iconv-lite');
 const he = require('he');
+iconv.skipDecodeWarning = true;
 
 const parserOptions = {
-  attributeNamePrefix: '$',
-  attrNodeName: '$attributes',
-  textNodeName: '$value',
+  attributeNamePrefix: '',
+  attrNodeName: false,
+  textNodeName: '$TEXT',
   ignoreAttributes: false,
   ignoreNameSpace: true,
   allowBooleanAttributes: false,
-  parseNodeValue: false,
+  parseNodeValue: true,
   parseAttributeValue: false,
   trimValues: true,
   cdataTagName: false,
   parseTrueNumberOnly: false,
-  arrayMode: true,
+  arrayMode: false,
   trimValues: true,
+  tagValueProcessor: val => he.decode(he.decode(val)),
+  attrValueProcessor : val => he.decode(he.decode(val)),
 };
 
 class DilaUtils {
   static CleanXML(xml) {
+    // Rename the <CONTENU> tag inside <CITATION_JP> tag:
+    xml = xml.replace(/<CITATION_JP>[^<]*<CONTENU>/gm, '<CITATION_JP><CONTENU_JP>');
+    xml = xml.replace(/<\/CONTENU>[^<]*<\/CITATION_JP>/gm, '</CONTENU_JP></CITATION_JP>');
+
+    // <CONTENU> splitting and removing:
+    const fragments = xml.split(/<\/?CONTENU>/g);
+
+    if (fragments.length < 3) {
+      throw new Error('<CONTENU> tag not found or incomplete: the document could be malformed or corrupted.');
+    }
+
+    xml = xml.replace(/<CONTENU>[\s\S]*<\/CONTENU>/gm, '');
+
+    // Cleaning of every <CONTENU> fragment:
+    const contenu = [];
+    for (let j = 0; j < fragments.length; j++) {
+      if ((j % 2 !== 0 || j > 1) && j < fragments.length - 1) {
+        // There could be some (useless) HTML tags to remove:
+        fragments[j] = fragments[j].replace(/<br\s*[^\/>]*\/>/gim, '\n');
+        fragments[j] = fragments[j].replace(/<hr\s*[^\/>]*\/>/gim, '\n');
+        fragments[j] = fragments[j].replace(/<\w+\s*[^>]*>/gim, '');
+        fragments[j] = fragments[j].replace(/<h\d\s*[^>]*>/gim, '');
+
+        fragments[j] = fragments[j].replace(/<\/p>/gim, '\n');
+        fragments[j] = fragments[j].replace(/<\/h\d>/gim, '\n');
+        fragments[j] = fragments[j].replace(/<\/\w+>/gim, ' ');
+
+        fragments[j] = fragments[j].replace(/\t/gim, '');
+        fragments[j] = fragments[j].replace(/\\t/gim, '');
+        fragments[j] = fragments[j].replace(/\f/gim, '');
+        fragments[j] = fragments[j].replace(/\\f/gim, '');
+        fragments[j] = fragments[j].replace(/\r\n/gim, '\n');
+        fragments[j] = fragments[j].replace(/\s*\n\s+/gim, '\n');
+        fragments[j] = fragments[j].replace(/  +/gm, ' ');
+
+        // Minimal set of entities for XML validation:
+        fragments[j] = fragments[j]
+          .replace(/&/g, '&amp;')
+          .replace(/&amp;amp;/g, '&amp;')
+          .replace(/&amp;#/g, '&#');
+        fragments[j] = fragments[j].replace(/</g, '&lt;');
+        fragments[j] = fragments[j].replace(/>/g, '&gt;');
+        fragments[j] = fragments[j].trim();
+
+        // Ignore empty fragment:
+        if (fragments[j].length > 0) {
+          contenu.push(fragments[j]);
+        }
+      }
+    }
+
+    // Cleaning the rest of the document:
+    xml = xml
+      .replace(/&/g, '&amp;')
+      .replace(/&amp;amp;/g, '&amp;')
+      .replace(/&amp;#/g, '&#');
+    xml = xml.replace(/\s<\s/g, ' &lt; ');
+    xml = xml.replace(/\s>\s/g, ' &gt; ');
+
+    // Reinject the merged <CONTENU> element(s):
+    if (xml.indexOf('</BLOC_TEXTUEL>') !== -1) {
+      xml = xml.replace('</BLOC_TEXTUEL>', '<CONTENU>' + contenu.join(' ').trim() + '</CONTENU></BLOC_TEXTUEL>');
+      xml = xml.trim();
+    } else {
+      throw new Error('End of <BLOC_TEXTUEL> tag not found: the document could be malformed or corrupted.');
+    }
+
     return xml;
   }
 
   static XMLToJSON(xml, opt) {
     opt = opt || {};
     opt.filter = opt.filter || false;
-    opt.htmlDecode = opt.htmlDecode || false;
-    opt.toLowerCase = opt.toLowerCase || false;
     let valid = false;
 
     valid = parser.validate(xml);
     if (valid === true) {
       // Convert the XML document to JSON:
       let finalData = parser.parse(xml, parserOptions);
-
-      finalData = finalData.DOCUMENT[0];
-
+      finalData = finalData[Object.keys(finalData)[0]];
       if (opt.filter === true) {
         // Remove some undesirable data:
       }
-
-      if (opt.htmlDecode === true) {
-        // HTML-decode JSON values:
-        finalData = HtmlDecode(finalData);
-      }
-
-      if (opt.toLowerCase === true) {
-        // Convert JSON keys to lower case:
-        finalData = ConvertKeysToLowerCase(finalData);
-      }
-
       return finalData;
     } else {
-      throw new Error(`Invalid XML document: ${valid}.`);
+      throw new Error(`Invalid XML document: ${valid.err.msg}, line ${valid.err.line}.`);
     }
   }
 
   static Normalize(document, previousVersion) {}
-}
-
-function ConvertKeysToLowerCase(obj) {
-  let output = {};
-  for (let i in obj) {
-    if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
-      output[i.toLowerCase()] = ConvertKeysToLowerCase(obj[i]);
-    } else if (Object.prototype.toString.apply(obj[i]) === '[object Array]') {
-      if (output[i.toLowerCase()] === undefined) {
-        output[i.toLowerCase()] = [];
-      }
-      output[i.toLowerCase()].push(ConvertKeysToLowerCase(obj[i][0]));
-    } else {
-      output[i.toLowerCase()] = obj[i];
-    }
-  }
-  return output;
-}
-
-function HtmlDecode(obj) {
-  let output = {};
-  for (let i in obj) {
-    if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
-      output[i] = HtmlDecode(obj[i]);
-    } else if (Object.prototype.toString.apply(obj[i]) === '[object Array]') {
-      if (output[i] === undefined) {
-        output[i] = [];
-      }
-      output[i].push(HtmlDecode(obj[i][0]));
-    } else {
-      try {
-        output[i] = he.decode(obj[i]);
-      } catch (ignore) {
-        output[i] = obj[i];
-      }
-    }
-  }
-  return output;
 }
 
 exports.DilaUtils = DilaUtils;
