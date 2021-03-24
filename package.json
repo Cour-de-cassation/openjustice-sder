@@ -1,0 +1,31 @@
+{
+  "name": "openjustice-sder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "dependencies": {
+    "async": "^3.2.0",
+    "dotenv": "^8.2.0",
+    "fast-xml-parser": "^3.19.0",
+    "he": "^1.2.0",
+    "iconv-lite": "^0.6.2",
+    "mongodb": "^3.6.5",
+    "needle": "^2.6.0",
+    "oracledb": "^5.1.0",
+    "walkdir": "^0.4.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cour-de-cassation/openjustice-sder.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cour-de-cassation/openjustice-sder/issues"
+  },
+  "homepage": "https://github.com/Cour-de-cassation/openjustice-sder#readme"
+}
