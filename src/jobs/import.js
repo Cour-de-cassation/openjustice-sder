@@ -1,173 +1,69 @@
 require('dotenv').config();
-const fs = require('fs');
-const path = require('path');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JurinetUtils } = require('../jurinet-utils');
 const { JuricaOracle } = require('../jurica-oracle');
 const { JuricaUtils } = require('../jurica-utils');
 const { MongoClient } = require('mongodb');
-const crypto = require('crypto');
-const needle = require('needle');
-const batchSize = 500;
-const roundSize = 10000;
-const maxOffset = 900000;
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
-console.log('Setup...');
-
-/* INIT JURINET */
-const jurinetOrder = 'DESC';
-
-const jurinetSource = new JurinetOracle({
-  verbose: true,
-});
-
-const jurinetHashes = {};
-try {
-  let lines = fs.readFileSync(path.join(__dirname, 'hashes.history')).toString().split('\n');
-  lines.forEach((line) => {
-    if (line) {
-      let [id, hash] = line.split(':');
-      jurinetHashes[id] = hash;
-    }
-  });
-} catch (ignore) {}
-
-let jurinetOffset = 0;
-try {
-  jurinetOffset = parseInt(fs.readFileSync(path.join(__dirname, 'offset.history')).toString(), 10);
-} catch (ignore) {
-  jurinetOffset = 0;
-}
-
-let jurinetEmptyRoundCount = 0;
-try {
-  jurinetEmptyRoundCount = parseInt(fs.readFileSync(path.join(__dirname, 'emptyround.history')).toString(), 10);
-} catch (ignore) {
-  jurinetEmptyRoundCount = 0;
-}
-if (jurinetEmptyRoundCount > roundSize || jurinetOffset > maxOffset) {
-  console.log('Jurinet - Reset loop.');
-  jurinetOffset = 0;
-  jurinetEmptyRoundCount = 0;
-}
-
-/* INIT JURICA */
-const juricaOrder = 'DESC';
-
-const juricaSource = new JuricaOracle({
-  verbose: true,
-});
-
-const juricaHashes = {};
-try {
-  let lines = fs.readFileSync(path.join(__dirname, 'hashes_jurica.history')).toString().split('\n');
-  lines.forEach((line) => {
-    if (line) {
-      let [id, hash] = line.split(':');
-      juricaHashes[id] = hash;
-    }
-  });
-} catch (ignore) {}
-
-let juricaOffset = 0;
-try {
-  juricaOffset = parseInt(fs.readFileSync(path.join(__dirname, 'offset_jurica.history')).toString(), 10);
-} catch (ignore) {
-  juricaOffset = 0;
-}
-
-let juricaEmptyRoundCount = 0;
-try {
-  juricaEmptyRoundCount = parseInt(fs.readFileSync(path.join(__dirname, 'emptyround_jurica.history')).toString(), 10);
-} catch (ignore) {
-  juricaEmptyRoundCount = 0;
-}
-
-if (juricaEmptyRoundCount > roundSize || juricaOffset > maxOffset) {
-  console.log('Jurica - Reset loop.');
-  juricaOffset = 0;
-  juricaEmptyRoundCount = 0;
-}
-
-function parseError(e) {
-  if (e) {
-    let error = {};
-
-    try {
-      Object.getOwnPropertyNames(e).forEach(function (key) {
-        error[key] = e[key];
-      });
-    } catch (ignore) {}
-
-    return error;
-  } else {
-    return 'unknown';
-  }
-}
-
-/* MAIN LOOP */
 async function main() {
-  // PROCESS JURINET
-  await jurinetSource.connect();
-  const jurinetResult = await jurinetSource.getBatch({
-    offset: jurinetOffset,
-    limit: batchSize,
-    all: true,
-    titrage: true,
-    order: jurinetOrder,
+  await importJurinet();
+}
+
+async function importJurinet() {
+  console.log('Setup DB Clients...');
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
   });
+  await client.connect();
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+  const jurinetSource = new JurinetOracle({
+    verbose: true,
+  });
+  await jurinetSource.connect();
+
+  console.log('Get new decisions from Jurinet...');
+  const jurinetResult = await jurinetSource.getNew();
   await jurinetSource.close();
 
   if (jurinetResult) {
-    if (jurinetOrder === 'DESC') {
-      jurinetResult.sort((a, b) => {
-        if (a[process.env.MONGO_ID] < b[process.env.MONGO_ID]) {
-          return -1;
-        }
-        if (a[process.env.MONGO_ID] > b[process.env.MONGO_ID]) {
-          return 1;
-        }
-        return 0;
-      });
-    }
-    const client = new MongoClient(process.env.MONGO_URI, {
-      useUnifiedTopology: true,
-    });
-    await client.connect();
-    const database = client.db(process.env.MONGO_DBNAME);
-    const collection = database.collection(process.env.MONGO_JURINET_COLLECTION);
-    const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
-    let newCount = 0;
-    let updateCount = 0;
-    let normalizeCount = 0;
-    let errorCount = 0;
-    let oldOffset = jurinetOffset;
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
-      let updated = false;
-      const hash = crypto.createHash('md5').update(JSON.stringify(row)).digest('hex');
-      if (jurinetHashes[row[process.env.MONGO_ID]] === undefined) {
+      let raw = await rawJurinet.findOne({ ID_DOCUMENT: row.ID_DOCUMENT, _id: row[process.env.MONGO_ID] });
+      if (raw === null) {
+        console.log('add new', row)
+        /*
         try {
-          await collection.insertOne(row, { bypassDocumentValidation: true });
-          jurinetHashes[row[process.env.MONGO_ID]] = hash;
-          newCount++;
+          await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
+          if (row['AUT_CREATION'] !== 'WINCI' && row['TYPE_ARRET'] === 'CC') {
+            let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurinet' });
+            if (normalized === null) {
+              // @TODO
+            }
+          }
         } catch (e) {
           console.error(e);
-          errorCount++;
         }
-      } else if (jurinetHashes[row[process.env.MONGO_ID]] !== hash) {
-        try {
-          await collection.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
-          jurinetHashes[row[process.env.MONGO_ID]] = hash;
-          updated = true;
-          updateCount++;
-        } catch (e) {
-          console.error(e);
-          errorCount++;
-        }
+        */
       }
+    }
+  }
+}
 
+async function importJurica() {
+  const juricaOrder = 'DESC';
+  const juricaSource = new JuricaOracle({
+    verbose: true,
+  });
+  // @TODO
+}
+
+/* OLD MAIN LOOP
+async function main() {
+  // PROCESS JURINET
+  if (jurinetResult) {
       if (row['AUT_CREATION'] !== 'WINCI' && row['TYPE_ARRET'] === 'CC') {
         try {
           let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurinet' });
@@ -768,3 +664,6 @@ if (process.argv[2] === 'short') {
 } else {
   main();
 }
+*/
+
+main();

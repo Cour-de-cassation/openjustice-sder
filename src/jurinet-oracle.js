@@ -56,6 +56,45 @@ class JurinetOracle {
     }
   }
 
+  async getNew() {
+    if (this.connected === true && this.connection !== null) {
+      const query = `SELECT * 
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_ANO_TEXT_FIELD} IS NULL
+        AND ${process.env.DB_VALID_FIELD} IS NULL`;
+      const result = await this.connection.execute(query);
+      if (result && result.rows && result.rows.length > 0) {
+        let rows = [];
+        for (let i = 0; i < result.rows.length; i++) {
+          let row = {};
+          for (let key in result.rows[i]) {
+            switch (key) {
+              case process.env.DB_ID_FIELD:
+                row[process.env.MONGO_ID] = result.rows[i][key];
+                break;
+              default:
+                try {
+                  if (typeof result.rows[i][key].getData === 'function') {
+                    row[key] = await result.rows[i][key].getData();
+                  } else {
+                    row[key] = result.rows[i][key];
+                  }
+                  row[key] = iconv.decode(row[key], process.env.ENCODING);
+                } catch (ignore) {}
+                break;
+            }
+          }
+          rows.push(row);
+        }
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Not connected.');
+    }
+  }
+
   async getBatch(opt) {
     opt = opt || {};
     opt.all = opt.all || false;
@@ -165,9 +204,9 @@ class JurinetOracle {
   /**
    * Method to reinject the pseudonymized text of the given decision
    * into the XMLA field of its original Jurinet document.
-   * 
-   * @param {*} decision 
-   * @returns 
+   *
+   * @param {*} decision
+   * @returns
    * @throws
    */
   async reinject(decision) {
