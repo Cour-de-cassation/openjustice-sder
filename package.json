@@ -4,7 +4,9 @@
   "description": "",
   "main": "src/index.js",
   "dependencies": {
+    "@ladjs/graceful": "^1.0.5",
     "async": "^3.2.0",
+    "bree": "^6.2.0",
     "dotenv": "^8.2.0",
     "fast-xml-parser": "^3.19.0",
     "he": "^1.2.0",
