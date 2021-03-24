@@ -161,6 +161,46 @@ class JurinetOracle {
       throw new Error('Jurinet - Not connected.');
     }
   }
+
+  async reinject(decision) {
+    if (!decision || !decision.sourceId || !decision.pseudoText) {
+      throw new Error('Invalid decision to reinject.');
+    } else if (this.connected === true && this.connection !== null) {
+      const readQuery = `SELECT * 
+          FROM ${process.env.DB_TABLE}
+          WHERE ${process.env.DB_ID_FIELD} = :id`;
+      const readResult = await this.connection.execute(readQuery, [decision.sourceId]);
+      if (readResult && readResult.rows && readResult.rows.length > 0) {
+        let xmla = await readResult.rows[0]['XML'].getData();
+        xmla = iconv.decode(xmla, process.env.ENCODING);
+        xmla = xmla.replace(/<texte_arret>[\s\S]*<\/texte_arret>/gim, '');
+        if (xmla.indexOf('</DOCUMENT>') !== -1) {
+          xmla = xmla.replace('</DOCUMENT>', '<TEXTE_ARRET>' + decision.pseudoText + '</TEXTE_ARRET></DOCUMENT>');
+          xmla = iconv.encode(xmla, process.env.ENCODING);
+          const updateQuery = `UPDATE ${process.env.DB_TABLE}
+            SET ${process.env.DB_ANO_TEXT_FIELD} = :xmla,
+            ${process.env.DB_STATE_FIELD} = :ok,
+            AUT_ANO = :label,
+            DT_ENVOI_DILA = NULL
+            WHERE ${process.env.DB_ID_FIELD} = :id`;
+            // @TODO OTHER FIELDS TO UPDATE?
+          const updateResult = await this.connection.execute(
+            updateQuery,
+            [xmla, process.env.DB_STATE_OK, 'LABEL', decision.sourceId],
+            { autoCommit: true },
+          );
+          // @TODO UPDATE FLAG IN DECISION?
+          return updateResult;
+        } else {
+          throw new Error('End of <DOCUMENT> tag not found: the document could be malformed or corrupted.');
+        }
+      } else {
+        throw new Error(`Original decision '${decision.sourceId}' not found.`);
+      }
+    } else {
+      throw new Error('Not connected.');
+    }
+  }
 }
 
 exports.JurinetOracle = JurinetOracle;
