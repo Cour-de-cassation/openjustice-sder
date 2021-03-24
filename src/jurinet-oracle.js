@@ -162,25 +162,49 @@ class JurinetOracle {
     }
   }
 
+  /**
+   * Method to reinject the pseudonymized text of the given decision
+   * into the XMLA field of its original Jurinet document.
+   * 
+   * @param {*} decision 
+   * @returns 
+   * @throws
+   */
   async reinject(decision) {
+    // We don't check the value of labelStatus or some other properties
+    // because we may need to force the reinjection of the given decision
+    // independently of its status within the workflow of Label,
+    // so the only required properties are sourceId and pseudoText:
     if (!decision || !decision.sourceId || !decision.pseudoText) {
       throw new Error('Invalid decision to reinject.');
     } else if (this.connected === true && this.connection !== null) {
+      // 1. Get the original decision from Jurinet:
       const readQuery = `SELECT * 
           FROM ${process.env.DB_TABLE}
           WHERE ${process.env.DB_ID_FIELD} = :id`;
       const readResult = await this.connection.execute(readQuery, [decision.sourceId]);
+
       if (readResult && readResult.rows && readResult.rows.length > 0) {
+        // 2. Get the content of the original XML field to create the new XMLA field:
         let xmla = await readResult.rows[0]['XML'].getData();
+
+        // 3. Decode the XML content from CP1252 to UTF-8 then remove its <TEXTE_ARRET> tag:
         xmla = iconv.decode(xmla, process.env.ENCODING);
         xmla = xmla.replace(/<texte_arret>[\s\S]*<\/texte_arret>/gim, '');
+
         if (xmla.indexOf('</DOCUMENT>') !== -1) {
+          // 4. Reinject the <TEXTE_ARRET> tag but with the pseudonymized content,
+          // then encode it back to CP1252 (required by the DILA export script):
           xmla = xmla.replace('</DOCUMENT>', '<TEXTE_ARRET>' + decision.pseudoText + '</TEXTE_ARRET></DOCUMENT>');
           xmla = iconv.encode(xmla, process.env.ENCODING);
-          const now = new Date()
-	  let date = now.getDate() < 10 ? '0' + now.getDate() : now.getDate()
-	  date += '/' + ((now.getMonth() + 1) < 10 ? '0' + (now.getMonth() + 1) : (now.getMonth() + 1))
-	  date += '/' + now.getFullYear()
+
+          // 5. Build the date manually (locale methods tend to fail on our servers...):
+          const now = new Date();
+          let date = now.getDate() < 10 ? '0' + now.getDate() : now.getDate();
+          date += '/' + (now.getMonth() + 1 < 10 ? '0' + (now.getMonth() + 1) : now.getMonth() + 1);
+          date += '/' + now.getFullYear();
+
+          // 6. Update query (which, contrary to the doc, requires xmla to be passed as a String):
           const updateQuery = `UPDATE ${process.env.DB_TABLE}
             SET ${process.env.DB_ANO_TEXT_FIELD} = :xmla,
             ${process.env.DB_STATE_FIELD} = :ok,
