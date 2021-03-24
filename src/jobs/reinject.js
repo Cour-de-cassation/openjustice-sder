@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { JurinetOracle } = require('./jurinet-oracle');
+const { JurinetOracle } = require('../jurinet-oracle');
 const { MongoClient } = require('mongodb');
 
 async function main() {

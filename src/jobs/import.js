@@ -1,10 +1,10 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const { JurinetOracle } = require('./jurinet-oracle');
-const { JurinetUtils } = require('./jurinet-utils');
-const { JuricaOracle } = require('./jurica-oracle');
-const { JuricaUtils } = require('./jurica-utils');
+const { JurinetOracle } = require('../jurinet-oracle');
+const { JurinetUtils } = require('../jurinet-utils');
+const { JuricaOracle } = require('../jurica-oracle');
+const { JuricaUtils } = require('../jurica-utils');
 const { MongoClient } = require('mongodb');
 const crypto = require('crypto');
 const needle = require('needle');

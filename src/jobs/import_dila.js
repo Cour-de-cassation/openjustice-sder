@@ -2,7 +2,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const walk = require('walkdir');
-const { DilaUtils } = require('./dila-utils');
+const { DilaUtils } = require('../dila-utils');
 const { MongoClient } = require('mongodb');
 const needle = require('needle');
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
