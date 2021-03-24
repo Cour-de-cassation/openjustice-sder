@@ -171,9 +171,9 @@ class JurinetOracle {
    * @throws
    */
   async reinject(decision) {
-    // We don't check the value of labelStatus or some other properties
+    // We don't check the value of labelStatus or some other Label properties
     // because we may need to force the reinjection of the given decision
-    // independently of its status within the workflow of Label,
+    // independently of its status within the Label workflow,
     // so the only required properties are sourceId and pseudoText:
     if (!decision || !decision.sourceId || !decision.pseudoText) {
       throw new Error('Invalid decision to reinject.');

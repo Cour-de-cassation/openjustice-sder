@@ -24,11 +24,15 @@ async function main() {
     try {
       console.log(`Reinjecting decision ${decision.sourceId}...`);
       await jurinetSource.reinject(decision);
-      // Decision goes from 'done' to 'exported':
+
+      // The labelStatus of the decision goes from 'done' to 'exported'.
+      // We don't do this in the 'reinject' method because we may need 
+      // to reinject some decisions independently of the Label workflow:
       decision.labelStatus = 'exported';
       await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
         bypassDocumentValidation: true,
       });
+
       console.log('Reinjection done.');
       successCount++;
     } catch (e) {
@@ -38,7 +42,6 @@ async function main() {
   }
 
   console.log('Teardown...');
-
   await client.close();
   await jurinetSource.close();
 
