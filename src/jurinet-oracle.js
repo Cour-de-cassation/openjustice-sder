@@ -178,21 +178,23 @@ class JurinetOracle {
           xmla = xmla.replace('</DOCUMENT>', '<TEXTE_ARRET>' + decision.pseudoText + '</TEXTE_ARRET></DOCUMENT>');
           xmla = iconv.encode(xmla, process.env.ENCODING);
           const now = new Date()
+	  let date = now.getDate() < 10 ? '0' + now.getDate() : now.getDate()
+	  date += '/' + ((now.getMonth() + 1) < 10 ? '0' + (now.getMonth() + 1) : (now.getMonth() + 1))
+	  date += '/' + now.getFullYear()
           const updateQuery = `UPDATE ${process.env.DB_TABLE}
             SET ${process.env.DB_ANO_TEXT_FIELD} = :xmla,
             ${process.env.DB_STATE_FIELD} = :ok,
             AUT_ANO = :label,
-            DT_ANO = :date,
+            DT_ANO = :datea,
+            DT_MODIF_ANO = :dateb,
             DT_ENVOI_DILA = NULL
             WHERE ${process.env.DB_ID_FIELD} = :id`;
-            // @TODO OTHER FIELDS TO UPDATE?
-          const updateResult = await this.connection.execute(
+          await this.connection.execute(
             updateQuery,
-            [xmla, process.env.DB_STATE_OK, 'LABEL', now.toLocaleDateString('fr-FR'), decision.sourceId],
+            [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', date, date, decision.sourceId],
             { autoCommit: true },
           );
-          // @TODO UPDATE FLAG IN DECISION?
-          return updateResult;
+          return true;
         } else {
           throw new Error('End of <DOCUMENT> tag not found: the document could be malformed or corrupted.');
         }
