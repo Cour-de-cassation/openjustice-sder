@@ -177,16 +177,18 @@ class JurinetOracle {
         if (xmla.indexOf('</DOCUMENT>') !== -1) {
           xmla = xmla.replace('</DOCUMENT>', '<TEXTE_ARRET>' + decision.pseudoText + '</TEXTE_ARRET></DOCUMENT>');
           xmla = iconv.encode(xmla, process.env.ENCODING);
+          const now = new Date()
           const updateQuery = `UPDATE ${process.env.DB_TABLE}
             SET ${process.env.DB_ANO_TEXT_FIELD} = :xmla,
             ${process.env.DB_STATE_FIELD} = :ok,
             AUT_ANO = :label,
+            DT_ANO = :date,
             DT_ENVOI_DILA = NULL
             WHERE ${process.env.DB_ID_FIELD} = :id`;
             // @TODO OTHER FIELDS TO UPDATE?
           const updateResult = await this.connection.execute(
             updateQuery,
-            [xmla, process.env.DB_STATE_OK, 'LABEL', decision.sourceId],
+            [xmla, process.env.DB_STATE_OK, 'LABEL', now.toLocaleDateString('fr-FR'), decision.sourceId],
             { autoCommit: true },
           );
           // @TODO UPDATE FLAG IN DECISION?
