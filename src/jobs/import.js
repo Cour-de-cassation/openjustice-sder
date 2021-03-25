@@ -1,4 +1,6 @@
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JurinetUtils } = require('../jurinet-utils');
 const { JuricaOracle } = require('../jurica-oracle');
@@ -8,6 +10,7 @@ const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
 async function main() {
   await importJurinet();
+  return true;
 }
 
 async function importJurinet() {
@@ -24,14 +27,19 @@ async function importJurinet() {
   });
   await jurinetSource.connect();
 
-  console.log('Get new decisions from Jurinet...');
-  const jurinetResult = await jurinetSource.getNew();
-  await jurinetSource.close();
+  let previousId = 0;
+  try {
+	previousId = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'previousId_jurinet.data')).toString());
+  } catch (ignore) {}
 
+  console.log(`Get new decisions from Jurinet (previous ID: ${previousId})...`);
+  const jurinetResult = await jurinetSource.getNew(previousId);
   if (jurinetResult) {
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
-      let raw = await rawJurinet.findOne({ ID_DOCUMENT: row.ID_DOCUMENT, _id: row[process.env.MONGO_ID] });
+      console.log(row._id)
+      previousId = Math.max(previousId, row._id);
+      let raw = await rawJurinet.findOne({ _id: row._id });
       if (raw === null) {
         console.log('add new', row)
         /*
@@ -50,6 +58,13 @@ async function importJurinet() {
       }
     }
   }
+  try {
+	fs.writeFileSync(path.join(__dirname, 'data', 'previousId_jurinet.data'), previousId);
+  } catch (ignore) {}
+  console.log(`Teardown (previous ID is now: ${previousId})...`);
+  await client.close();
+  await jurinetSource.close();
+  return true;
 }
 
 async function importJurica() {
