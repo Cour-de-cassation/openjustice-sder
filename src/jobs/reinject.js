@@ -10,6 +10,7 @@ async function main() {
     useUnifiedTopology: true,
   });
   await client.connect();
+
   const database = client.db(process.env.MONGO_DBNAME);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
   const jurinetSource = new JurinetOracle({

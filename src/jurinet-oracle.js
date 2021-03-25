@@ -7,8 +7,6 @@ const oracledb = require('oracledb');
 iconv.skipDecodeWarning = true;
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
-// @TODO opt.parties
-
 class JurinetOracle {
   constructor(opt) {
     opt = opt || {};
@@ -26,10 +24,10 @@ class JurinetOracle {
       });
       this.connected = true;
       if (this.verbose === true) {
-        console.info(`Jurinet - Connected to Oracle v${this.connection.oracleServerVersionString}.`);
+        console.info(`Connected to Oracle v${this.connection.oracleServerVersionString}.`);
       }
     } else {
-      throw new Error('Jurinet - Already connected.');
+      throw new Error('Already connected.');
     }
   }
 
@@ -37,10 +35,10 @@ class JurinetOracle {
     if (this.connected === true && this.connection !== null) {
       await this.connection.close();
       if (this.verbose === true) {
-        console.info('Jurinet - Disconnected from Oracle.');
+        console.info('Disconnected from Oracle.');
       }
     } else {
-      throw new Error('Jurinet - Not connected.');
+      throw new Error('Not connected.');
     }
   }
 
@@ -53,10 +51,21 @@ class JurinetOracle {
         ORDER BY column_id`;
       return await this.connection.execute(query);
     } else {
-      throw new Error('Jurinet - Not connected.');
+      throw new Error('Not connected.');
     }
   }
 
+  /**
+   * Get new decisions from Jurinet,
+   * given the latest Id of the previous batch.
+   *
+   * New decisions are documents that have:
+   *  - No pseudonymized text (XMLA = NULL)
+   *  - No pseudonymized task in progress (IND_ANO = 0)
+   *
+   * @param {Number} previousId
+   * @returns {Array} An array of documents (with UTF-8 encoded content)
+   */
   async getNew(previousId) {
     if (this.connected === true && this.connection !== null) {
       const query = `SELECT * 
@@ -200,7 +209,7 @@ class JurinetOracle {
         return null;
       }
     } else {
-      throw new Error('Jurinet - Not connected.');
+      throw new Error('Not connected.');
     }
   }
 

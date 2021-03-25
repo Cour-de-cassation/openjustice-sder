@@ -7,8 +7,6 @@ const oracledb = require('oracledb');
 iconv.skipDecodeWarning = true;
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
-// @TODO opt.parties
-
 class JuricaOracle {
   constructor(opt) {
     opt = opt || {};
@@ -26,10 +24,10 @@ class JuricaOracle {
       });
       this.connected = true;
       if (this.verbose === true) {
-        console.info(`Jurica - Connected to Oracle v${this.connection.oracleServerVersionString}.`);
+        console.info(`Connected to Oracle v${this.connection.oracleServerVersionString}.`);
       }
     } else {
-      throw new Error('Jurica - Already connected.');
+      throw new Error('Already connected.');
     }
   }
 
@@ -37,10 +35,10 @@ class JuricaOracle {
     if (this.connected === true && this.connection !== null) {
       await this.connection.close();
       if (this.verbose === true) {
-        console.info('Jurica - Disconnected from Oracle.');
+        console.info('Disconnected from Oracle.');
       }
     } else {
-      throw new Error('Jurica - Not connected.');
+      throw new Error('Not connected.');
     }
   }
 
@@ -53,10 +51,21 @@ class JuricaOracle {
         ORDER BY column_id`;
       return await this.connection.execute(query);
     } else {
-      throw new Error('Jurica - Not connected.');
+      throw new Error('Not connected.');
     }
   }
 
+  /**
+   * Get new decisions from Jurica,
+   * given the latest Id of the previous batch.
+   *
+   * New decisions are documents that have:
+   *  - No pseudonymized text (HTMLA = NULL)
+   *  - No pseudonymized task in progress (IND_ANO = 0)
+   *
+   * @param {Number} previousId
+   * @returns {Array} An array of documents (with UTF-8 encoded content)
+   */
   async getNew(previousId) {
     if (this.connected === true && this.connection !== null) {
       const query = `SELECT * 
@@ -170,29 +179,7 @@ class JuricaOracle {
             }
           }
           if (opt.titrage === true) {
-            // @TODO CAN'T FIND "TITRAGE" STUFF FOR JURICA...
-            // Inject "titrage" data (if any) into the result:
-            /*
-            const queryTitrage = `SELECT * 
-                FROM ${process.env.DB_TITRAGE_TABLE_JURICA}
-                WHERE ${process.env.DB_ID_FIELD_JURICA} = :id`
-            const resultTitrage = await this.connection.execute(queryTitrage, [result.rows[i][process.env.DB_ID_FIELD_JURICA]])
-            if (resultTitrage && resultTitrage.rows && resultTitrage.rows.length > 0) {
-              row[process.env.TITRAGE_FIELD] = []
-              for (let j = 0; j < resultTitrage.rows.length; j++) {
-                let titrageObj = {}
-                for (let key in resultTitrage.rows[j]) {
-                  titrageObj[key] = resultTitrage.rows[j][key]
-                  try {
-                    titrageObj[key] = iconv.decode(titrageObj[key], process.env.ENCODING)
-                  } catch (ignore) { }
-                }
-                row[process.env.TITRAGE_FIELD].push(titrageObj)
-              }
-            } else {
-              row[process.env.TITRAGE_FIELD] = null
-            }
-            */
+            // @TODO?
           }
           rows.push(row);
         }
@@ -201,7 +188,7 @@ class JuricaOracle {
         return null;
       }
     } else {
-      throw new Error('Jurica - Not connected.');
+      throw new Error('Not connected.');
     }
   }
 }
