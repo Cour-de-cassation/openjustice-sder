@@ -29,7 +29,7 @@ async function importJurinet() {
 
   let previousId = 0;
   try {
-	previousId = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'previousId_jurinet.data')).toString());
+    previousId = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'previousId_jurinet.data')).toString());
   } catch (ignore) {}
 
   console.log(`Get new decisions from Jurinet (previous ID: ${previousId})...`);
@@ -37,11 +37,11 @@ async function importJurinet() {
   if (jurinetResult) {
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
-      console.log(row._id)
+      console.log(row._id);
       previousId = Math.max(previousId, row._id);
       let raw = await rawJurinet.findOne({ _id: row._id });
       if (raw === null) {
-        console.log('add new', row)
+        console.log('add new', row);
         /*
         try {
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
@@ -55,11 +55,13 @@ async function importJurinet() {
           console.error(e);
         }
         */
+      } else {
+        console.log('already there, skip...')
       }
     }
   }
   try {
-	fs.writeFileSync(path.join(__dirname, 'data', 'previousId_jurinet.data'), previousId);
+    fs.writeFileSync(path.join(__dirname, 'data', 'previousId_jurinet.data'), previousId);
   } catch (ignore) {}
   console.log(`Teardown (previous ID is now: ${previousId})...`);
   await client.close();

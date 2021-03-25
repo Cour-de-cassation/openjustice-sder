@@ -26,7 +26,7 @@ async function main() {
       await jurinetSource.reinject(decision);
 
       // The labelStatus of the decision goes from 'done' to 'exported'.
-      // We don't do this in the 'reinject' method because we may need 
+      // We don't do this in the 'reinject' method because we may need
       // to reinject some decisions independently of the Label workflow:
       decision.labelStatus = 'exported';
       await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
