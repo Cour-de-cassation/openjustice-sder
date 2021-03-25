@@ -41,12 +41,27 @@ class JurinetUtils {
         fragments[j] = fragments[j].replace(/<u\s+[^>]+>/gim, '');
         fragments[j] = fragments[j].replace(/<em\s+[^>]+>/gim, '');
         fragments[j] = fragments[j].replace(/<strong\s+[^>]+>/gim, '');
+        fragments[j] = fragments[j].replace(/<font\s+[^>]+>/gim, '');
+        fragments[j] = fragments[j].replace(/<span\s+[^>]+>/gim, '');
+        fragments[j] = fragments[j].replace(/<p\s+[^>]+>/gim, '');
         fragments[j] = fragments[j].replace(/<h\d\s+[^>]+>/gim, '');
+
+        fragments[j] = fragments[j].replace(/<\/a>/gim, ' ');
+        fragments[j] = fragments[j].replace(/<\/b>/gim, ' ');
+        fragments[j] = fragments[j].replace(/<\/i>/gim, ' ');
+        fragments[j] = fragments[j].replace(/<\/u>/gim, ' ');
+        fragments[j] = fragments[j].replace(/<\/em>/gim, ' ');
+        fragments[j] = fragments[j].replace(/<\/strong>/gim, ' ');
+        fragments[j] = fragments[j].replace(/<\/font>/gim, ' ');
+        fragments[j] = fragments[j].replace(/<\/span>/gim, ' ');
+        fragments[j] = fragments[j].replace(/<\/p>/gim, '\r\n');
+        fragments[j] = fragments[j].replace(/<\/h\d>/gim, '\r\n');
 
         fragments[j] = fragments[j].replace(/\t/gim, '');
         fragments[j] = fragments[j].replace(/\\t/gim, '');
         fragments[j] = fragments[j].replace(/\f/gim, '');
         fragments[j] = fragments[j].replace(/\\f/gim, '');
+        fragments[j] = fragments[j].replace(/\s\s+/gim, ' ');
 
         // Minimal set of entities for XML validation:
         fragments[j] = fragments[j]

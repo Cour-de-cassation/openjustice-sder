@@ -56,6 +56,47 @@ class JuricaOracle {
     }
   }
 
+  async getNew(previousId) {
+    if (this.connected === true && this.connection !== null) {
+      const query = `SELECT * 
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
+        AND ${process.env.DB_STATE_FIELD_JURICA} = 0
+	      AND ${process.env.DB_ID_FIELD_JURICA} > :id
+        ORDER BY ${process.env.DB_ID_FIELD_JURICA} ASC`;
+      const result = await this.connection.execute(query, [previousId]);
+      if (result && result.rows && result.rows.length > 0) {
+        let rows = [];
+        for (let i = 0; i < result.rows.length; i++) {
+          let row = {};
+          for (let key in result.rows[i]) {
+            switch (key) {
+              case process.env.DB_ID_FIELD_JURICA:
+                row[process.env.MONGO_ID] = result.rows[i][key];
+                break;
+              default:
+                try {
+                  if (typeof result.rows[i][key].getData === 'function') {
+                    row[key] = await result.rows[i][key].getData();
+                  } else {
+                    row[key] = result.rows[i][key];
+                  }
+                  row[key] = iconv.decode(row[key], process.env.ENCODING);
+                } catch (ignore) {}
+                break;
+            }
+          }
+          rows.push(row);
+        }
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Not connected.');
+    }
+  }
+
   async getBatch(opt) {
     opt = opt || {};
     opt.all = opt.all || false;
