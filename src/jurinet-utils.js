@@ -222,7 +222,7 @@ class JurinetUtils {
       },
       parties: {},
       locked: false,
-      labelStatus: 'toBeTreated',
+      labelStatus: pseudoText ? 'exported' : 'toBeTreated',
       labelTreatments: [],
     };
 

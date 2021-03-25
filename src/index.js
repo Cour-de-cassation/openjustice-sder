@@ -7,14 +7,12 @@ const bree = new Bree({
   jobs: [
     {
       name: 'import',
-      interval: 'every 5 minute',
+      interval: 'every 5 minutes',
     },
-    /*
     {
       name: 'reinject',
       interval: 'every hour',
     },
-    */
   ],
 });
 

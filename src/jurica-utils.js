@@ -102,7 +102,7 @@ class JuricaUtils {
       },
       parties: {},
       locked: false,
-      labelStatus: 'toBeTreated',
+      labelStatus: pseudoText ? 'exported' : 'toBeTreated',
       labelTreatments: [],
     };
 
