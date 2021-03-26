@@ -12,7 +12,9 @@ Le scheduling de ces jobs est assuré par le script `src/index.js`, lequel est d
 
 ## Installation et exécution
 
-Les opérations suivantes sont déjà faites dans le serveur de dévelopement `BPKANONYM` (dans `/home/sebc/openjustice-sder`, sans lancement automatique) et dans le serveur de production `SRVANONYM` (dans `/home/openjustice/openjustice-sder`) :
+**Les opérations d'installation sont déjà faites dans le serveur de dévelopement `BPKANONYM` (dans `/home/sebc/openjustice-sder`, sans lancement automatique) et dans le serveur de production `SRVANONYM` (dans `/home/openjustice/openjustice-sder`, lancement automatique en place). Dans le serveur de production, la tâche "pipeline" est en pause en attendant la mise en production de Label. Il suffira alors d'exécuter la commande `pm2 start pipeline` en tant que `root` pour activer les jobs d'import et de reversement une fois que l'application Sword sera arrêtée.**
+
+Procédure d'installation et d'exécution dans un système vierge :
 
 * Installer Node.js (10+) et [PM2](https://pm2.keymetrics.io/) ;
 * Clôner le présent dépôt ;
