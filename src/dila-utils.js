@@ -17,11 +17,31 @@ const parserOptions = {
   parseTrueNumberOnly: false,
   arrayMode: false,
   trimValues: true,
-  tagValueProcessor: val => he.decode(he.decode(val)),
-  attrValueProcessor : val => he.decode(he.decode(val)),
+  tagValueProcessor: (val) => he.decode(he.decode(val)),
+  attrValueProcessor: (val) => he.decode(he.decode(val)),
 };
 
 class DilaUtils {
+  static CleanString(str, removeNumbers) {
+    str = str.trim();
+    if (removeNumbers) {
+      str = str.replace(/^\(\s*\d+\s*\)\s*(:|\.)?\s*\n?/gm, '');
+      str = str.replace(/^\(\s*\d+\s*°\s*\)\s*(:|\.)?\s*\n?/gm, '');
+      str = str.replace(/^\d+\s*°\s*(:|\.)?\s*\n?/gm, '');
+    }
+    str = str
+      .replace(/<br\s*[^\/>]*\/>/gim, '\n')
+      .replace(/\r\n/gm, '\n')
+      .replace(/\n\s+/gm, '\n')
+      .replace(/\n+/gm, '\n')
+      .replace(/\t/gm, ' ')
+      .replace(/\f/gm, ' ')
+      .replace(/  +/gm, ' ')
+      .trim();
+    str = str.replace(/\s+\.$/gm, '.');
+    return str;
+  }
+
   static CleanXML(xml) {
     // Rename the <CONTENU> tag inside <CITATION_JP> tag:
     xml = xml.replace(/<CITATION_JP>[^<]*<CONTENU>/gm, '<CITATION_JP><CONTENU_JP>');

@@ -46,7 +46,7 @@ function flatten(src, dest) {
 
 /* MAIN LOOP */
 async function main() {
-  const fileStream = fs.createReadStream(path.join(__dirname, '..', 'data', 'dila_import.json'));
+  const fileStream = fs.createReadStream(path.join(__dirname, 'data', 'dila_import.json'));
   const rl = readline.createInterface({
     input: fileStream,
     crlfDelay: Infinity,
@@ -86,7 +86,7 @@ async function main() {
         TEXTE: null,
         TITRAGE: [],
         SOMMAIRE: [],
-        PRECEDENTS: null,
+        PRECEDENTS: [],
         TEXTES_APPLIQUES: [],
       };
       if (decision.META.META_SPEC.META_JURI_JUDI) {
@@ -136,26 +136,80 @@ async function main() {
           if (Array.isArray(decision.TEXTE.SOMMAIRE.SCT)) {
             decision.TEXTE.SOMMAIRE.SCT.forEach((item) => {
               if (item['$TEXT']) {
-                decisionToStore.TITRAGE.push(item['$TEXT']);
+                decisionToStore.TITRAGE.push(DilaUtils.CleanString(item['$TEXT'], true));
               }
             });
           } else if (decision.TEXTE.SOMMAIRE.SCT['$TEXT']) {
-            decisionToStore.TITRAGE.push(decision.TEXTE.SOMMAIRE.SCT['$TEXT']);
+            decisionToStore.TITRAGE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.SCT['$TEXT'], true));
+          } else {
+            decisionToStore.TITRAGE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.SCT, true));
           }
+          let cleanedTitrage = [];
+          decisionToStore.TITRAGE.forEach((item) => {
+            if (item) {
+              let subTitrage = [];
+              item.split('-').forEach((subItem) => {
+                subItem = subItem
+                  .replace(/^\s*\*/gm, '')
+                  .replace(/\.\s*$/gm, '')
+                  .trim();
+                if (subItem) {
+                  subTitrage.push(subItem);
+                }
+              });
+              if (subTitrage.length > 0) {
+                cleanedTitrage.push(subTitrage);
+              }
+            }
+          });
+          decisionToStore.TITRAGE = cleanedTitrage;
         }
         if (decision.TEXTE.SOMMAIRE && decision.TEXTE.SOMMAIRE.ANA) {
           if (Array.isArray(decision.TEXTE.SOMMAIRE.ANA)) {
             decision.TEXTE.SOMMAIRE.ANA.forEach((item) => {
               if (item['$TEXT']) {
-                decisionToStore.SOMMAIRE.push(item['$TEXT']);
+                decisionToStore.SOMMAIRE.push(DilaUtils.CleanString(item['$TEXT'], true));
               }
             });
           } else if (decision.TEXTE.SOMMAIRE.ANA['$TEXT']) {
-            decisionToStore.SOMMAIRE.push(decision.TEXTE.SOMMAIRE.ANA['$TEXT']);
+            decisionToStore.SOMMAIRE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.ANA['$TEXT'], true));
+          } else {
+            decisionToStore.SOMMAIRE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.ANA, true));
           }
         }
         if (decision.TEXTE.CITATION_JP && decision.TEXTE.CITATION_JP.CONTENU_JP) {
-          decisionToStore.PRECEDENTS = decision.TEXTE.CITATION_JP.CONTENU_JP;
+          if (Array.isArray(decision.TEXTE.CITATION_JP.CONTENU_JP)) {
+            decision.TEXTE.CITATION_JP.CONTENU_JP.forEach((item) => {
+              if (item['$TEXT']) {
+                decisionToStore.PRECEDENTS.push(DilaUtils.CleanString(item['$TEXT'], true));
+              }
+            });
+          } else if (decision.TEXTE.CITATION_JP.CONTENU_JP['$TEXT']) {
+            decisionToStore.PRECEDENTS.push(
+              DilaUtils.CleanString(decision.TEXTE.CITATION_JP.CONTENU_JP['$TEXT'], true),
+            );
+          } else {
+            decisionToStore.PRECEDENTS.push(DilaUtils.CleanString(decision.TEXTE.CITATION_JP.CONTENU_JP, true));
+          }
+          let cleanedPrecedents = [];
+          decisionToStore.PRECEDENTS.forEach((item) => {
+            if (item) {
+              item.split(/(?:cf\.|id\.|;|\n)/i).forEach((subItem) => {
+                subItem = DilaUtils.CleanString(subItem, true);
+                subItem = subItem
+                  .replace(/^.*:/, '')
+                  .replace(/\.\s*$/, '')
+                  .trim();
+                if (subItem && /\d+/.test(subItem) === true) {
+                  cleanedPrecedents.push(subItem);
+                }
+              });
+            }
+          });
+          decisionToStore.PRECEDENTS = cleanedPrecedents;
+          if (decisionToStore.PRECEDENTS.length > 0) {
+            console.log(decisionToStore.PRECEDENTS);
+          }
         }
       }
       if (decision.LIENS) {
@@ -163,24 +217,42 @@ async function main() {
           if (Array.isArray(decision.LIENS.LIEN)) {
             decision.LIENS.LIEN.forEach((item) => {
               if (item['$TEXT']) {
-                decisionToStore.TEXTES_APPLIQUES.push(item['$TEXT']);
+                decisionToStore.TEXTES_APPLIQUES.push(DilaUtils.CleanString(item['$TEXT'], true));
               }
             });
           } else if (decision.LIENS.LIEN['$TEXT']) {
-            decisionToStore.TEXTES_APPLIQUES.push(decision.LIENS.LIEN['$TEXT']);
+            decisionToStore.TEXTES_APPLIQUES.push(DilaUtils.CleanString(decision.LIENS.LIEN['$TEXT'], true));
+          } else {
+            decisionToStore.TEXTES_APPLIQUES.push(DilaUtils.CleanString(decision.LIENS.LIEN, true));
           }
+          let cleanedTextesApp = [];
+          decisionToStore.TEXTES_APPLIQUES.forEach((item) => {
+            if (item) {
+              item.split(/;/).forEach((subItem) => {
+                subItem = DilaUtils.CleanString(subItem, true);
+                subItem = subItem
+                  .replace(/^.*:/, '')
+                  .replace(/\.\s*$/, '')
+                  .trim();
+                if (subItem && /\d+/.test(subItem) === true) {
+                  cleanedTextesApp.push(subItem);
+                }
+              });
+            }
+          });
+          decisionToStore.TEXTES_APPLIQUES = cleanedTextesApp;
         }
       }
       for (let key in decisionToStore) {
         if (typeof decisionToStore[key] === 'string') {
-          decisionToStore[key] = decisionToStore[key].trim(); // @TODO CLEAN
+          decisionToStore[key] = DilaUtils.CleanString(decisionToStore[key]);
           if (decisionToStore[key] === '') {
             decisionToStore[key] = null;
           }
         } else if (Array.isArray(decisionToStore[key])) {
           decisionToStore[key].forEach((item, index) => {
             if (typeof item === 'string') {
-              decisionToStore[key][index] = item.trim(); // @TODO CLEAN
+              decisionToStore[key][index] = DilaUtils.CleanString(item);
             }
           });
         }
