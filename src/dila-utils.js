@@ -132,7 +132,9 @@ class DilaUtils {
     }
   }
 
-  static Normalize(document, previousVersion) {}
+  static Normalize(document, previousVersion) {
+    // DATE_DEC, DATE_DEC_ATT: YYYY-MM-DD
+  }
 }
 
 exports.DilaUtils = DilaUtils;

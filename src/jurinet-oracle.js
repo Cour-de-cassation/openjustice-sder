@@ -71,7 +71,7 @@ class JurinetOracle {
       const query = `SELECT * 
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_ANO_TEXT_FIELD} IS NULL
-        AND ${process.env.DB_STATE_FIELD} = 0
+        AND ${process.env.DB_STATE_FIELD} < 2
 	      AND ${process.env.DB_ID_FIELD} > :id
         ORDER BY ${process.env.DB_ID_FIELD} ASC`;
       const result = await this.connection.execute(query, [previousId]);
