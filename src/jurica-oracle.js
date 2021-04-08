@@ -70,8 +70,9 @@ class JuricaOracle {
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
         AND ${process.env.DB_STATE_FIELD_JURICA} = :none
+        AND JDEC_DATE_CREATION > :prevdate
         ORDER BY ${process.env.DB_ID_FIELD_JURICA} ASC`;
-      const result = await this.connection.execute(query, [0]);
+      const result = await this.connection.execute(query, [0, '2020-01-01']);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {
