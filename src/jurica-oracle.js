@@ -56,25 +56,22 @@ class JuricaOracle {
   }
 
   /**
-   * Get new decisions from Jurica,
-   * given the latest Id of the previous batch.
+   * Get new decisions from Jurica.
    *
    * New decisions are documents that have:
    *  - No pseudonymized text (HTMLA = NULL)
    *  - No pseudonymized task in progress (IND_ANO = 0)
    *
-   * @param {Number} previousId
    * @returns {Array} An array of documents (with UTF-8 encoded content)
    */
-  async getNew(previousId) {
+  async getNew() {
     if (this.connected === true && this.connection !== null) {
       const query = `SELECT * 
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
-        AND ${process.env.DB_STATE_FIELD_JURICA} = 0
-	      AND ${process.env.DB_ID_FIELD_JURICA} > :id
+        AND ${process.env.DB_STATE_FIELD_JURICA} = :none
         ORDER BY ${process.env.DB_ID_FIELD_JURICA} ASC`;
-      const result = await this.connection.execute(query, [previousId]);
+      const result = await this.connection.execute(query, [0]);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {
@@ -186,6 +183,39 @@ class JuricaOracle {
         return rows;
       } else {
         return null;
+      }
+    } else {
+      throw new Error('Not connected.');
+    }
+  }
+
+  /**
+   * Method to mark a Jurica document as being imported for Label.
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+  async markAsImported(id) {
+    if (!id) {
+      throw new Error(`Invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      // 1. Get the original decision from Jurica:
+      const readQuery = `SELECT * 
+          FROM ${process.env.DB_TABLE_JURICA}
+          WHERE ${process.env.DB_ID_FIELD_JURICA} = :id
+          AND ${process.env.DB_STATE_FIELD_JURICA} = :none`;
+      const readResult = await this.connection.execute(readQuery, [id, 0]);
+
+      if (readResult && readResult.rows && readResult.rows.length > 0) {
+        // 2. Update query:
+        const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
+            SET ${process.env.DB_STATE_FIELD_JURICA} = :pending,
+            WHERE ${process.env.DB_ID_FIELD_JURICA} = :id`;
+        await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+        return true;
+      } else {
+        throw new Error(`Original decision '${id}' not found.`);
       }
     } else {
       throw new Error('Not connected.');

@@ -30,29 +30,20 @@ async function importJurinet() {
   });
   await jurinetSource.connect();
 
-  // Retrieve the latest ID from the previous run:
-  let previousId = 0;
-  try {
-    previousId = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'previousId_jurinet.data')).toString());
-  } catch (ignore) {}
-
   let newCount = 0;
   let errorCount = 0;
   let skipCount = 0;
 
-  console.log(`Get new decisions from Jurinet (previous ID: ${previousId})...`);
-  const jurinetResult = await jurinetSource.getNew(previousId);
+  console.log(`Get new decisions from Jurinet...`);
+  const jurinetResult = await jurinetSource.getNew();
 
   if (jurinetResult) {
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
-      previousId = Math.max(previousId, row._id);
       let raw = await rawJurinet.findOne({ _id: row._id });
       if (raw === null) {
-        newCount++;
         try {
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
-
           // We only normalize, and insert into the 'decisions' collection, the documents that are
           // actually coming from the Cour de cassation (and not the ones from WinciCA):
           if (row['AUT_CREATION'] !== 'WINCI' && row['TYPE_ARRET'] === 'CC') {
@@ -61,7 +52,13 @@ async function importJurinet() {
               let normDec = JurinetUtils.Normalize(row);
               normDec._version = decisionsVersion;
               await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              await jurinetSource.markAsImported(row._id);
+              newCount++;
+            } else {
+              skipCount++;
             }
+          } else {
+            skipCount++;
           }
         } catch (e) {
           console.error(e);
@@ -73,13 +70,8 @@ async function importJurinet() {
     }
   }
 
-  // Store the latest ID for the next run:
-  try {
-    fs.writeFileSync(path.join(__dirname, 'data', 'previousId_jurinet.data'), previousId);
-  } catch (ignore) {}
-
-  console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount})...`);
-  console.log(`Teardown (previous ID is now: ${previousId})...`);
+  console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}).`);
+  console.log(`Teardown...`);
 
   await client.close();
   await jurinetSource.close();
@@ -101,26 +93,18 @@ async function importJurica() {
   });
   await juricaSource.connect();
 
-  // Retrieve the latest ID from the previous run:
-  let previousId = 0;
-  try {
-    previousId = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'previousId_jurica.data')).toString());
-  } catch (ignore) {}
-
   let newCount = 0;
   let errorCount = 0;
   let skipCount = 0;
 
-  console.log(`Get new decisions from Jurica (previous ID: ${previousId})...`);
-  const juricaResult = await juricaSource.getNew(previousId);
+  console.log(`Get new decisions from Jurica...`);
+  const juricaResult = await juricaSource.getNew();
 
   if (juricaResult) {
     for (let i = 0; i < juricaResult.length; i++) {
       let row = juricaResult[i];
-      previousId = Math.max(previousId, row._id);
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
-        newCount++;
         try {
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
@@ -128,6 +112,10 @@ async function importJurica() {
             let normDec = JuricaUtils.Normalize(row);
             normDec._version = decisionsVersion;
             await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            await juricaSource.markAsImported(row._id);
+            newCount++;
+          } else {
+            skipCount++;
           }
         } catch (e) {
           console.error(e);
@@ -139,13 +127,8 @@ async function importJurica() {
     }
   }
 
-  // Store the latest ID for the next run:
-  try {
-    fs.writeFileSync(path.join(__dirname, 'data', 'previousId_jurica.data'), previousId);
-  } catch (ignore) {}
-
-  console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount})...`);
-  console.log(`Teardown (previous ID is now: ${previousId})...`);
+  console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}).`);
+  console.log(`Teardown...`);
 
   await client.close();
   await juricaSource.close();

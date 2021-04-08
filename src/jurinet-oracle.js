@@ -56,25 +56,22 @@ class JurinetOracle {
   }
 
   /**
-   * Get new decisions from Jurinet,
-   * given the latest Id of the previous batch.
+   * Get new decisions from Jurinet.
    *
    * New decisions are documents that have:
    *  - No pseudonymized text (XMLA = NULL)
    *  - No pseudonymized task in progress (IND_ANO = 0)
    *
-   * @param {Number} previousId
    * @returns {Array} An array of documents (with UTF-8 encoded content)
    */
-  async getNew(previousId) {
+  async getNew() {
     if (this.connected === true && this.connection !== null) {
       const query = `SELECT * 
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_ANO_TEXT_FIELD} IS NULL
-        AND ${process.env.DB_STATE_FIELD} < 2
-	      AND ${process.env.DB_ID_FIELD} > :id
+        AND ${process.env.DB_STATE_FIELD} = :none
         ORDER BY ${process.env.DB_ID_FIELD} ASC`;
-      const result = await this.connection.execute(query, [previousId]);
+      const result = await this.connection.execute(query, [0]);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {
@@ -232,8 +229,9 @@ class JurinetOracle {
       // 1. Get the original decision from Jurinet:
       const readQuery = `SELECT * 
           FROM ${process.env.DB_TABLE}
-          WHERE ${process.env.DB_ID_FIELD} = :id`;
-      const readResult = await this.connection.execute(readQuery, [decision.sourceId]);
+          WHERE ${process.env.DB_ID_FIELD} = :id
+          AND ${process.env.DB_STATE_FIELD} = :pending`;
+      const readResult = await this.connection.execute(readQuery, [decision.sourceId, 1]);
 
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Get the content of the original XML field to create the new XMLA field:
@@ -271,7 +269,40 @@ class JurinetOracle {
           throw new Error('End of <DOCUMENT> tag not found: the document could be malformed or corrupted.');
         }
       } else {
-        throw new Error(`Original decision '${decision.sourceId}' not found.`);
+        throw new Error(`Pending decision '${decision.sourceId}' not found.`);
+      }
+    } else {
+      throw new Error('Not connected.');
+    }
+  }
+
+  /**
+   * Method to mark a Jurinet document as being imported for Label.
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+  async markAsImported(id) {
+    if (!id) {
+      throw new Error(`Invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      // 1. Get the original decision from Jurinet:
+      const readQuery = `SELECT * 
+          FROM ${process.env.DB_TABLE}
+          WHERE ${process.env.DB_ID_FIELD} = :id
+          AND ${process.env.DB_STATE_FIELD} = :none`;
+      const readResult = await this.connection.execute(readQuery, [id, 0]);
+
+      if (readResult && readResult.rows && readResult.rows.length > 0) {
+        // 2. Update query:
+        const updateQuery = `UPDATE ${process.env.DB_TABLE}
+            SET ${process.env.DB_STATE_FIELD} = :pending,
+            WHERE ${process.env.DB_ID_FIELD} = :id`;
+        await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+        return true;
+      } else {
+        throw new Error(`Original decision '${id}' not found.`);
       }
     } else {
       throw new Error('Not connected.');
