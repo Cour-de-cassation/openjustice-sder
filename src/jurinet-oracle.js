@@ -266,7 +266,7 @@ class JurinetOracle {
             WHERE ${process.env.DB_ID_FIELD} = :id`;
           await this.connection.execute(
             updateQuery,
-            [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', date, date, decision.sourceId],
+            [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
             { autoCommit: true },
           );
           return true;
