@@ -76,7 +76,11 @@ class JuricaOracle {
       let monthAgo = new Date();
       monthAgo.setMonth(monthAgo.getMonth() - 1);
       monthAgo.setHours(0, 0, 0, 0);
-      const result = await this.connection.execute(query, [0, monthAgo]);
+      let monthAgoAsString = monthAgo.getDate() < 10 ? '0' + monthAgo.getDate() : monthAgo.getDate();
+      monthAgoAsString += '/' + (monthAgo.getMonth() + 1 < 10 ? '0' + (monthAgo.getMonth() + 1) : monthAgo.getMonth() + 1);
+      monthAgoAsString += '/' + monthAgo.getFullYear();
+	console.log(monthAgoAsString)
+      const result = await this.connection.execute(query, [0, monthAgoAsString]);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {
