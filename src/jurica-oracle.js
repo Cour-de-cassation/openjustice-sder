@@ -102,7 +102,6 @@ class JuricaOracle {
             }
           }
           rows.push(row);
-	process.exit(0)
         }
         return rows;
       } else {

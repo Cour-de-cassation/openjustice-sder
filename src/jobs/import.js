@@ -15,11 +15,13 @@ async function main() {
   } catch (e) {
     console.error('Jurinet error', e)
   }
+  /*
   try {
     await importJurica();
   } catch (e) {
     console.error('Jurica error', e)
   }
+  */
   return true;
 }
 
