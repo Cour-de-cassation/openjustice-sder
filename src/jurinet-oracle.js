@@ -249,11 +249,8 @@ class JurinetOracle {
           xmla = xmla.replace('</DOCUMENT>', '<TEXTE_ARRET>' + decision.pseudoText + '</TEXTE_ARRET></DOCUMENT>');
           xmla = iconv.encode(xmla, process.env.ENCODING);
 
-          // 5. Build the date manually (locale methods tend to fail on our servers...):
+          // 5. Set the date:
           const now = new Date();
-          let date = now.getDate() < 10 ? '0' + now.getDate() : now.getDate();
-          date += '/' + (now.getMonth() + 1 < 10 ? '0' + (now.getMonth() + 1) : now.getMonth() + 1);
-          date += '/' + now.getFullYear();
 
           // 6. Update query (which, contrary to the doc, requires xmla to be passed as a String):
           const updateQuery = `UPDATE ${process.env.DB_TABLE}
