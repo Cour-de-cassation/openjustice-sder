@@ -70,9 +70,13 @@ class JurinetOracle {
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_ANO_TEXT_FIELD} IS NULL
         AND ${process.env.DB_STATE_FIELD} = :none
-        AND DT_CREATION > :prevdate
+        AND DT_CREATION > :limitdate
         ORDER BY ${process.env.DB_ID_FIELD} ASC`;
-      const result = await this.connection.execute(query, [0, '01-01-2020']);
+      // Source DBs are full of "holes" so we need to set a limit:
+      let monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      monthAgo.setHours(0, 0, 0, 0);
+      const result = await this.connection.execute(query, [0, monthAgo]);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {

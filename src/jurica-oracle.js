@@ -72,7 +72,11 @@ class JuricaOracle {
         AND ${process.env.DB_STATE_FIELD_JURICA} = :none
         AND JDEC_DATE_CREATION > :prevdate
         ORDER BY ${process.env.DB_ID_FIELD_JURICA} ASC`;
-      const result = await this.connection.execute(query, [0, '01-01-2020']);
+      // Source DBs are full of "holes" so we need to set a limit:
+      let monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      monthAgo.setHours(0, 0, 0, 0);
+      const result = await this.connection.execute(query, [0, monthAgo]);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {
