@@ -74,11 +74,11 @@ class JuricaOracle {
       strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
       const query = `SELECT * 
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE ${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
-        AND ${process.env.DB_STATE_FIELD_JURICA} = 0
-        AND JDEC_DATE_CREATION > '${strAgo}'
-        ORDER BY ${process.env.DB_ID_FIELD_JURICA} ASC`;
+        FROM ${process.env.DB_TABLE_JURICA} juricadocu0_
+        WHERE juricadocu0_.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
+        AND juricadocu0_.${process.env.DB_STATE_FIELD_JURICA} = 0
+        AND juricadocu0_.JDEC_DATE_CREATION > '${strAgo}'
+        ORDER BY juricadocu0_.${process.env.DB_ID_FIELD_JURICA} ASC`;
       const result = await this.connection.execute(query);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];

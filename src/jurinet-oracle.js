@@ -66,26 +66,20 @@ class JurinetOracle {
    */
   async getNew() {
     if (this.connected === true && this.connection !== null) {
-      const query = `SELECT * 
-        FROM ${process.env.DB_TABLE}
-        WHERE ${process.env.DB_ANO_TEXT_FIELD} IS NULL
-        AND ${process.env.DB_STATE_FIELD} = :none
-        AND DT_CREATION > :limitdate
-        ORDER BY ${process.env.DB_ID_FIELD} ASC`;
       // Source DBs are full of "holes" so we need to set a limit:
-      /*
-      let monthAgo = new Date();
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      monthAgo.setHours(0, 0, 0, 0);
-      const result = await this.connection.execute(query, [0, monthAgo]);
-      */
       let ago = new Date();
       ago.setMonth(ago.getMonth() - 1);
       ago.setHours(0, 0, 0, 0);
       let strAgo = ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '/' + ago.getFullYear();
-      const result = await this.connection.execute(query, [0, strAgo]);
+      const query = `SELECT * 
+        FROM ${process.env.DB_TABLE} jurinetdoc0_
+        WHERE jurinetdoc0_.${process.env.DB_ANO_TEXT_FIELD} IS NULL
+        AND jurinetdoc0_.${process.env.DB_STATE_FIELD} = 0
+        AND jurinetdoc0_.DT_CREATION > '${strAgo}'
+        ORDER BY jurinetdoc0_.${process.env.DB_ID_FIELD} ASC`;
+      const result = await this.connection.execute(query);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {
