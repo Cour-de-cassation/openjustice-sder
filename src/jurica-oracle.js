@@ -73,6 +73,7 @@ class JuricaOracle {
       let strAgo = ago.getFullYear();
       strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
+      // Sword uses '2015-07-17' as date limit
       const query = `SELECT * 
         FROM ${process.env.DB_TABLE_JURICA} juricadocu0_
         WHERE juricadocu0_.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
@@ -81,6 +82,9 @@ class JuricaOracle {
         ORDER BY juricadocu0_.${process.env.DB_ID_FIELD_JURICA} ASC`;
       const result = await this.connection.execute(query);
       if (result && result.rows && result.rows.length > 0) {
+	console.log(result.rows[0])
+	console.log(result.rows.length)
+	process.exit(0)
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {
           let row = {};

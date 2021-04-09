@@ -73,6 +73,7 @@ class JurinetOracle {
       let strAgo = ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '/' + ago.getFullYear();
+      // Sword uses '01/06/2016' as date limit
       const query = `SELECT * 
         FROM ${process.env.DB_TABLE} jurinetdoc0_
         WHERE jurinetdoc0_.${process.env.DB_ANO_TEXT_FIELD} IS NULL
