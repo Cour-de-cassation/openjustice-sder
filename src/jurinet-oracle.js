@@ -68,7 +68,7 @@ class JurinetOracle {
     if (this.connected === true && this.connection !== null) {
       // Source DBs are full of "holes" so we need to set a limit:
       let ago = new Date();
-      ago.setMonth(ago.getMonth() - 6);
+      ago.setMonth(ago.getMonth() - 1);
       ago.setHours(0, 0, 0, 0);
       let strAgo = ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
