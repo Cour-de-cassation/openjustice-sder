@@ -68,18 +68,18 @@ class JuricaOracle {
     if (this.connected === true && this.connection !== null) {
       // Source DBs are full of "holes" so we need to set a limit:
       let ago = new Date();
-      ago.setMonth(ago.getMonth() - 1);
+      ago.setMonth(ago.getMonth() - 6);
       ago.setHours(0, 0, 0, 0);
       let strAgo = ago.getFullYear();
       strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
       // Sword uses '2015-07-17' as date limit
       const query = `SELECT * 
-        FROM ${process.env.DB_TABLE_JURICA} juricadocu0_
-        WHERE juricadocu0_.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
-        AND juricadocu0_.${process.env.DB_STATE_FIELD_JURICA} = 0
-        AND juricadocu0_.JDEC_DATE_CREATION > '${strAgo}'
-        ORDER BY juricadocu0_.${process.env.DB_ID_FIELD_JURICA} ASC`;
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
+        AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 0
+        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= TO_DATE('${strAgo}', 'YYYY-MM-DD')
+        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
       const result = await this.connection.execute(query);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
