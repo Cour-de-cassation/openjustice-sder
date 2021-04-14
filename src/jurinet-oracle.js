@@ -75,11 +75,11 @@ class JurinetOracle {
       strAgo += '/' + ago.getFullYear();
       // Sword uses '01/06/2016' as date limit
       const query = `SELECT * 
-        FROM ${process.env.DB_TABLE} jurinetdoc0_
-        WHERE jurinetdoc0_.${process.env.DB_ANO_TEXT_FIELD} IS NULL
-        AND jurinetdoc0_.${process.env.DB_STATE_FIELD} = 0
-        AND jurinetdoc0_.DT_CREATION > '${strAgo}'
-        ORDER BY jurinetdoc0_.${process.env.DB_ID_FIELD} ASC`;
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} IS NULL
+        AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 0
+        AND ${process.env.DB_TABLE}.DT_MODIF >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
+        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
       const result = await this.connection.execute(query);
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
