@@ -49,6 +49,8 @@ async function main() {
   await jurinetSource.close();
 
   console.log(`Done - Success: ${successCount}, Error: ${errorCount}.`);
+
+  process.exit(0);
 }
 
 main();

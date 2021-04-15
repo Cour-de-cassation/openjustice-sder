@@ -20,7 +20,7 @@ async function main() {
   } catch (e) {
     console.error('Jurica error', e);
   }
-  return true;
+  process.exit(0);
 }
 
 async function importJurinet() {
