@@ -23,6 +23,9 @@ const parserOptions = {
 
 class DilaUtils {
   static CleanString(str, removeNumbers) {
+    if (typeof str !== 'string') {
+      return '';
+    }
     str = str.trim();
     if (removeNumbers) {
       str = str.replace(/^\(\s*\d+\s*\)\s*(:|\.)?\s*\n?/gm, '');
