@@ -71,11 +71,8 @@ async function main() {
     input: fileStream,
     crlfDelay: Infinity,
   });
-  let i = 0;
+  
   for await (const line of rl) {
-    // rl.on('line', async (line) => {
-    // rl.pause();
-    i++;
     try {
       let decision = JSON.parse(line);
       let decisionToStore = {
@@ -275,11 +272,9 @@ async function main() {
           });
         }
       }
-      console.log('checking...');
       let raw = await rawDila.findOne({ _id: decisionToStore._id });
       if (raw === null) {
         try {
-          console.log('adding...');
           await rawDila.insertOne(decisionToStore, { bypassDocumentValidation: true });
           newCount++;
         } catch (e) {
@@ -295,15 +290,12 @@ async function main() {
       errorCount++;
     }
   }
-  //  rl.resume();
-  // }).on('close', async () => {
+
   console.log(`Teardown...`);
-  //setTimeout(async () => {
   console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
-  // await client.close();
-  // process.exit(0);
-  //}, 60 * 1000)
-  //});
+  
+  await client.close();
+  process.exit(0);  
 }
 
 /*
