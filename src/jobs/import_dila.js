@@ -1,16 +1,17 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const walk = require('walkdir');
+// const walk = require('walkdir');
 const { DilaUtils } = require('../dila-utils');
 const { MongoClient } = require('mongodb');
-const needle = require('needle');
+// const needle = require('needle');
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 const readline = require('readline');
 
-const schema = {};
-const juri = [];
+// const schema = {};
+// const juri = [];
 
+/*
 function parseError(e) {
   if (e) {
     let error = {};
@@ -43,10 +44,28 @@ function flatten(src, dest) {
     }
   });
 }
+*/
 
 /* MAIN LOOP */
 async function main() {
-  const fileStream = fs.createReadStream(path.join(__dirname, 'data', 'dila_import.json'));
+  console.log('Setup DB Clients...');
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+  let newCount = 0;
+  let errorCount = 0;
+  let skipCount = 0;
+  let normalizeCount = 0;
+
+  const stockFilePath = path.join(__dirname, 'data', 'dila_import.json');
+  console.log(`Get decisions from DILA stock (${stockFilePath})...`);
+
+  const fileStream = fs.createReadStream(stockFilePath);
   const rl = readline.createInterface({
     input: fileStream,
     crlfDelay: Infinity,
@@ -58,7 +77,7 @@ async function main() {
     try {
       let decision = JSON.parse(line);
       let decisionToStore = {
-        ID: decision.META.META_COMMUN.ID,
+        _id: decision.META.META_COMMUN.ID,
         ORIGINE: decision.META.META_COMMUN.ORIGINE,
         URL: decision.META.META_COMMUN.URL,
         NATURE: decision.META.META_COMMUN.NATURE,
@@ -207,9 +226,6 @@ async function main() {
             }
           });
           decisionToStore.PRECEDENTS = cleanedPrecedents;
-          if (decisionToStore.PRECEDENTS.length > 0) {
-            console.log(decisionToStore.PRECEDENTS);
-          }
         }
       }
       if (decision.LIENS) {
@@ -258,10 +274,29 @@ async function main() {
         }
       }
       console.log(decisionToStore);
-    } catch (ignore) {}
+      let raw = await rawDila.findOne({ _id: decisionToStore._id });
+      if (raw === null) {
+        try {
+          await rawDila.insertOne(decisionToStore, { bypassDocumentValidation: true });
+          newCount++;
+        } catch (e) {
+          console.error(e);
+          errorCount++;
+        }
+      } else {
+        // @TODO NORMALIZE IF NOT ALREADY THERE
+        skipCount++;
+      }
+    } catch (e) {
+      console.error(e);
+      errorCount++;
+    }
     rl.resume();
   }).on('close', async () => {
-    console.log('all done');
+    console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
+    console.log(`Teardown...`);
+
+    await client.close();
     process.exit(0);
   });
 }
@@ -298,6 +333,7 @@ async function main() {
 }
 */
 
+/*
 async function getZones(id, source, text) {
   const zoneData = JSON.stringify({
     arret_id: id,
@@ -310,6 +346,7 @@ async function getZones(id, source, text) {
   delete response.body.arret_id;
   return response.body;
 }
+*/
 
 main();
 
