@@ -282,16 +282,31 @@ async function main() {
           errorCount++;
         }
       } else {
+        skipCount++;
+      }
+      let normalized = await decisions.findOne({ sourceId: decisionToStore._id, sourceName: 'dila' });
+      let normalizeDoc = null;
+      if (normalized === null) {
         if (decisionToStore.NUMERO) {
-          let normalized = await decisions.findOne({ registerNumber: decisionToStore.NUMERO, sourceName: 'jurinet' });
-          if (normalized === null) {
-            normalizeCount++;
-          } else {
-            console.log(Date.parse(normalized.dateDecision) - (Date.parse(decisionToStore.DATE_DEC) - 3600000));
-            skipCount++;
+          let alreadyFromJurinet = await decisions.findOne({
+            registerNumber: decisionToStore.NUMERO,
+            sourceName: 'jurinet',
+          });
+          if (alreadyFromJurinet === null) {
+            normalizeDoc = DilaUtils.Normalize(decisionToStore);
           }
         } else {
-          normalizeCount++;
+          normalizeDoc = DilaUtils.Normalize(decisionToStore);
+        }
+        if (normalizeDoc !== null) {
+          normalizeDoc._version = decisionsVersion;
+          try {
+            await decisions.insertOne(normalizeDoc, { bypassDocumentValidation: true });
+            normalizeCount++;
+          } catch (e) {
+            console.error(e);
+            errorCount++;
+          }
         }
       }
     } catch (e) {

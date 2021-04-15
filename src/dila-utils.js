@@ -136,7 +136,44 @@ class DilaUtils {
   }
 
   static Normalize(document, previousVersion) {
-    // DATE_DEC, DATE_DEC_ATT: YYYY-MM-DD
+    let normalizedDecision = {
+      _rev: previousVersion ? previousVersion._rev + 1 : 0,
+      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
+      sourceId: document._id,
+      sourceName: 'dila',
+      jurisdictionId: undefined,
+      jurisdictionCode: 'CC',
+      jurisdictionName: document.JURIDICTION,
+      chamberId: document.FORMATION,
+      chamberName: undefined,
+      registerNumber: document.NUMERO,
+      pubCategory: document.PUB ? 'P' : 'N',
+      dateDecision: new Date(Date.parse(document.DATE_DEC)),
+      dateCreation: new Date(),
+      solution: document.SOLUTION,
+      originalText: undefined,
+      pseudoText: document.TEXTE,
+      pseudoStatus: 2,
+      appeals: document.NUMERO_AFFAIRE,
+      analysis: {
+        target:
+          document.FORM_DEC_ATT && document.DATE_DEC_ATT
+            ? document.FORM_DEC_ATT + ', ' + document.DATE_DEC_ATT
+            : undefined,
+        link: document.PRECEDENTS,
+        source: document.URL,
+        doctrine: undefined,
+        title: document.TITRAGE,
+        summary: document.SOMMAIRE,
+        reference: document.TEXTES_APPLIQUES,
+      },
+      parties: {},
+      locked: false,
+      labelStatus: 'exported',
+      labelTreatments: [],
+    };
+
+    return normalizedDecision;
   }
 }
 
