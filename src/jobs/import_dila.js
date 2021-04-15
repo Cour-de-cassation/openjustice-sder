@@ -274,7 +274,6 @@ async function main() {
           });
         }
       }
-      console.log(decisionToStore);
       let raw = await rawDila.findOne({ _id: decisionToStore._id });
       if (raw === null) {
         try {
