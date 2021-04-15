@@ -282,24 +282,17 @@ async function main() {
           errorCount++;
         }
       } else {
-        /*
-        TITRE: 'Cour de cassation, civile, Chambre commerciale, 25 mars 2020, 18-17.924, Publié au bulletin',
-        DATE_DEC: '2020-03-25',
-        NUMERO: 42000247,
-        SOLUTION: 'Rejet',
-        NUMERO_AFFAIRE: [ '18-17924' ],
-        sourceName: 'jurinet',
-        registerNumber: document.NUM_DECISION,
-        dateDecision: document.DT_DECISION ? document.DT_DECISION.toISOString() : undefined,
-        */
-        let normalized = await decisions.findOne({ registerNumber: decisionToStore.NUMERO, sourceName: 'jurinet' });
-        if (normalized === null) {
-          
+        if (decisionToStore.NUMERO) {
+          let normalized = await decisions.findOne({ registerNumber: decisionToStore.NUMERO, sourceName: 'jurinet' });
+          if (normalized === null) {
+            normalizeCount++;
+          } else {
+            console.log(Date.parse(normalized.dateDecision) - (Date.parse(decisionToStore.DATE_DEC) - 3600000));
+            skipCount++;
+          }
         } else {
-          console.log(normalized);
-          console.log(decisionToStore);
+          normalizeCount++;
         }
-        skipCount++;
       }
     } catch (e) {
       console.error(e);
