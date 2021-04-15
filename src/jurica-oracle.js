@@ -212,16 +212,24 @@ class JuricaOracle {
       // 1. Get the original decision from Jurica:
       const readQuery = `SELECT * 
           FROM ${process.env.DB_TABLE_JURICA}
-          WHERE ${process.env.DB_ID_FIELD_JURICA} = :id
-          AND ${process.env.DB_STATE_FIELD_JURICA} = :none`;
-      const readResult = await this.connection.execute(readQuery, [id, 0]);
-
+          WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id
+          AND  ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = :none`;
+      let readResult = null;
+      try {
+        readResult = await this.connection.execute(readQuery, [id, 0]);
+      } catch (e) {
+        console.error(e);
+      }
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
-            SET ${process.env.DB_STATE_FIELD_JURICA} = :pending,
-            WHERE ${process.env.DB_ID_FIELD_JURICA} = :id`;
-        await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+            SET  ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = :pending,
+            WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
+        try {
+          await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+        } catch (e) {
+          console.error(e);
+        }
         return true;
       } else {
         throw new Error(`Original decision '${id}' not found.`);

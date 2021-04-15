@@ -238,10 +238,14 @@ class JurinetOracle {
       // 1. Get the original decision from Jurinet:
       const readQuery = `SELECT * 
           FROM ${process.env.DB_TABLE}
-          WHERE ${process.env.DB_ID_FIELD} = :id
-          AND ${process.env.DB_STATE_FIELD} = :pending`;
-      const readResult = await this.connection.execute(readQuery, [decision.sourceId, 1]);
-
+          WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id
+          AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :pending`;
+      let readResult = null;
+      try {
+        readResult = await this.connection.execute(readQuery, [decision.sourceId, 1]);
+      } catch (e) {
+        console.error(e);
+      }
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Get the content of the original XML field to create the new XMLA field:
         let xmla = await readResult.rows[0]['XML'].getData();
@@ -261,18 +265,22 @@ class JurinetOracle {
 
           // 6. Update query (which, contrary to the doc, requires xmla to be passed as a String):
           const updateQuery = `UPDATE ${process.env.DB_TABLE}
-            SET ${process.env.DB_ANO_TEXT_FIELD} = :xmla,
-            ${process.env.DB_STATE_FIELD} = :ok,
-            AUT_ANO = :label,
-            DT_ANO = :datea,
-            DT_MODIF_ANO = :dateb,
-            DT_ENVOI_DILA = NULL
-            WHERE ${process.env.DB_ID_FIELD} = :id`;
-          await this.connection.execute(
-            updateQuery,
-            [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
-            { autoCommit: true },
-          );
+            SET ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} = :xmla,
+            ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :ok,
+            ${process.env.DB_TABLE}.AUT_ANO = :label,
+            ${process.env.DB_TABLE}.DT_ANO = :datea,
+            ${process.env.DB_TABLE}.DT_MODIF_ANO = :dateb,
+            ${process.env.DB_TABLE}.DT_ENVOI_DILA = NULL
+            WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+          try {
+            await this.connection.execute(
+              updateQuery,
+              [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
+              { autoCommit: true },
+            );
+          } catch (e) {
+            console.error(e);
+          }
           return true;
         } else {
           throw new Error('End of <DOCUMENT> tag not found: the document could be malformed or corrupted.');
@@ -299,16 +307,24 @@ class JurinetOracle {
       // 1. Get the original decision from Jurinet:
       const readQuery = `SELECT * 
           FROM ${process.env.DB_TABLE}
-          WHERE ${process.env.DB_ID_FIELD} = :id
-          AND ${process.env.DB_STATE_FIELD} = :none`;
-      const readResult = await this.connection.execute(readQuery, [id, 0]);
-
+          WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id
+          AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :none`;
+      let readResult = null;
+      try {
+        readResult = await this.connection.execute(readQuery, [id, 0]);
+      } catch (e) {
+        console.error(e);
+      }
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE}
-            SET ${process.env.DB_STATE_FIELD} = :pending,
-            WHERE ${process.env.DB_ID_FIELD} = :id`;
-        await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+            SET ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :pending,
+            WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+        try {
+          await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+        } catch (e) {
+          console.error(e);
+        }
         return true;
       } else {
         throw new Error(`Original decision '${id}' not found.`);
