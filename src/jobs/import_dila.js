@@ -274,9 +274,11 @@ async function main() {
           });
         }
       }
+      console.log('checking...')
       let raw = await rawDila.findOne({ _id: decisionToStore._id });
       if (raw === null) {
         try {
+          console.log('adding...')
           await rawDila.insertOne(decisionToStore, { bypassDocumentValidation: true });
           newCount++;
         } catch (e) {
@@ -293,11 +295,12 @@ async function main() {
     }
     rl.resume();
   }).on('close', async () => {
-    console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
     console.log(`Teardown...`);
-
-    await client.close();
-    process.exit(0);
+    setTimeout(() => {
+      console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
+      await client.close();
+      process.exit(0);
+    }, 1000)
   });
 }
 
