@@ -296,7 +296,7 @@ async function main() {
     rl.resume();
   }).on('close', async () => {
     console.log(`Teardown...`);
-    setTimeout(() => {
+    setTimeout(async () => {
       console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
       await client.close();
       process.exit(0);
