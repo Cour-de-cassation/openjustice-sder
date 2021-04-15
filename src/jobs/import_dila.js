@@ -56,7 +56,7 @@ async function main() {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
-  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+  // const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   let newCount = 0;
   let errorCount = 0;
@@ -298,9 +298,9 @@ async function main() {
     console.log(`Teardown...`);
     setTimeout(async () => {
       console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
-      await client.close();
-      process.exit(0);
-    }, 1000)
+      // await client.close();
+      // process.exit(0);
+    }, 60 * 1000)
   });
 }
 
