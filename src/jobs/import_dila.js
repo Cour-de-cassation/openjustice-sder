@@ -162,7 +162,7 @@ async function main() {
           } else if (decision.TEXTE.SOMMAIRE.SCT['$TEXT']) {
             decisionToStore.TITRAGE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.SCT['$TEXT'], true));
           } else {
-            decisionToStore.TITRAGE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.SCT, true));
+            decisionToStore.TITRAGE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.SCT.toString(), true));
           }
           let cleanedTitrage = [];
           decisionToStore.TITRAGE.forEach((item) => {
@@ -194,7 +194,7 @@ async function main() {
           } else if (decision.TEXTE.SOMMAIRE.ANA['$TEXT']) {
             decisionToStore.SOMMAIRE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.ANA['$TEXT'], true));
           } else {
-            decisionToStore.SOMMAIRE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.ANA, true));
+            decisionToStore.SOMMAIRE.push(DilaUtils.CleanString(decision.TEXTE.SOMMAIRE.ANA.toString(), true));
           }
         }
         if (decision.TEXTE.CITATION_JP && decision.TEXTE.CITATION_JP.CONTENU_JP) {
@@ -209,7 +209,7 @@ async function main() {
               DilaUtils.CleanString(decision.TEXTE.CITATION_JP.CONTENU_JP['$TEXT'], true),
             );
           } else {
-            decisionToStore.PRECEDENTS.push(DilaUtils.CleanString(decision.TEXTE.CITATION_JP.CONTENU_JP, true));
+            decisionToStore.PRECEDENTS.push(DilaUtils.CleanString(decision.TEXTE.CITATION_JP.CONTENU_JP.toString(), true));
           }
           let cleanedPrecedents = [];
           decisionToStore.PRECEDENTS.forEach((item) => {
@@ -240,7 +240,7 @@ async function main() {
           } else if (decision.LIENS.LIEN['$TEXT']) {
             decisionToStore.TEXTES_APPLIQUES.push(DilaUtils.CleanString(decision.LIENS.LIEN['$TEXT'], true));
           } else {
-            decisionToStore.TEXTES_APPLIQUES.push(DilaUtils.CleanString(decision.LIENS.LIEN, true));
+            decisionToStore.TEXTES_APPLIQUES.push(DilaUtils.CleanString(decision.LIENS.LIEN.toString(), true));
           }
           let cleanedTextesApp = [];
           decisionToStore.TEXTES_APPLIQUES.forEach((item) => {
