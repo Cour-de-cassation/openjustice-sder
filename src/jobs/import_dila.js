@@ -56,7 +56,7 @@ async function main() {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
-  // const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   let newCount = 0;
   let errorCount = 0;
@@ -71,7 +71,7 @@ async function main() {
     input: fileStream,
     crlfDelay: Infinity,
   });
-  
+
   for await (const line of rl) {
     try {
       let decision = JSON.parse(line);
@@ -282,7 +282,23 @@ async function main() {
           errorCount++;
         }
       } else {
-        // @TODO NORMALIZE IF NOT ALREADY THERE
+        /*
+        TITRE: 'Cour de cassation, civile, Chambre commerciale, 25 mars 2020, 18-17.924, Publié au bulletin',
+        DATE_DEC: '2020-03-25',
+        NUMERO: 42000247,
+        SOLUTION: 'Rejet',
+        NUMERO_AFFAIRE: [ '18-17924' ],
+        sourceName: 'jurinet',
+        registerNumber: document.NUM_DECISION,
+        dateDecision: document.DT_DECISION ? document.DT_DECISION.toISOString() : undefined,
+        */
+        let normalized = await decisions.findOne({ registerNumber: decisionToStore.NUMERO, sourceName: 'jurinet' });
+        if (normalized === null) {
+          
+        } else {
+          console.log(normalized);
+          console.log(decisionToStore);
+        }
         skipCount++;
       }
     } catch (e) {
@@ -293,9 +309,9 @@ async function main() {
 
   console.log(`Teardown...`);
   console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
-  
+
   await client.close();
-  process.exit(0);  
+  process.exit(0);
 }
 
 /*
