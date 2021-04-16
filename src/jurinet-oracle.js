@@ -333,6 +333,69 @@ class JurinetOracle {
       throw new Error('Not connected.');
     }
   }
+
+  /**
+   * Method to retrieve the chain of decisions.
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+  async getChain(id) {
+    /*
+    DOCUM.DOCUMENT 
+    DOCUMENT.ID_DOCUMENT = ID de la décision
+    Ex : 1727146
+
+    >> Table DOCUM.NUMPOURVOI
+    ID_DOCUMENT                LIB = N° pourvoi complet             NUMPOURVOICODE = N° pourvoi sans clé
+    1727146                               U1826378                                           1826378
+
+    >> Table GPVIV. AFF
+    CODE                                    ID_AFFAIRE = identifiant du pourvoi
+    1826378                               11110412
+
+    >> Table GPCIV.DECATT
+    ID_AFFAIRE                       NUM_RG = N° RG de la décision attaquée
+    11110412                             16/02749
+     */
+    if (!id) {
+      throw new Error(`Invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      // 1. Get the decision from Jurinet:
+      const decisionQuery = `SELECT * 
+          FROM ${process.env.DB_TABLE}
+          WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+      let decisionResult = null;
+      try {
+        decisionResult = await this.connection.execute(decisionQuery, [id]);
+      } catch (e) {
+        console.error(e);
+      }
+      if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+        const decision = decisionResult.rows[0];
+        const pourvoiQuery = `SELECT * 
+          FROM NUMPOURVOI
+          WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
+        let pourvoiResult = null;
+        try {
+          pourvoiResult = await this.connection.execute(pourvoiQuery, [id]);
+        } catch (e) {
+          console.error(e);
+        }
+        if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
+          console.log(pourvoiResult.rows);
+          return true;
+        } else {
+          throw new Error(`Pourvoi not found in NUMPOURVOI for decision '${id}'.`);
+        }
+      } else {
+        throw new Error(`Decision '${id}' not found.`);
+      }
+    } else {
+      throw new Error('Not connected.');
+    }
+  }
 }
 
 exports.JurinetOracle = JurinetOracle;
