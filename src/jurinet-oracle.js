@@ -387,7 +387,7 @@ class JurinetOracle {
           const pourvoi = pourvoiResult.rows[0];
           const codePourvoi = pourvoi['NUMPOURVOICODE'];
           const affaireQuery = `SELECT * 
-            FROM GPVIV.AFF
+            FROM AFF@GPVIV_LINK
             WHERE AFF.CODE = :code`;
           let affaireResult = null;
           try {
