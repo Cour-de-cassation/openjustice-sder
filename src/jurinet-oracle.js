@@ -384,8 +384,23 @@ class JurinetOracle {
           console.error(e);
         }
         if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
-          console.log(pourvoiResult.rows);
-          return true;
+          const pourvoi = pourvoiResult.rows[0];
+          const codePourvoi = pourvoi['NUMPOURVOICODE'];
+          const affaireQuery = `SELECT * 
+            FROM GPVIV.AFF
+            WHERE AFF.CODE = :code`;
+          let affaireResult = null;
+          try {
+            affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
+          } catch (e) {
+            console.error(e);
+          }
+          if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
+            console.log(affaireResult.rows)
+            return true;
+          } else {
+            throw new Error(`Affaire not found in GPVIV.AFF for pourvoi '${codePourvoi}'.`);
+          }
         } else {
           throw new Error(`Pourvoi not found in NUMPOURVOI for decision '${id}'.`);
         }

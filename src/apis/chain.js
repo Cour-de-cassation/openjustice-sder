@@ -19,14 +19,14 @@ async function main() {
   });
   await jurinetSource.connect();
 
-  const id = 1730000;
+  const id = 1720000;
 
   try {
     console.log(`Get chain for decision ${id}...`);
     const chain = await jurinetSource.getChain(id);
     console.log(chain);
   } catch (e) {
-    console.error('Reinjection failed:', e);
+    console.error('Chain failed:', e);
   }
 
   console.log('Teardown...');
