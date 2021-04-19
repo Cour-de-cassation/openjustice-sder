@@ -113,6 +113,51 @@ class JurinetOracle {
     }
   }
 
+  async getLastNMonth(NMonth) {
+    if (this.connected === true && this.connection !== null) {
+      let ago = new Date();
+      ago.setMonth(ago.getMonth() - NMonth);
+      ago.setHours(0, 0, 0, 0);
+      let strAgo = ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
+      strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
+      strAgo += '/' + ago.getFullYear();
+      const query = `SELECT * 
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.DT_CREATION >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
+        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
+      const result = await this.connection.execute(query);
+      if (result && result.rows && result.rows.length > 0) {
+        let rows = [];
+        for (let i = 0; i < result.rows.length; i++) {
+          let row = {};
+          for (let key in result.rows[i]) {
+            switch (key) {
+              case process.env.DB_ID_FIELD:
+                row[process.env.MONGO_ID] = result.rows[i][key];
+                break;
+              default:
+                try {
+                  if (typeof result.rows[i][key].getData === 'function') {
+                    row[key] = await result.rows[i][key].getData();
+                  } else {
+                    row[key] = result.rows[i][key];
+                  }
+                  row[key] = iconv.decode(row[key], process.env.ENCODING);
+                } catch (ignore) {}
+                break;
+            }
+          }
+          rows.push(row);
+        }
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Not connected.');
+    }
+  }
+
   async getBatch(opt) {
     opt = opt || {};
     opt.all = opt.all || false;

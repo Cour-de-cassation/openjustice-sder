@@ -139,7 +139,7 @@ class JurinetUtils {
     }
   }
 
-  static Normalize(document, previousVersion) {
+  static Normalize(document, previousVersion, ignorePreviousContent) {
     /* TODO
     decatts: { decatt: [Object] },
     parties: { demandeurs: [Object], defendeurs: [Object] },
@@ -172,7 +172,7 @@ class JurinetUtils {
       pseudoText = cleanedXmla.texte_arret;
     } catch (ignore) {}
 
-    if (previousVersion) {
+    if (previousVersion && !ignorePreviousContent) {
       if (previousVersion.originalText) {
         originalText = previousVersion.originalText;
       }
