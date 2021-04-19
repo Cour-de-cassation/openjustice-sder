@@ -78,7 +78,7 @@ class DilaUtils {
         fragments[j] = fragments[j].replace(/\f/gim, '');
         fragments[j] = fragments[j].replace(/\\f/gim, '');
         fragments[j] = fragments[j].replace(/\r\n/gim, '\n');
-        fragments[j] = fragments[j].replace(/\s*\n\s+/gim, '\n');
+        fragments[j] = fragments[j].replace(/\r/gim, '\n');
         fragments[j] = fragments[j].replace(/  +/gm, ' ');
 
         // Minimal set of entities for XML validation:

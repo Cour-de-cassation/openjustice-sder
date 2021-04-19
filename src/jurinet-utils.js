@@ -61,7 +61,9 @@ class JurinetUtils {
         fragments[j] = fragments[j].replace(/\\t/gim, '');
         fragments[j] = fragments[j].replace(/\f/gim, '');
         fragments[j] = fragments[j].replace(/\\f/gim, '');
-        fragments[j] = fragments[j].replace(/\s\s+/gim, ' ');
+        fragments[j] = fragments[j].replace(/\r\n/gim, '\n');
+        fragments[j] = fragments[j].replace(/\r/gim, '\n');
+        fragments[j] = fragments[j].replace(/  +/gm, ' ');
 
         // Minimal set of entities for XML validation:
         fragments[j] = fragments[j]
