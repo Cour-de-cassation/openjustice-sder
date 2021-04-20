@@ -109,7 +109,7 @@ class JurinetOracle {
         return null;
       }
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurinet.getNew: not connected.');
     }
   }
 
@@ -154,7 +154,7 @@ class JurinetOracle {
         return null;
       }
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurinet.getLastNMonth: not connected.');
     }
   }
 
@@ -278,19 +278,14 @@ class JurinetOracle {
     // independently of its status within the Label workflow,
     // so the only required properties are sourceId and pseudoText:
     if (!decision || !decision.sourceId || !decision.pseudoText) {
-      throw new Error('Invalid decision to reinject.');
+      throw new Error('Jurinet.reinject: invalid decision to reinject.');
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the original decision from Jurinet:
       const readQuery = `SELECT * 
           FROM ${process.env.DB_TABLE}
-          WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id
-          AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :pending`;
-      let readResult = null;
-      try {
-        readResult = await this.connection.execute(readQuery, [decision.sourceId, 1]);
-      } catch (e) {
-        console.error(e);
-      }
+          WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+      //  AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :pending`;
+      const readResult = await this.connection.execute(readQuery, [decision.sourceId]); // , 1]);
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Get the content of the original XML field to create the new XMLA field:
         let xmla = await readResult.rows[0]['XML'].getData();
@@ -317,24 +312,22 @@ class JurinetOracle {
             ${process.env.DB_TABLE}.DT_MODIF_ANO = :dateb,
             ${process.env.DB_TABLE}.DT_ENVOI_DILA = NULL
             WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-          try {
-            await this.connection.execute(
-              updateQuery,
-              [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
-              { autoCommit: true },
-            );
-          } catch (e) {
-            console.error(e);
-          }
+          await this.connection.execute(
+            updateQuery,
+            [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
+            { autoCommit: true },
+          );
           return true;
         } else {
-          throw new Error('End of <DOCUMENT> tag not found: the document could be malformed or corrupted.');
+          throw new Error(
+            'Jurinet.reinject: end of <DOCUMENT> tag not found: the document could be malformed or corrupted.',
+          );
         }
       } else {
-        throw new Error(`Pending decision '${decision.sourceId}' not found.`);
+        throw new Error(`Jurinet.reinject: pending decision '${decision.sourceId}' not found.`);
       }
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurinet.reinject: not connected.');
     }
   }
 
@@ -347,35 +340,26 @@ class JurinetOracle {
    */
   async markAsImported(id) {
     if (!id) {
-      throw new Error(`Invalid ID '${id}'.`);
+      throw new Error(`Jurinet.markAsImported: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the original decision from Jurinet:
       const readQuery = `SELECT * 
           FROM ${process.env.DB_TABLE}
           WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id
           AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :none`;
-      let readResult = null;
-      try {
-        readResult = await this.connection.execute(readQuery, [id, 0]);
-      } catch (e) {
-        console.error(e);
-      }
+      const readResult = await this.connection.execute(readQuery, [id, 0]);
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE}
             SET ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :pending,
             WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-        try {
-          await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
-        } catch (e) {
-          console.error(e);
-        }
+        await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
         return true;
       } else {
-        throw new Error(`Original decision '${id}' not found.`);
+        throw new Error(`Jurinet.markAsImported: original decision '${id}' not found.`);
       }
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurinet.markAsImported: not connected.');
     }
   }
 
@@ -405,55 +389,40 @@ class JurinetOracle {
     11110412                             16/02749
      */
     if (!id) {
-      throw new Error(`Invalid ID '${id}'.`);
+      throw new Error(`Jurinet.getChain: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the decision from Jurinet:
       const decisionQuery = `SELECT * 
           FROM ${process.env.DB_TABLE}
           WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-      let decisionResult = null;
-      try {
-        decisionResult = await this.connection.execute(decisionQuery, [id]);
-      } catch (e) {
-        console.error(e);
-      }
+      const decisionResult = await this.connection.execute(decisionQuery, [id]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         const decision = decisionResult.rows[0];
         const pourvoiQuery = `SELECT * 
           FROM NUMPOURVOI
           WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
-        let pourvoiResult = null;
-        try {
-          pourvoiResult = await this.connection.execute(pourvoiQuery, [id]);
-        } catch (e) {
-          console.error(e);
-        }
+        const pourvoiResult = await this.connection.execute(pourvoiQuery, [id]);
         if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
           const pourvoi = pourvoiResult.rows[0];
           const codePourvoi = pourvoi['NUMPOURVOICODE'];
           const affaireQuery = `SELECT * 
             FROM AFF@GPVIV_LINK
             WHERE AFF.CODE = :code`;
-          let affaireResult = null;
-          try {
-            affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
-          } catch (e) {
-            console.error(e);
-          }
+          const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
-            console.log(affaireResult.rows)
+            console.log(affaireResult.rows);
             return true;
           } else {
-            throw new Error(`Affaire not found in GPVIV.AFF for pourvoi '${codePourvoi}'.`);
+            throw new Error(`Jurinet.getChain: affaire not found in GPVIV.AFF for pourvoi '${codePourvoi}'.`);
           }
         } else {
-          throw new Error(`Pourvoi not found in NUMPOURVOI for decision '${id}'.`);
+          throw new Error(`Jurinet.getChain: pourvoi not found in NUMPOURVOI for decision '${id}'.`);
         }
       } else {
-        throw new Error(`Decision '${id}' not found.`);
+        throw new Error(`Jurinet.getChain: decision '${id}' not found.`);
       }
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurinet.getChain: not connected.');
     }
   }
 }

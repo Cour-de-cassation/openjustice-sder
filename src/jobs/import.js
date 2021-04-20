@@ -13,18 +13,17 @@ async function main() {
   try {
     await importJurinet();
   } catch (e) {
-    console.error('Jurinet error', e);
+    console.error('Jurinet import error', e);
   }
   try {
     await importJurica();
   } catch (e) {
-    console.error('Jurica error', e);
+    console.error('Jurica import error', e);
   }
   process.exit(0);
 }
 
 async function importJurinet() {
-  console.log('Setup DB Clients...');
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
@@ -69,7 +68,7 @@ async function importJurinet() {
             skipCount++;
           }
         } catch (e) {
-          console.error(e);
+          console.error(`Jurinet import error processing decision ${row._id}`, e);
           errorCount++;
         }
       } else {
@@ -78,16 +77,13 @@ async function importJurinet() {
     }
   }
 
-  console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}).`);
-  console.log(`Teardown...`);
-
+  console.log(`Jurinet import done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}).`);
   await client.close();
   await jurinetSource.close();
   return true;
 }
 
 async function importJurica() {
-  console.log('Setup DB Clients...');
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
@@ -126,7 +122,7 @@ async function importJurica() {
             skipCount++;
           }
         } catch (e) {
-          console.error(e);
+          console.error(`Jurica import error processing decision ${row._id}`, e);
           errorCount++;
         }
       } else {
@@ -135,9 +131,7 @@ async function importJurica() {
     }
   }
 
-  console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}).`);
-  console.log(`Teardown...`);
-
+  console.log(`Jurica import done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}).`);
   await client.close();
   await juricaSource.close();
   return true;
