@@ -23,7 +23,7 @@ class JurinetUtils {
     const fragments = xml.split(/<\/?texte_arret>/gi);
 
     if (fragments.length < 3) {
-      throw new Error('<TEXTE_ARRET> tag not found or incomplete: the document could be malformed or corrupted.');
+      throw new Error('JurinetUtils.CleanXML: <TEXTE_ARRET> tag not found or incomplete: the document could be malformed or corrupted.');
     }
 
     xml = xml.replace(/<texte_arret>[\s\S]*<\/texte_arret>/gim, '');
@@ -97,7 +97,7 @@ class JurinetUtils {
       xml = xml.replace('</DOCUMENT>', '<TEXTE_ARRET>' + texteArret.join(' ').trim() + '</TEXTE_ARRET></DOCUMENT>');
       xml = xml.trim();
     } else {
-      throw new Error('End of <DOCUMENT> tag not found: the document could be malformed or corrupted.');
+      throw new Error('JurinetUtils.CleanXML: End of <DOCUMENT> tag not found: the document could be malformed or corrupted.');
     }
 
     return xml;
@@ -135,7 +135,7 @@ class JurinetUtils {
 
       return finalData;
     } else {
-      throw new Error(`Invalid XML document: ${valid}.`);
+      throw new Error(`JurinetUtils.XMLToJSON: Invalid XML document: ${valid}.`);
     }
   }
 

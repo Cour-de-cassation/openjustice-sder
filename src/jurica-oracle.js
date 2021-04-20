@@ -24,10 +24,10 @@ class JuricaOracle {
       });
       this.connected = true;
       if (this.verbose === true) {
-        console.info(`Connected to Oracle v${this.connection.oracleServerVersionString}.`);
+        console.info(`Jurica.connect: connected to Oracle v${this.connection.oracleServerVersionString}.`);
       }
     } else {
-      throw new Error('Already connected.');
+      throw new Error('Jurica.connect: already connected.');
     }
   }
 
@@ -35,10 +35,10 @@ class JuricaOracle {
     if (this.connected === true && this.connection !== null) {
       await this.connection.close();
       if (this.verbose === true) {
-        console.info('Disconnected from Oracle.');
+        console.info('Jurica.close: disconnected from Oracle.');
       }
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurica.close: not connected.');
     }
   }
 
@@ -51,7 +51,7 @@ class JuricaOracle {
         ORDER BY column_id`;
       return await this.connection.execute(query);
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurica.describe: not connected.');
     }
   }
 
@@ -113,6 +113,7 @@ class JuricaOracle {
     }
   }
 
+  // @DEPRECATED
   async getBatch(opt) {
     opt = opt || {};
     opt.all = opt.all || false;

@@ -24,10 +24,10 @@ class JurinetOracle {
       });
       this.connected = true;
       if (this.verbose === true) {
-        console.info(`Connected to Oracle v${this.connection.oracleServerVersionString}.`);
+        console.info(`Jurinet.connect: connected to Oracle v${this.connection.oracleServerVersionString}.`);
       }
     } else {
-      throw new Error('Already connected.');
+      throw new Error('Jurinet.connect: already connected.');
     }
   }
 
@@ -35,10 +35,10 @@ class JurinetOracle {
     if (this.connected === true && this.connection !== null) {
       await this.connection.close();
       if (this.verbose === true) {
-        console.info('Disconnected from Oracle.');
+        console.info('Jurinet.close: disconnected from Oracle.');
       }
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurinet.close: not connected.');
     }
   }
 
@@ -51,7 +51,7 @@ class JurinetOracle {
         ORDER BY column_id`;
       return await this.connection.execute(query);
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurinet.describe: not connected.');
     }
   }
 
@@ -158,6 +158,7 @@ class JurinetOracle {
     }
   }
 
+  // @DEPRECATED
   async getBatch(opt) {
     opt = opt || {};
     opt.all = opt.all || false;

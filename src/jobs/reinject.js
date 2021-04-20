@@ -5,6 +5,8 @@ const { JurinetOracle } = require('../jurinet-oracle');
 const { MongoClient } = require('mongodb');
 
 async function main() {
+  console.log('Start "reinject" job: ', new Date().getTime());
+
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
@@ -43,6 +45,7 @@ async function main() {
   console.log(`Jurinet reinjection done (success: ${successCount}, errors: ${errorCount}).`);
   await client.close();
   await jurinetSource.close();
+  console.log('Exit "reinject" job: ', new Date().getTime());
   process.exit(0);
 }
 

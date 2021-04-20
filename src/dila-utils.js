@@ -54,7 +54,9 @@ class DilaUtils {
     const fragments = xml.split(/<\/?CONTENU>/g);
 
     if (fragments.length < 3) {
-      throw new Error('<CONTENU> tag not found or incomplete: the document could be malformed or corrupted.');
+      throw new Error(
+        'DilaUtils.CleanXML: <CONTENU> tag not found or incomplete: the document could be malformed or corrupted.',
+      );
     }
 
     xml = xml.replace(/<CONTENU>[\s\S]*<\/CONTENU>/gm, '');
@@ -110,7 +112,9 @@ class DilaUtils {
       xml = xml.replace('</BLOC_TEXTUEL>', '<CONTENU>' + contenu.join(' ').trim() + '</CONTENU></BLOC_TEXTUEL>');
       xml = xml.trim();
     } else {
-      throw new Error('End of <BLOC_TEXTUEL> tag not found: the document could be malformed or corrupted.');
+      throw new Error(
+        'DilaUtils.CleanXML: End of <BLOC_TEXTUEL> tag not found: the document could be malformed or corrupted.',
+      );
     }
 
     return xml;
@@ -131,7 +135,7 @@ class DilaUtils {
       }
       return finalData;
     } else {
-      throw new Error(`Invalid XML document: ${valid.err.msg}, line ${valid.err.line}.`);
+      throw new Error(`DilaUtils.XMLToJSON: Invalid XML document: ${valid.err.msg}, line ${valid.err.line}.`);
     }
   }
 
