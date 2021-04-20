@@ -24,7 +24,7 @@ async function main() {
   try {
     console.log(`Get chain for decision ${id}...`);
     const chain = await jurinetSource.getChain(id);
-    console.log(chain);
+    console.log(JSON.stringify(chain, null, '  '));
   } catch (e) {
     console.error('Chain failed:', e);
   }

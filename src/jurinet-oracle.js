@@ -372,19 +372,20 @@ class JurinetOracle {
    * @throws
    */
   async getChain(id) {
-    /*
-    DOCUMENT.ID_DOCUMENT = ID de la décision
+    /* From Richard ANGER (03/03/2021):
+    1. DOCUMENT.ID_DOCUMENT = ID de la décision
     Ex : 1727146
-    >> Table DOCUM.NUMPOURVOI
+    2. Table DOCUM.NUMPOURVOI
     ID_DOCUMENT   LIB = N° pourvoi complet  NUMPOURVOICODE = N° pourvoi sans clé
     1727146       U1826378                  1826378
-    >> Table GPVIV. AFF
+    3. Table GPCIV.AFF
     CODE      ID_AFFAIRE = identifiant du pourvoi
     1826378   11110412
-    >> Table GPCIV.DECATT
+    4. Table GPCIV.DECATT
     ID_AFFAIRE  NUM_RG = N° RG de la décision attaquée
     11110412    16/02749
     */
+    const chain = [];
     if (!id) {
       throw new Error(`Jurinet.getChain: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
@@ -395,6 +396,7 @@ class JurinetOracle {
       const decisionResult = await this.connection.execute(decisionQuery, [id]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         // 2. Get the pourvoi related to the decision:
+        chain.push(decisionResult.rows);
         const decision = decisionResult.rows[0];
         const pourvoiQuery = `SELECT * 
           FROM NUMPOURVOI
@@ -402,6 +404,7 @@ class JurinetOracle {
         const pourvoiResult = await this.connection.execute(pourvoiQuery, [id]);
         if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
           // 3. Get the affaire related to the pourvoi:
+          chain.push(pourvoiResult.rows);
           const pourvoi = pourvoiResult.rows[0];
           const codePourvoi = pourvoi['NUMPOURVOICODE'];
           const affaireQuery = `SELECT * 
@@ -410,6 +413,7 @@ class JurinetOracle {
           const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
             // 4. Get the contested decision related to the affaire:
+            chain.push(affaireResult.rows);
             const affaire = affaireResult.rows[0];
             const idAffaire = affaire['ID_AFFAIRE'];
             const decattQuery = `SELECT * 
@@ -417,8 +421,8 @@ class JurinetOracle {
               WHERE GPCIV.DECATT.ID_AFFAIRE = :id`;
             const decatResult = await this.connection.execute(decattQuery, [idAffaire]);
             if (decatResult && decatResult.rows && decatResult.rows.length > 0) {
-              console.log(decatResult.rows);
-              return true;
+              chain.push(decatResult.rows);
+              return chain;
             } else {
               throw new Error(
                 `Jurinet.getChain: contested decision not found in GPVIV.DECATT for affaire '${idAffaire}'.`,
