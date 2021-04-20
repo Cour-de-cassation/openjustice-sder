@@ -23,7 +23,7 @@ async function main() {
     console.log(`Get chain for decision ${id}...`);
     const chained = await jurinetSource.getChain(id);
     console.log(JSON.stringify(chained, null, '  '));
-    const decatt = await juricaSource.getDecisionByRG(chained[0]['NUM_RG']);
+    const decatt = await juricaSource.getDecisionByRG(chained['NUM_RG']);
     console.log(JSON.stringify(decatt, null, '  '));
   } catch (e) {
     console.error('Chain failed:', e);
