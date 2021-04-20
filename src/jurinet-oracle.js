@@ -407,8 +407,8 @@ class JurinetOracle {
           const pourvoi = pourvoiResult.rows[0];
           const codePourvoi = pourvoi['NUMPOURVOICODE'];
           const affaireQuery = `SELECT * 
-            FROM GPVIV.AFF
-            WHERE GPVIV.AFF.CODE = :code`;
+            FROM GPCIV.AFF
+            WHERE GPCIV.AFF.CODE = :code`;
           const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
             console.log(affaireResult.rows);
