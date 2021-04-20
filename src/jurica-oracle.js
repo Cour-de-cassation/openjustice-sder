@@ -230,6 +230,31 @@ class JuricaOracle {
       throw new Error('Jurica.markAsImported: not connected.');
     }
   }
+
+  /**
+   * Method to retrieve a decision by its RG number.
+   *
+   * @param {string} rgNumber
+   * @returns
+   * @throws
+   */
+  async getDecisionByRG(rgNumber) {
+    if (!rgNumber || typeof rgNumber !== 'string') {
+      throw new Error(`Jurica.getDecisionByRG: invalid RG number '${rgNumber}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      const decisionQuery = `SELECT * 
+          FROM ${process.env.DB_TABLE_JURICA}
+          WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber`;
+      const decisionResult = await this.connection.execute(decisionQuery, [rgNumber]);
+      if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+        return decisionResult.rows[0];
+      } else {
+        throw new Error(`Jurica.getDecisionByRG: decision with RG number '${rgNumber}' not found.`);
+      }
+    } else {
+      throw new Error('Jurica.getDecisionByRG: not connected.');
+    }
+  }
 }
 
 exports.JuricaOracle = JuricaOracle;

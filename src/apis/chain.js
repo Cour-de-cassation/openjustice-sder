@@ -2,36 +2,36 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const { JurinetOracle } = require('../jurinet-oracle');
-const { MongoClient } = require('mongodb');
+const { JuricaOracle } = require('../jurica-oracle');
 
 async function main() {
   console.log('Setup DB Clients...');
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
-  await client.connect();
-
-  const database = client.db(process.env.MONGO_DBNAME);
-  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   const jurinetSource = new JurinetOracle({
     verbose: true,
   });
   await jurinetSource.connect();
 
+  const juricaSource = new JuricaOracle({
+    verbose: true,
+  });
+  await juricaSource.connect();
+
   const id = 1720000;
 
   try {
     console.log(`Get chain for decision ${id}...`);
-    const chain = await jurinetSource.getChain(id);
-    console.log(JSON.stringify(chain, null, '  '));
+    const chained = await jurinetSource.getChain(id);
+    console.log(JSON.stringify(chained, null, '  '));
+    const decatt = await juricaSource.getDecisionByRG(chained[0]['NUM_RG']);
+    console.log(JSON.stringify(decatt, null, '  '));
   } catch (e) {
     console.error('Chain failed:', e);
   }
 
   console.log('Teardown...');
-  await client.close();
   await jurinetSource.close();
+  await juricaSource.close();
 
   console.log(`Done.`);
   process.exit(0);
