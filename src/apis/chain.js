@@ -19,6 +19,7 @@ async function main() {
 
   const id = 1720000;
 
+  /*
   try {
     const some = await juricaSource.getBatch({
       all: true,
@@ -30,7 +31,8 @@ async function main() {
   } catch (e) {
     console.error('Batch failed:', e);
   }
-
+  */
+ 
   try {
     console.log(`Get chain for decision ${id}...`);
     const chained = await jurinetSource.getChain(id);
