@@ -242,15 +242,10 @@ class JuricaOracle {
     if (!rgNumber || typeof rgNumber !== 'string') {
       throw new Error(`Jurica.getDecisionByRG: invalid RG number '${rgNumber}'.`);
     } else if (this.connected === true && this.connection !== null) {
-      let ago = Date.parse(rgNumber);
-      let strCreation = ago.getFullYear();
-      strCreation += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
-      strCreation += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
       const decisionQuery = `SELECT * 
           FROM ${process.env.DB_TABLE_JURICA}
-          WHERE ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION = '${strCreation}'`;
-      //    WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber`;
-      const decisionResult = await this.connection.execute(decisionQuery); //, [rgNumber]);
+          WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber`;
+      const decisionResult = await this.connection.execute(decisionQuery, [rgNumber]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         return decisionResult.rows;
       } else {

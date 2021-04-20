@@ -20,10 +20,22 @@ async function main() {
   const id = 1720000;
 
   try {
+    const some = await juricaSource.getBatch({
+      all: true,
+      limit: 10,
+      offset: 100000,
+      order: 'DESC',
+    });
+    console.log(some);
+  } catch (e) {
+    console.error('Batch failed:', e);
+  }
+
+  try {
     console.log(`Get chain for decision ${id}...`);
     const chained = await jurinetSource.getChain(id);
     console.log(JSON.stringify(chained, null, '  '));
-    const decatt = await juricaSource.getDecisionByRG(chained['DT_CREATION']); // NUM_RG']);
+    const decatt = await juricaSource.getDecisionByRG(chained['NUM_RG']);
     console.log(JSON.stringify(decatt, null, '  '));
   } catch (e) {
     console.error('Chain failed:', e);
