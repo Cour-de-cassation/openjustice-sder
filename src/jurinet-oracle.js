@@ -365,7 +365,7 @@ class JurinetOracle {
   }
 
   /**
-   * Method to retrieve the info about the Jurica decision 
+   * Method to retrieve the info about the Jurica decision
    * contested by a Jurinet decision (using its ID).
    *
    * @param {*} id
@@ -434,6 +434,44 @@ class JurinetOracle {
       }
     } else {
       throw new Error('Jurinet.getDecatt: not connected.');
+    }
+  }
+
+  /**
+   * Method to retrieve a decision by its ID.
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+  async getDecisionByID(id) {
+    if (!id) {
+      throw new Error(`Jurinet.getDecisionByID: invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      const decisionQuery = `SELECT * 
+          FROM ${process.env.DB_TABLE}
+          WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+      const decisionResult = await this.connection.execute(decisionQuery, [id]);
+      if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+        let row = {};
+        for (let key in decisionResult.rows[0]) {
+          try {
+            if (typeof decisionResult.rows[0][key].getData === 'function') {
+              row[key] = await decisionResult.rows[0][key].getData();
+            } else {
+              row[key] = decisionResult.rows[0][key];
+            }
+            row[key] = iconv.decode(row[key], process.env.ENCODING);
+          } catch (e) {
+            row[key] = decisionResult.rows[0][key];
+          }
+        }
+        return row;
+      } else {
+        throw new Error(`Jurinet.getDecisionByID: decision with ID '${id}' not found.`);
+      }
+    } else {
+      throw new Error('Jurinet.getDecisionByID: not connected.');
     }
   }
 }

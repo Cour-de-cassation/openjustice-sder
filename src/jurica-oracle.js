@@ -257,6 +257,44 @@ class JuricaOracle {
       throw new Error('Jurica.getDecisionByRG: not connected.');
     }
   }
+
+  /**
+   * Method to retrieve a decision by its ID.
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+  async getDecisionByID(id) {
+    if (!id) {
+      throw new Error(`Jurica.getDecisionByID: invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      const decisionQuery = `SELECT * 
+          FROM ${process.env.DB_TABLE_JURICA}
+          WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
+      const decisionResult = await this.connection.execute(decisionQuery, [id]);
+      if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+        let row = {};
+        for (let key in decisionResult.rows[0]) {
+          try {
+            if (typeof decisionResult.rows[0][key].getData === 'function') {
+              row[key] = await decisionResult.rows[0][key].getData();
+            } else {
+              row[key] = decisionResult.rows[0][key];
+            }
+            row[key] = iconv.decode(row[key], process.env.ENCODING);
+          } catch (e) {
+            row[key] = decisionResult.rows[0][key];
+          }
+        }
+        return row;
+      } else {
+        throw new Error(`Jurica.getDecisionByID: decision with ID '${id}' not found.`);
+      }
+    } else {
+      throw new Error('Jurica.getDecisionByID: not connected.');
+    }
+  }
 }
 
 exports.JuricaOracle = JuricaOracle;
