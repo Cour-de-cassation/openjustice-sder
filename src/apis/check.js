@@ -36,15 +36,6 @@ async function check(id) {
   });
   await juricaSource.connect();
 
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
-  await client.connect();
-  const database = client.db(process.env.MONGO_DBNAME);
-  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
-  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
-  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
-
   try {
     const oracleJurinet = await jurinetSource.getDecisionByID(parseInt(id, 10));
     result.oracle.jurinet = oracleJurinet;
@@ -59,40 +50,53 @@ async function check(id) {
     result.oracle.jurica = null;
   }
 
-  try {
-    const mngJurinet = await rawJurinet.findOne({ _id: parseInt(id, 10) });
-    result.mongodb.jurinet = mngJurinet;
-  } catch (e) {
-    result.mongodb.jurinet = null;
-  }
-
-  try {
-    const mngJurica = await rawJurica.findOne({ _id: parseInt(id, 10) });
-    result.mongodb.jurica = mngJurica;
-  } catch (e) {
-    result.mongodb.jurica = null;
-  }
-
-  try {
-    let decision = null;
-    let mngDecisions = null;
-    const cursor = await decisions.find({ sourceId: parseInt(id, 10) }, { allowDiskUse: true });
-    while ((decision = await cursor.next())) {
-      if (decision) {
-        if (mngDecisions === null) {
-          mngDecisions = [];
-        }
-        mngDecisions.push(decision);
-      }
-    }
-    result.mongodb.decisions = mngDecisions;
-  } catch (e) {
-    result.mongodb.decisions = null;
-  }
-
-  await client.close();
   await jurinetSource.close();
   await juricaSource.close();
+
+  try {
+    // MongoDB is unreachable through the VPN...
+    const client = new MongoClient(process.env.MONGO_URI, {
+      useUnifiedTopology: true,
+    });
+    await client.connect();
+    const database = client.db(process.env.MONGO_DBNAME);
+    const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+    const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+    const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+    try {
+      const mngJurinet = await rawJurinet.findOne({ _id: parseInt(id, 10) });
+      result.mongodb.jurinet = mngJurinet;
+    } catch (e) {
+      result.mongodb.jurinet = null;
+    }
+
+    try {
+      const mngJurica = await rawJurica.findOne({ _id: parseInt(id, 10) });
+      result.mongodb.jurica = mngJurica;
+    } catch (e) {
+      result.mongodb.jurica = null;
+    }
+
+    try {
+      let decision = null;
+      let mngDecisions = null;
+      const cursor = await decisions.find({ sourceId: parseInt(id, 10) }, { allowDiskUse: true });
+      while ((decision = await cursor.next())) {
+        if (decision) {
+          if (mngDecisions === null) {
+            mngDecisions = [];
+          }
+          mngDecisions.push(decision);
+        }
+      }
+      result.mongodb.decisions = mngDecisions;
+    } catch (e) {
+      result.mongodb.decisions = null;
+    }
+
+    await client.close();
+  } catch (ignore) {}
 
   return result;
 }

@@ -1,0 +1,110 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>OpenJustice Internal API</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+  <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+  <div class="container-fluid">
+    <h1>OpenJustice Internal API</h1>
+    <div class="input-group mb-3">
+      <input type="text" class="form-control" id="check-id" placeholder="Jurinet or Jurica ID"
+        aria-label="Jurinet or Jurica ID" aria-describedby="button-addon2">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary" type="button" id="button-check"><span id="check-spinner" class="spinner-border spinner-border-sm mr-2 hidden" role="status" aria-hidden="true"></span>Check decision</button>
+      </div>
+    </div>
+    <div class="accordion hidden" id="accordionCheck">
+      <div class="card">
+        <div class="card-header" id="headingOracleJurinet">
+          <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+              data-target="#contentOracleJurinet" aria-expanded="false" aria-controls="contentOracleJurinet">
+              Jurinet Oracle
+            </button>
+          </h2>
+        </div>
+        <div id="contentOracleJurinet" class="collapse" aria-labelledby="headingOracleJurinet">
+          <div class="card-body">
+            <pre></pre>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header" id="headingOracleJurica">
+          <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+              data-target="#contentOracleJurica" aria-expanded="false" aria-controls="contentOracleJurica">
+              Jurica Oracle
+            </button>
+          </h2>
+        </div>
+        <div id="contentOracleJurica" class="collapse" aria-labelledby="headingOracleJurica">
+          <div class="card-body">
+            <pre></pre>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header" id="headingMongoJurinet">
+          <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+              data-target="#contentMongoJurinet" aria-expanded="false" aria-controls="contentMongoJurinet">
+              Jurinet MongoDB (rawJurinet)
+            </button>
+          </h2>
+        </div>
+        <div id="contentMongoJurinet" class="collapse" aria-labelledby="headingMongoJurinet">
+          <div class="card-body">
+            <pre></pre>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header" id="headingMongoJurica">
+          <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+              data-target="#contentMongoJurica" aria-expanded="false" aria-controls="contentMongoJurica">
+              Jurica MongoDB (rawJurica)
+            </button>
+          </h2>
+        </div>
+        <div id="contentMongoJurica" class="collapse" aria-labelledby="headingMongoJurica">
+          <div class="card-body">
+            <pre></pre>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header" id="headingMongoDecisions">
+          <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+              data-target="#contentMongoDecisions" aria-expanded="false" aria-controls="contentMongoDecisions">
+              Decisions MongoDB (decisions)
+            </button>
+          </h2>
+        </div>
+        <div id="contentMongoDecisions" class="collapse" aria-labelledby="headingMongoDecisions">
+          <div class="card-body">
+            <pre></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="js/vendor/modernizr-3.11.2.min.js"></script>
+  <script src="js/vendor/jquery-3.6.0.min.js"></script>
+  <script src="js/vendor/bootstrap.bundle.min.js"></script>
+  <script src="js/plugins.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>

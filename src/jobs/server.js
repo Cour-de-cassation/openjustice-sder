@@ -5,7 +5,8 @@ const express = require('express');
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(require('../apis'));
+app.use(express.static(path.join(__dirname, '..', 'static')));
+app.use(require(path.join(__dirname, '..', 'apis')));
 
 async function main() {
   app.listen(process.env.API_PORT, () => {
