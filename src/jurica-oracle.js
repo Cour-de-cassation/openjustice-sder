@@ -249,7 +249,7 @@ class JuricaOracle {
           WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber`;
       const decisionResult = await this.connection.execute(decisionQuery, [rgNumber]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
-        return decisionResult.rows;
+        return decisionResult.rows[0];
       } else {
         throw new Error(`Jurica.getDecisionByRG: decision with RG number '${rgNumber}' not found.`);
       }

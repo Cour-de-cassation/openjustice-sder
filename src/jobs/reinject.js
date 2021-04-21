@@ -5,7 +5,7 @@ const { JurinetOracle } = require('../jurinet-oracle');
 const { MongoClient } = require('mongodb');
 
 async function main() {
-  console.log('Start "reinject" job: ', new Date().toLocaleString());
+  console.log('OpenJustice - Start "reinject" job:', new Date().toLocaleString());
 
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
@@ -13,7 +13,7 @@ async function main() {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
-  
+
   const jurinetSource = new JurinetOracle({
     verbose: true,
   });
@@ -45,7 +45,7 @@ async function main() {
   console.log(`Jurinet reinjection done (success: ${successCount}, errors: ${errorCount}).`);
   await client.close();
   await jurinetSource.close();
-  console.log('Exit "reinject" job: ', new Date().toLocaleString());
+  console.log('OpenJustice - Exit "reinject" job:', new Date().toLocaleString());
   process.exit(0);
 }
 

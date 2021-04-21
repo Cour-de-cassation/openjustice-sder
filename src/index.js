@@ -6,12 +6,15 @@ const bree = new Bree({
   root: path.join(__dirname, 'jobs'),
   jobs: [
     {
+      name: 'server', // on start
+    },
+    {
       name: 'import',
       interval: 'at 4:30 am',
     },
     {
       name: 'reinject',
-      interval: 'at 12:00 am', // midnight
+      interval: 'at 12:00 am', // at midnight
     },
   ],
 });

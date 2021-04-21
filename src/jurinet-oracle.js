@@ -365,13 +365,14 @@ class JurinetOracle {
   }
 
   /**
-   * Method to retrieve the chain of decisions.
+   * Method to retrieve the info about the Jurica decision 
+   * contested by a Jurinet decision (using its ID).
    *
    * @param {*} id
    * @returns
    * @throws
    */
-  async getChain(id) {
+  async getDecatt(id) {
     /* From Richard ANGER (03/03/2021):
     1. DOCUMENT.ID_DOCUMENT = ID de la décision
     Ex : 1727146
@@ -386,7 +387,7 @@ class JurinetOracle {
     11110412    16/02749
     */
     if (!id) {
-      throw new Error(`Jurinet.getChain: invalid ID '${id}'.`);
+      throw new Error(`Jurinet.getDecatt: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the decision from Jurinet:
       const decisionQuery = `SELECT * 
@@ -414,25 +415,25 @@ class JurinetOracle {
             const decattQuery = `SELECT * 
               FROM GPCIV.DECATT
               WHERE GPCIV.DECATT.ID_AFFAIRE = :id`;
-            const decatResult = await this.connection.execute(decattQuery, [idAffaire]);
-            if (decatResult && decatResult.rows && decatResult.rows.length > 0) {
-              return decatResult.rows[0];
+            const decattResult = await this.connection.execute(decattQuery, [idAffaire]);
+            if (decattResult && decattResult.rows && decattResult.rows.length > 0) {
+              return decattResult.rows[0];
             } else {
               throw new Error(
-                `Jurinet.getChain: contested decision not found in GPVIV.DECATT for affaire '${idAffaire}'.`,
+                `Jurinet.getDecatt: contested decision not found in GPVIV.DECATT for affaire '${idAffaire}'.`,
               );
             }
           } else {
-            throw new Error(`Jurinet.getChain: affaire not found in GPVIV.AFF for pourvoi '${codePourvoi}'.`);
+            throw new Error(`Jurinet.getDecatt: affaire not found in GPVIV.AFF for pourvoi '${codePourvoi}'.`);
           }
         } else {
-          throw new Error(`Jurinet.getChain: pourvoi not found in NUMPOURVOI for decision '${id}'.`);
+          throw new Error(`Jurinet.getDecatt: pourvoi not found in NUMPOURVOI for decision '${id}'.`);
         }
       } else {
-        throw new Error(`Jurinet.getChain: decision '${id}' not found.`);
+        throw new Error(`Jurinet.getDecatt: decision '${id}' not found.`);
       }
     } else {
-      throw new Error('Jurinet.getChain: not connected.');
+      throw new Error('Jurinet.getDecatt: not connected.');
     }
   }
 }
