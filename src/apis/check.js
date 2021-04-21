@@ -63,6 +63,7 @@ async function check(id) {
     const mngJurinet = await rawJurinet.findOne({ _id: id });
     result.mongodb.jurinet = mngJurinet;
   } catch (e) {
+    console.error(e)
     result.mongodb.jurinet = null;
   }
 
@@ -70,6 +71,7 @@ async function check(id) {
     const mngJurica = await rawJurica.findOne({ _id: id });
     result.mongodb.jurica = mngJurica;
   } catch (e) {
+    console.error(e)
     result.mongodb.jurica = null;
   }
 
@@ -87,6 +89,7 @@ async function check(id) {
     }
     result.mongodb.decisions = mngDecisions;
   } catch (e) {
+    console.error(e)
     result.mongodb.decisions = null;
   }
 
