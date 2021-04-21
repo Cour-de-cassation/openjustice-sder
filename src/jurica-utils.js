@@ -48,6 +48,12 @@ class JuricaUtils {
       dateDecision.setSeconds(0);
       dateDecision.setMilliseconds(0);
     }
+    try {
+      dateDecision = dateDecision.toISOString();
+    } catch (e) {
+      console.warn(`JuricaUtils.Normalize: could not process decision date '${document.JDEC_DATE}'`, e);
+      dateDecision = document.JDEC_DATE;
+    }
 
     let dateCreation = null;
     if (document.JDEC_DATE_CREATION) {
@@ -60,6 +66,15 @@ class JuricaUtils {
       dateCreation.setMinutes(0);
       dateCreation.setSeconds(0);
       dateCreation.setMilliseconds(0);
+    }
+    try {
+      dateCreation = dateCreation.toISOString();
+    } catch (e) {
+      console.warn(
+        `JuricaUtils.Normalize: could not process decision creation date '${document.JDEC_DATE_CREATION}'`,
+        e,
+      );
+      dateCreation = document.JDEC_DATE_CREATION;
     }
 
     let normalizedDecision = {
@@ -74,8 +89,8 @@ class JuricaUtils {
       chamberName: document.JDEC_LIB_AUTORITE,
       registerNumber: `${document.JDEC_NUM_RG} ${document.JDEC_NUM_REGISTRE}`,
       pubCategory: document.JDEC_NOTICE_FORMAT,
-      dateDecision: dateDecision ? dateDecision.toISOString() : null,
-      dateCreation: dateCreation ? dateCreation.toISOString() : null,
+      dateDecision: dateDecision,
+      dateCreation: dateCreation,
       solution: document.JDEC_LIBELLE,
       originalText: originalText
         ? originalText
