@@ -9,7 +9,7 @@ const express = require('express');
 const api = express.Router();
 
 api.get('/check/:id', async (req, res) => {
-  res.header('Content-Type', 'application/json')
+  res.header('Content-Type', 'application/json');
   res.send(JSON.stringify(await check(req.params.id), null, 2));
 });
 
@@ -46,39 +46,37 @@ async function check(id) {
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   try {
-    const oracleJurinet = await jurinetSource.getDecisionByID(id);
+    const oracleJurinet = await jurinetSource.getDecisionByID(parseInt(id, 10));
     result.oracle.jurinet = oracleJurinet;
   } catch (e) {
     result.oracle.jurinet = null;
   }
 
   try {
-    const oracleJurica = await juricaSource.getDecisionByID(id);
+    const oracleJurica = await juricaSource.getDecisionByID(parseInt(id, 10));
     result.oracle.jurica = oracleJurica;
   } catch (e) {
     result.oracle.jurica = null;
   }
 
   try {
-    const mngJurinet = await rawJurinet.findOne({ _id: id });
+    const mngJurinet = await rawJurinet.findOne({ _id: parseInt(id, 10) });
     result.mongodb.jurinet = mngJurinet;
   } catch (e) {
-    console.error(e)
     result.mongodb.jurinet = null;
   }
 
   try {
-    const mngJurica = await rawJurica.findOne({ _id: id });
+    const mngJurica = await rawJurica.findOne({ _id: parseInt(id, 10) });
     result.mongodb.jurica = mngJurica;
   } catch (e) {
-    console.error(e)
     result.mongodb.jurica = null;
   }
 
   try {
     let decision = null;
     let mngDecisions = null;
-    const cursor = await decisions.find({ sourceId: id }, { allowDiskUse: true });
+    const cursor = await decisions.find({ sourceId: parseInt(id, 10) }, { allowDiskUse: true });
     while ((decision = await cursor.next())) {
       if (decision) {
         if (mngDecisions === null) {
@@ -89,7 +87,6 @@ async function check(id) {
     }
     result.mongodb.decisions = mngDecisions;
   } catch (e) {
-    console.error(e)
     result.mongodb.decisions = null;
   }
 
