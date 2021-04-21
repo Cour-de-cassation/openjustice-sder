@@ -10,7 +10,7 @@ const { MongoClient } = require('mongodb');
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
 async function main() {
-  console.log('Start "import" job: ', new Date().getTime());
+  console.log('Start "import" job: ', new Date().toLocaleString());
   try {
     await importJurinet();
   } catch (e) {
@@ -21,7 +21,7 @@ async function main() {
   } catch (e) {
     console.error('Jurica import error', e);
   }
-  console.log('Exit "import" job: ', new Date().getTime());
+  console.log('Exit "import" job: ', new Date().toLocaleString());
   process.exit(0);
 }
 
