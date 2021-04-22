@@ -80,7 +80,45 @@ class JuricaOracle {
         AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 0
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
-      const result = await this.connection.execute(query);
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        let row = {};
+        for (let key in resultRow) {
+          switch (key) {
+            case process.env.DB_ID_FIELD_JURICA:
+              row[process.env.MONGO_ID] = resultRow[key];
+              break;
+            default:
+              try {
+                if (typeof resultRow[key].getData === 'function') {
+                  row[key] = await resultRow[key].getData();
+                } else {
+                  row[key] = resultRow[key];
+                }
+                row[key] = iconv.decode(row[key], process.env.ENCODING);
+              } catch (ignore) {}
+              break;
+          }
+        }
+        rows.push(row);
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+
+      /*
       if (result && result.rows && result.rows.length > 0) {
         let rows = [];
         for (let i = 0; i < result.rows.length; i++) {
@@ -108,6 +146,7 @@ class JuricaOracle {
       } else {
         return null;
       }
+      */
     } else {
       throw new Error('Jurica.getNew: not connected.');
     }
