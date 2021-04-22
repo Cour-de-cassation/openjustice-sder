@@ -26,7 +26,7 @@ async function decatt(id) {
 
   try {
     const decattInfo = await jurinetSource.getDecatt(id);
-    decatt = await juricaSource.getDecisionByRG(decattInfo['NUM_RG']);
+    decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
   } catch (e) {
     console.error(`Decatt failed for decision ${id}:`, e);
     decatt = null;
@@ -35,16 +35,16 @@ async function decatt(id) {
   await jurinetSource.close();
   await juricaSource.close();
 
-  if (decatt && decatt['JDEC_ID']) {
+  if (decatt) {
     return {
       found: true,
-      dec_id: id,
-      decatt_id: decatt['JDEC_ID'],
+      id: id,
+      decatt: decatt,
     };
   }
   return {
     found: false,
-    dec_id: id,
+    id: id,
   };
 }
 

@@ -57,9 +57,9 @@ $(document).ready(function () {
       $('#accordionCheck .card-body pre').empty();
       $('#headingOracleJurinet .badge').removeClass('badge-info').addClass('badge-secondary').text(0);
       $('#contentOracleJurinet .card-body pre').text('None');
-      if (data.found && data.decatt_id) {
+      if (data.found) {
         $('#headingOracleJurica .badge').removeClass('badge-secondary').addClass('badge-info').text(1);
-        $('#contentOracleJurica .card-body pre').text(data.decatt_id);
+        $('#contentOracleJurica .card-body pre').text(JSON.stringify(data, null, 2));
       } else {
         $('#headingOracleJurica .badge').removeClass('badge-info').addClass('badge-secondary').text(0);
         $('#contentOracleJurica .card-body pre').text('None');

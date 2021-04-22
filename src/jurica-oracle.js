@@ -243,27 +243,71 @@ class JuricaOracle {
   }
 
   /**
-   * Method to retrieve a decision by its RG number.
-   *
-   * @param {string} rgNumber
+   * Method to retrieve a decision using the "decatt" info.
+   * e.g:
+   * {
+   *   NUM_RG: '17/20421',
+   *   DT_DECATT: 2019-02-13T22:00:00.000Z,
+   *   FORMATION_DECATT: 'pôle 2, chambre 2',
+   * }
+   * @param {object} info
    * @returns
    * @throws
    */
-  async getDecisionByRG(rgNumber) {
-    if (!rgNumber || typeof rgNumber !== 'string') {
-      throw new Error(`Jurica.getDecisionByRG: invalid RG number '${rgNumber}'.`);
+  async getDecisionIdByDecattInfo(info) {
+    if (!info || !info['NUM_RG'] || !info['DT_DECATT'] || !info['FORMATION_DECATT']) {
+      throw new Error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
     } else if (this.connected === true && this.connection !== null) {
+      let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
+      let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
+      decattDate1.setDate(decattDate1.getDate() - 1);
+      decattDate2.setDate(decattDate2.getDate() + 1);
+      let strDecatt1 = decattDate1.getFullYear();
+      strDecatt1 +=
+        '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
+      strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
+      let strDecatt2 = decattDate2.getFullYear();
+      strDecatt2 +=
+        '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
+      strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
       const decisionQuery = `SELECT * 
           FROM ${process.env.DB_TABLE_JURICA}
-          WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber`;
-      const decisionResult = await this.connection.execute(decisionQuery, [rgNumber]);
+          WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber
+          AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
+          AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
+      const decisionResult = await this.connection.execute(decisionQuery, [info['NUM_RG']]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
-        return decisionResult.rows[0];
+        let result = [];
+        for (let i = 0; i < decisionResult.rows.length; i++) {
+          if (decisionResult.rows.length >= 1) {
+            try {
+              let actualFormation = decisionResult.rows[i]['JDEC_LIB_AUTORITE']
+                .replace(/[^a-z0-9]/gim, '')
+                .trim()
+                .toLowerCase();
+              let decattFormation = info['FORMATION_DECATT']
+                .replace(/[^a-z0-9]/gim, '')
+                .trim()
+                .toLowerCase();
+              if (actualFormation === decattFormation) {
+                result.push(decisionResult.rows[i]['JDEC_ID']);
+              }
+            } catch (e) {
+              result.push(decisionResult.rows[i]['JDEC_ID']);
+            }
+          } else {
+            result.push(decisionResult.rows[i]['JDEC_ID']);
+          }
+        }
+        return result;
       } else {
-        throw new Error(`Jurica.getDecisionByRG: decision with RG number '${rgNumber}' not found.`);
+        throw new Error(
+          'Jurica.getDecisionIdByDecattInfo - no decision related to the given "decatt" info:\n' +
+            JSON.stringify(info, null, 2),
+        );
       }
     } else {
-      throw new Error('Jurica.getDecisionByRG: not connected.');
+      throw new Error('Jurica.getDecisionIdByDecattInfo: not connected.');
     }
   }
 
