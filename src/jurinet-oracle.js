@@ -316,13 +316,13 @@ class JurinetOracle {
 
           // 6. Update query (which, contrary to the doc, requires xmla to be passed as a String):
           const updateQuery = `UPDATE ${process.env.DB_TABLE}
-            SET ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} = :xmla,
-            ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :ok,
-            ${process.env.DB_TABLE}.AUT_ANO = :label,
-            ${process.env.DB_TABLE}.DT_ANO = :datea,
-            ${process.env.DB_TABLE}.DT_MODIF_ANO = :dateb,
-            ${process.env.DB_TABLE}.DT_ENVOI_DILA = NULL
-            WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+            SET ${process.env.DB_ANO_TEXT_FIELD}=:xmla,
+            ${process.env.DB_STATE_FIELD}=:ok,
+            AUT_ANO=:label,
+            DT_ANO=:datea,
+            DT_MODIF_ANO=:dateb,
+            DT_ENVOI_DILA=NULL
+            WHERE ${process.env.DB_ID_FIELD}=:id`;
           await this.connection.execute(
             updateQuery,
             [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
