@@ -125,30 +125,40 @@ class JurinetOracle {
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.DT_CREATION >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
-      const result = await this.connection.execute(query);
-      if (result && result.rows && result.rows.length > 0) {
-        let rows = [];
-        for (let i = 0; i < result.rows.length; i++) {
-          let row = {};
-          for (let key in result.rows[i]) {
-            switch (key) {
-              case process.env.DB_ID_FIELD:
-                row[process.env.MONGO_ID] = result.rows[i][key];
-                break;
-              default:
-                try {
-                  if (typeof result.rows[i][key].getData === 'function') {
-                    row[key] = await result.rows[i][key].getData();
-                  } else {
-                    row[key] = result.rows[i][key];
-                  }
-                  row[key] = iconv.decode(row[key], process.env.ENCODING);
-                } catch (ignore) {}
-                break;
-            }
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        let row = {};
+        for (let key in resultRow) {
+          switch (key) {
+            case process.env.DB_ID_FIELD:
+              row[process.env.MONGO_ID] = resultRow[key];
+              break;
+            default:
+              try {
+                if (typeof resultRow[key].getData === 'function') {
+                  row[key] = await resultRow[key].getData();
+                } else {
+                  row[key] = resultRow[key];
+                }
+                row[key] = iconv.decode(row[key], process.env.ENCODING);
+              } catch (ignore) {}
+              break;
           }
-          rows.push(row);
         }
+        rows.push(row);
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
         return rows;
       } else {
         return null;
@@ -352,8 +362,8 @@ class JurinetOracle {
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE}
-            SET ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :pending,
-            WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+            SET ${process.env.DB_STATE_FIELD}=:pending,
+            WHERE ${process.env.DB_ID_FIELD}=:id`;
         await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
         return true;
       } else {

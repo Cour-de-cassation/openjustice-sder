@@ -80,6 +80,7 @@ class JuricaOracle {
         AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 0
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
+
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
@@ -117,36 +118,6 @@ class JuricaOracle {
       } else {
         return null;
       }
-
-      /*
-      if (result && result.rows && result.rows.length > 0) {
-        let rows = [];
-        for (let i = 0; i < result.rows.length; i++) {
-          let row = {};
-          for (let key in result.rows[i]) {
-            switch (key) {
-              case process.env.DB_ID_FIELD_JURICA:
-                row[process.env.MONGO_ID] = result.rows[i][key];
-                break;
-              default:
-                try {
-                  if (typeof result.rows[i][key].getData === 'function') {
-                    row[key] = await result.rows[i][key].getData();
-                  } else {
-                    row[key] = result.rows[i][key];
-                  }
-                  row[key] = iconv.decode(row[key], process.env.ENCODING);
-                } catch (ignore) {}
-                break;
-            }
-          }
-          rows.push(row);
-        }
-        return rows;
-      } else {
-        return null;
-      }
-      */
     } else {
       throw new Error('Jurica.getNew: not connected.');
     }
@@ -254,13 +225,12 @@ class JuricaOracle {
           FROM ${process.env.DB_TABLE_JURICA}
           WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id
           AND  ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = :none`;
-      console.log('Jurica.markAsImported - readQuery:', readQuery, id, 0);
       const readResult = await this.connection.execute(readQuery, [id, 0]);
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
-            SET  ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = :pending,
-            WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
+            SET ${process.env.DB_STATE_FIELD_JURICA}=:pending,
+            WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
         console.log('Jurica.markAsImported - updateQuery:', updateQuery, 1, id);
         await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
         return true;
