@@ -15,11 +15,28 @@
 <body>
   <div class="container-fluid">
     <h1>OpenJustice Internal API</h1>
-    <div class="input-group mb-3">
-      <input type="text" class="form-control" id="check-id" placeholder="Jurinet or Jurica ID"
-        aria-label="Jurinet or Jurica ID" aria-describedby="button-addon2">
-      <div class="input-group-append">
-        <button class="btn btn-outline-secondary" type="button" id="button-check"><span id="check-spinner" class="spinner-border spinner-border-sm mr-2 hidden" role="status" aria-hidden="true"></span>Check decision</button>
+    <div class="form-row">
+      <div class="col">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" id="check-id" placeholder="Jurinet or Jurica ID"
+            aria-label="Jurinet or Jurica ID" aria-describedby="button-check">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="button-check"><span id="check-spinner"
+                class="spinner-border spinner-border-sm mr-2 hidden" role="status" aria-hidden="true"></span>Check
+              decision</button>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" id="decatt-id" placeholder="Jurinet ID"
+            aria-label="Jurinet ID" aria-describedby="button-decatt">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="button-decatt"><span id="decatt-spinner"
+                class="spinner-border spinner-border-sm mr-2 hidden" role="status" aria-hidden="true"></span>Get contested
+              decision (decatt)</button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="accordion hidden" id="accordionCheck">
@@ -28,13 +45,13 @@
           <h2 class="mb-0">
             <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
               data-target="#contentOracleJurinet" aria-expanded="false" aria-controls="contentOracleJurinet">
-              Jurinet Oracle
+              Jurinet Oracle <span class="badge badge-secondary">0</span>
             </button>
           </h2>
         </div>
         <div id="contentOracleJurinet" class="collapse" aria-labelledby="headingOracleJurinet">
           <div class="card-body">
-            <pre></pre>
+            <pre>None</pre>
           </div>
         </div>
       </div>
@@ -43,13 +60,13 @@
           <h2 class="mb-0">
             <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
               data-target="#contentOracleJurica" aria-expanded="false" aria-controls="contentOracleJurica">
-              Jurica Oracle
+              Jurica Oracle <span class="badge badge-secondary">0</span>
             </button>
           </h2>
         </div>
         <div id="contentOracleJurica" class="collapse" aria-labelledby="headingOracleJurica">
           <div class="card-body">
-            <pre></pre>
+            <pre>None</pre>
           </div>
         </div>
       </div>
@@ -58,13 +75,13 @@
           <h2 class="mb-0">
             <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
               data-target="#contentMongoJurinet" aria-expanded="false" aria-controls="contentMongoJurinet">
-              Jurinet MongoDB (rawJurinet)
+              Jurinet MongoDB (rawJurinet) <span class="badge badge-secondary">0</span>
             </button>
           </h2>
         </div>
         <div id="contentMongoJurinet" class="collapse" aria-labelledby="headingMongoJurinet">
           <div class="card-body">
-            <pre></pre>
+            <pre>None</pre>
           </div>
         </div>
       </div>
@@ -73,13 +90,13 @@
           <h2 class="mb-0">
             <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
               data-target="#contentMongoJurica" aria-expanded="false" aria-controls="contentMongoJurica">
-              Jurica MongoDB (rawJurica)
+              Jurica MongoDB (rawJurica) <span class="badge badge-secondary">0</span>
             </button>
           </h2>
         </div>
         <div id="contentMongoJurica" class="collapse" aria-labelledby="headingMongoJurica">
           <div class="card-body">
-            <pre></pre>
+            <pre>None</pre>
           </div>
         </div>
       </div>
@@ -88,13 +105,13 @@
           <h2 class="mb-0">
             <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
               data-target="#contentMongoDecisions" aria-expanded="false" aria-controls="contentMongoDecisions">
-              Decisions MongoDB (decisions)
+              Decisions MongoDB (decisions) <span class="badge badge-secondary">0</span>
             </button>
           </h2>
         </div>
         <div id="contentMongoDecisions" class="collapse" aria-labelledby="headingMongoDecisions">
           <div class="card-body">
-            <pre></pre>
+            <pre>None</pre>
           </div>
         </div>
       </div>
