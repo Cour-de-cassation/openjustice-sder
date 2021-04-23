@@ -23,7 +23,9 @@ class JurinetUtils {
     const fragments = xml.split(/<\/?texte_arret>/gi);
 
     if (fragments.length < 3) {
-      throw new Error('JurinetUtils.CleanXML: <TEXTE_ARRET> tag not found or incomplete: the document could be malformed or corrupted.');
+      throw new Error(
+        'JurinetUtils.CleanXML: <TEXTE_ARRET> tag not found or incomplete: the document could be malformed or corrupted.',
+      );
     }
 
     xml = xml.replace(/<texte_arret>[\s\S]*<\/texte_arret>/gim, '');
@@ -97,7 +99,9 @@ class JurinetUtils {
       xml = xml.replace('</DOCUMENT>', '<TEXTE_ARRET>' + texteArret.join(' ').trim() + '</TEXTE_ARRET></DOCUMENT>');
       xml = xml.trim();
     } else {
-      throw new Error('JurinetUtils.CleanXML: End of <DOCUMENT> tag not found: the document could be malformed or corrupted.');
+      throw new Error(
+        'JurinetUtils.CleanXML: End of <DOCUMENT> tag not found: the document could be malformed or corrupted.',
+      );
     }
 
     return xml;
@@ -140,12 +144,6 @@ class JurinetUtils {
   }
 
   static Normalize(document, previousVersion, ignorePreviousContent) {
-    /* TODO
-    decatts: { decatt: [Object] },
-    parties: { demandeurs: [Object], defendeurs: [Object] },
-    avocats: { avocat: [Array] },
-    */
-
     let cleanedXml = null;
     let cleanedXmla = null;
     let originalText = undefined;
@@ -221,8 +219,10 @@ class JurinetUtils {
         title: undefined,
         summary: undefined,
         reference: [],
+        analyse: [],
       },
-      parties: {},
+      parties: [],
+      decatt: null,
       locked: false,
       labelStatus: pseudoText ? 'exported' : 'toBeTreated',
       labelTreatments: [],
@@ -267,7 +267,7 @@ class JurinetUtils {
               break;
             default:
               if (reference[key]) {
-                normalizedReference.push(reference[key].replace(/\*/gim, ''));
+                normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
               }
               break;
           }
@@ -276,6 +276,52 @@ class JurinetUtils {
           normalizedDecision.analysis.reference.push(normalizedReference);
         }
       });
+    }
+
+    if (document._analyse && document._analyse.length) {
+      document._analyse.forEach((reference) => {
+        let normalizedReference = [];
+        for (let key in reference) {
+          switch (key) {
+            case 'ID_DOCUMENT':
+            case 'NUM_ANALYSE':
+            case 'NUM_TITREREFERENCE':
+              break;
+            default:
+              if (reference[key]) {
+                normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
+              }
+              break;
+          }
+        }
+        if (normalizedReference) {
+          normalizedDecision.analysis.analyse.push(normalizedReference);
+        }
+      });
+    }
+
+    if (document._partie && document._partie.length) {
+      document._partie.forEach((reference) => {
+        let normalizedReference = [];
+        for (let key in reference) {
+          switch (key) {
+            case 'ID_DOCUMENT':
+              break;
+            default:
+              if (reference[key]) {
+                normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
+              }
+              break;
+          }
+        }
+        if (normalizedReference) {
+          normalizedDecision.parties.push(normalizedReference);
+        }
+      });
+    }
+
+    if (document._decatt && document._decatt.length > 0) {
+      normalizedDecision.decatt = document._decatt;
     }
 
     return normalizedDecision;

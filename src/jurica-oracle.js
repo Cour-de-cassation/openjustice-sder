@@ -55,6 +55,35 @@ class JuricaOracle {
     }
   }
 
+  async buildRawData(row, withExtraneous) {
+    if (this.connected === true && this.connection !== null) {
+      let data = {};
+      for (let key in row) {
+        switch (key) {
+          case process.env.DB_ID_FIELD_JURICA:
+            data[process.env.MONGO_ID] = row[key];
+            break;
+          default:
+            try {
+              if (typeof row[key].getData === 'function') {
+                data[key] = await row[key].getData();
+              } else {
+                data[key] = row[key];
+              }
+              data[key] = iconv.decode(data[key], process.env.ENCODING);
+            } catch (ignore) {}
+            break;
+        }
+      }
+      if (withExtraneous) {
+        // @TODO
+      }
+      return data;
+    } else {
+      throw new Error('Jurica.buildRawData: not connected.');
+    }
+  }
+
   /**
    * Get new decisions from Jurica.
    *
@@ -66,14 +95,15 @@ class JuricaOracle {
    */
   async getNew() {
     if (this.connected === true && this.connection !== null) {
-      // Source DBs are full of "holes" so we need to set a limit:
+      // Source DBs are full of "holes" so we need to set a limit
+      // (Sword used '2015-07-17' as date limit):
       let ago = new Date();
       ago.setMonth(ago.getMonth() - 1);
       ago.setHours(0, 0, 0, 0);
       let strAgo = ago.getFullYear();
       strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
-      // Sword uses '2015-07-17' as date limit
+
       const query = `SELECT * 
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
@@ -90,25 +120,8 @@ class JuricaOracle {
       let resultRow;
 
       while ((resultRow = await rs.getRow())) {
-        let row = {};
-        for (let key in resultRow) {
-          switch (key) {
-            case process.env.DB_ID_FIELD_JURICA:
-              row[process.env.MONGO_ID] = resultRow[key];
-              break;
-            default:
-              try {
-                if (typeof resultRow[key].getData === 'function') {
-                  row[key] = await resultRow[key].getData();
-                } else {
-                  row[key] = resultRow[key];
-                }
-                row[key] = iconv.decode(row[key], process.env.ENCODING);
-              } catch (ignore) {}
-              break;
-          }
-        }
-        rows.push(row);
+        const data = await this.buildRawData(resultRow, true);
+        rows.push(data);
       }
 
       await rs.close();
@@ -123,89 +136,47 @@ class JuricaOracle {
     }
   }
 
-  // @DEPRECATED
-  async getBatch(opt) {
-    opt = opt || {};
-    opt.all = opt.all || false;
-    opt.limit = opt.limit || 0;
-    opt.offset = opt.offset || 0;
-    opt.order = opt.order || 'ASC';
-    opt.titrage = opt.titrage || false;
-
+  /**
+   * Get all decisions from Jurica from the last N months.
+   *
+   * @returns {Array} An array of documents (with UTF-8 encoded content)
+   */
+  async getLastNMonth(NMonth) {
     if (this.connected === true && this.connection !== null) {
-      let query = null;
+      let ago = new Date();
+      ago.setMonth(ago.getMonth() - NMonth);
+      ago.setHours(0, 0, 0, 0);
+      let strAgo = ago.getFullYear();
+      strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
+      strAgo += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
 
-      if (opt.all === true) {
-        // Get all documents:
-        query = `SELECT * 
-          FROM ${process.env.DB_TABLE_JURICA}
-          ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
-      } else {
-        // Only get the documents that are ready to be published:
-        query = `SELECT * 
-          FROM ${process.env.DB_TABLE_JURICA}
-          WHERE ${process.env.DB_ANO_TEXT_FIELD_JURICA} is not NULL
-          AND ${process.env.DB_VALID_FIELD_JURICA} is not NULL
-          AND ${process.env.DB_STATE_FIELD_JURICA} = :ok
-          ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
+      const query = `SELECT * 
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
+        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        const data = await this.buildRawData(resultRow, true);
+        rows.push(data);
       }
 
-      // LIMIT-like query for an old version of Oracle:
-      if (opt.limit || opt.offset) {
-        if (opt.offset > 0) {
-          opt.limit += opt.offset;
-          opt.offset++;
-        }
-        query = `SELECT * FROM (
-          SELECT a.*, ROWNUM rnum FROM (
-            ${query}
-          ) a WHERE rownum <= ${opt.limit}
-        ) WHERE rnum >= ${opt.offset}`;
-      }
+      await rs.close();
 
-      let result = null;
-
-      if (opt.all === true) {
-        result = await this.connection.execute(query);
-      } else {
-        result = await this.connection.execute(query, [process.env.DB_STATE_OK_JURICA]);
-      }
-
-      if (result && result.rows && result.rows.length > 0) {
-        let rows = [];
-        for (let i = 0; i < result.rows.length; i++) {
-          let row = {};
-          for (let key in result.rows[i]) {
-            switch (key) {
-              case process.env.DB_ID_FIELD_JURICA:
-                row[process.env.MONGO_ID] = result.rows[i][key];
-                break;
-              case 'RNUM':
-                // Ignore RNUM key (added by offset/limit query)
-                break;
-              default:
-                try {
-                  if (typeof result.rows[i][key].getData === 'function') {
-                    row[key] = await result.rows[i][key].getData();
-                  } else {
-                    row[key] = result.rows[i][key];
-                  }
-                  row[key] = iconv.decode(row[key], process.env.ENCODING);
-                } catch (ignore) {}
-                break;
-            }
-          }
-          if (opt.titrage === true) {
-            // @TODO?
-          }
-          rows.push(row);
-        }
+      if (rows.length > 0) {
         return rows;
       } else {
         return null;
       }
     } else {
-      throw new Error('Not connected.');
+      throw new Error('Jurica.getLastNMonth: not connected.');
     }
   }
 
@@ -222,16 +193,18 @@ class JuricaOracle {
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the original decision from Jurica:
       const readQuery = `SELECT * 
-          FROM ${process.env.DB_TABLE_JURICA}
-          WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id
-          AND  ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = :none`;
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id
+        AND  ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = :none`;
+
       const readResult = await this.connection.execute(readQuery, [id, 0]);
+
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
-            SET ${process.env.DB_STATE_FIELD_JURICA}=:pending
-            WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
-        console.log('Jurica.markAsImported - updateQuery:', updateQuery, 1, id);
+          SET ${process.env.DB_STATE_FIELD_JURICA}=:pending
+          WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
+
         await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
         return true;
       } else {
@@ -259,23 +232,27 @@ class JuricaOracle {
       throw new Error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
     } else if (this.connected === true && this.connection !== null) {
       let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
-      let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
       decattDate1.setDate(decattDate1.getDate() - 1);
-      decattDate2.setDate(decattDate2.getDate() + 1);
       let strDecatt1 = decattDate1.getFullYear();
       strDecatt1 +=
         '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
       strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
+
+      let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
+      decattDate2.setDate(decattDate2.getDate() + 1);
       let strDecatt2 = decattDate2.getFullYear();
       strDecatt2 +=
         '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
       strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
+
       const decisionQuery = `SELECT * 
-          FROM ${process.env.DB_TABLE_JURICA}
-          WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber
-          AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
-          AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber
+        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
+        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
+
       const decisionResult = await this.connection.execute(decisionQuery, [info['NUM_RG']]);
+
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         let result = [];
         for (let i = 0; i < decisionResult.rows.length; i++) {
@@ -323,24 +300,12 @@ class JuricaOracle {
       throw new Error(`Jurica.getDecisionByID: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
       const decisionQuery = `SELECT * 
-          FROM ${process.env.DB_TABLE_JURICA}
-          WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
+
       const decisionResult = await this.connection.execute(decisionQuery, [id]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
-        let row = {};
-        for (let key in decisionResult.rows[0]) {
-          try {
-            if (typeof decisionResult.rows[0][key].getData === 'function') {
-              row[key] = await decisionResult.rows[0][key].getData();
-            } else {
-              row[key] = decisionResult.rows[0][key];
-            }
-            row[key] = iconv.decode(row[key], process.env.ENCODING);
-          } catch (e) {
-            row[key] = decisionResult.rows[0][key];
-          }
-        }
-        return row;
+        return await this.buildRawData(decisionResult.rows[0], true);
       } else {
         throw new Error(`Jurica.getDecisionByID: decision with ID '${id}' not found.`);
       }
