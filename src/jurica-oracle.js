@@ -229,7 +229,7 @@ class JuricaOracle {
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
-            SET ${process.env.DB_STATE_FIELD_JURICA}=:pending,
+            SET ${process.env.DB_STATE_FIELD_JURICA}=:pending
             WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
         console.log('Jurica.markAsImported - updateQuery:', updateQuery, 1, id);
         await this.connection.execute(updateQuery, [1, id], { autoCommit: true });

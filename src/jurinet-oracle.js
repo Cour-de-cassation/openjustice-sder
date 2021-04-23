@@ -362,7 +362,7 @@ class JurinetOracle {
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE}
-            SET ${process.env.DB_STATE_FIELD}=:pending,
+            SET ${process.env.DB_STATE_FIELD}=:pending
             WHERE ${process.env.DB_ID_FIELD}=:id`;
         await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
         return true;
