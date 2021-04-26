@@ -17,6 +17,9 @@ class JuricaOracle {
 
   async connect() {
     if (this.connected === false) {
+      console.log(
+        `Connecting to ${process.env.DB_HOST_JURICA} (${process.env.DB_USER_JURICA}/${process.env.DB_PASS_JURICA})...`,
+      );
       this.connection = await oracledb.getConnection({
         user: process.env.DB_USER_JURICA,
         password: process.env.DB_PASS_JURICA,
