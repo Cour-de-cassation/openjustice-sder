@@ -280,10 +280,10 @@ class JurinetOracle {
         xmla = iconv.decode(xmla, process.env.ENCODING);
         xmla = xmla.replace(/<texte_arret>[\s\S]*<\/texte_arret>/gim, '');
 
-        if (xmla.indexOf('</DOCUMENT>') !== -1) {
+        if (xmla.indexOf('</CAT_PUB>') !== -1) {
           // 4. Reinject the <TEXTE_ARRET> tag but with the pseudonymized content,
           // then encode it back to CP1252 (required by the DILA export script):
-          xmla = xmla.replace('</DOCUMENT>', '<TEXTE_ARRET>' + decision.pseudoText + '</TEXTE_ARRET></DOCUMENT>');
+          xmla = xmla.replace('</CAT_PUB>', '</CAT_PUB><TEXTE_ARRET>' + decision.pseudoText + '</TEXTE_ARRET>');
           xmla = iconv.encode(xmla, process.env.ENCODING);
 
           // 5. Set the date:
@@ -300,13 +300,13 @@ class JurinetOracle {
             WHERE ${process.env.DB_ID_FIELD}=:id`;
           await this.connection.execute(
             updateQuery,
-            [xmla.toString(), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
+            [xmla.toString('binary'), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
             { autoCommit: true },
           );
           return true;
         } else {
           throw new Error(
-            'Jurinet.reinject: end of <DOCUMENT> tag not found: the document could be malformed or corrupted.',
+            'Jurinet.reinject: end of <CAT_PUB> tag not found: the document could be malformed or corrupted.',
           );
         }
       } else {
