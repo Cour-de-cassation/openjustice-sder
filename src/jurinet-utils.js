@@ -266,7 +266,7 @@ class JurinetUtils {
             case 'NUM_TITREREFERENCE':
               break;
             default:
-              if (reference[key]) {
+              if (reference[key] && typeof reference[key] === 'string') {
                 normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
               }
               break;
@@ -288,7 +288,7 @@ class JurinetUtils {
             case 'NUM_TITREREFERENCE':
               break;
             default:
-              if (reference[key]) {
+              if (reference[key] && typeof reference[key] === 'string') {
                 normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
               }
               break;
@@ -308,7 +308,7 @@ class JurinetUtils {
             case 'ID_DOCUMENT':
               break;
             default:
-              if (reference[key]) {
+              if (reference[key] && typeof reference[key] === 'string') {
                 normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
               }
               break;
