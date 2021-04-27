@@ -49,9 +49,6 @@ async function reimportJurinet(n) {
         try {
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
           newCount++;
-          /*
-          if (row['AUT_CREATION'] !== 'WINCI' && row['TYPE_ARRET'] === 'CC') {
-          */
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
             let normDec = JurinetUtils.Normalize(row);
@@ -66,11 +63,6 @@ async function reimportJurinet(n) {
             });
             normalizedCount++;
           }
-          /*
-          } else {
-            skipCount++;
-          }
-          */
         } catch (e) {
           console.error(e);
           errorCount++;
@@ -79,9 +71,6 @@ async function reimportJurinet(n) {
         try {
           await rawJurinet.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
           updateCount++;
-          /*
-          if (row['AUT_CREATION'] !== 'WINCI' && row['TYPE_ARRET'] === 'CC') {
-          */
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
             let normDec = JurinetUtils.Normalize(row);
@@ -96,11 +85,6 @@ async function reimportJurinet(n) {
             });
             normalizedCount++;
           }
-          /*
-          } else {
-            skipCount++;
-          }
-          */
         } catch (e) {
           console.error(e);
           errorCount++;
