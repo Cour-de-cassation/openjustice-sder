@@ -53,22 +53,26 @@ async function importJurinet() {
       if (raw === null) {
         try {
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
+          /*
           // We only normalize, and insert into the 'decisions' collection, the documents that are
           // actually coming from the Cour de cassation (and not the ones from WinciCA):
           if (row['AUT_CREATION'] !== 'WINCI' && row['TYPE_ARRET'] === 'CC') {
-            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
-            if (normalized === null) {
-              let normDec = JurinetUtils.Normalize(row);
-              normDec._version = decisionsVersion;
-              await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              await jurinetSource.markAsImported(row._id);
-              newCount++;
-            } else {
-              skipCount++;
-            }
+          */
+          let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+          if (normalized === null) {
+            let normDec = JurinetUtils.Normalize(row);
+            normDec._version = decisionsVersion;
+            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            await jurinetSource.markAsImported(row._id);
+            newCount++;
           } else {
             skipCount++;
           }
+          /*
+          } else {
+            skipCount++;
+          }
+          */
         } catch (e) {
           console.error(`Jurinet import error processing decision ${row._id}`, e);
           errorCount++;

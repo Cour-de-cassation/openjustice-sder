@@ -49,24 +49,28 @@ async function reimportJurinet(n) {
         try {
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
           newCount++;
+          /*
           if (row['AUT_CREATION'] !== 'WINCI' && row['TYPE_ARRET'] === 'CC') {
-            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
-            if (normalized === null) {
-              let normDec = JurinetUtils.Normalize(row);
-              normDec._version = decisionsVersion;
-              await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normalizedCount++;
-            } else {
-              let normDec = JurinetUtils.Normalize(row, normalized, true);
-              normDec._version = decisionsVersion;
-              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
-                bypassDocumentValidation: true,
-              });
-              normalizedCount++;
-            }
+          */
+          let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+          if (normalized === null) {
+            let normDec = JurinetUtils.Normalize(row);
+            normDec._version = decisionsVersion;
+            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normalizedCount++;
+          } else {
+            let normDec = JurinetUtils.Normalize(row, normalized, true);
+            normDec._version = decisionsVersion;
+            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
+              bypassDocumentValidation: true,
+            });
+            normalizedCount++;
+          }
+          /*
           } else {
             skipCount++;
           }
+          */
         } catch (e) {
           console.error(e);
           errorCount++;
@@ -75,24 +79,28 @@ async function reimportJurinet(n) {
         try {
           await rawJurinet.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
           updateCount++;
+          /*
           if (row['AUT_CREATION'] !== 'WINCI' && row['TYPE_ARRET'] === 'CC') {
-            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
-            if (normalized === null) {
-              let normDec = JurinetUtils.Normalize(row);
-              normDec._version = decisionsVersion;
-              await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normalizedCount++;
-            } else {
-              let normDec = JurinetUtils.Normalize(row, normalized, true);
-              normDec._version = decisionsVersion;
-              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
-                bypassDocumentValidation: true,
-              });
-              normalizedCount++;
-            }
+          */
+          let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+          if (normalized === null) {
+            let normDec = JurinetUtils.Normalize(row);
+            normDec._version = decisionsVersion;
+            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normalizedCount++;
+          } else {
+            let normDec = JurinetUtils.Normalize(row, normalized, true);
+            normDec._version = decisionsVersion;
+            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
+              bypassDocumentValidation: true,
+            });
+            normalizedCount++;
+          }
+          /*
           } else {
             skipCount++;
           }
+          */
         } catch (e) {
           console.error(e);
           errorCount++;
