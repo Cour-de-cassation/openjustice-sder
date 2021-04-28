@@ -96,7 +96,8 @@ async function syncJurinet() {
           '_decatt',
         ];
         diff.forEach((key) => {
-          if (row[key] !== rawDocument[key]) {
+          if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
+	    console.log(`${key}: ${rawDocument[key]} --> ${row[key]}`);
             updated = true;
           }
         });
@@ -224,7 +225,8 @@ async function syncJurica() {
           'JDEC_LIBELLE',
         ];
         diff.forEach((key) => {
-          if (row[key] !== rawDocument[key]) {
+          if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
+	    console.log(`${key}: ${rawDocument[key]} --> ${row[key]}`);
             updated = true;
           }
         });
