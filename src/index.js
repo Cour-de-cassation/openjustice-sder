@@ -16,6 +16,11 @@ const bree = new Bree({
       name: 'reinject',
       interval: 'at 11:00 pm',
     },
+    {
+      name: 'sync',
+      timeout: false,
+      interval: 'every 10 minutes',
+    },
   ],
 });
 
