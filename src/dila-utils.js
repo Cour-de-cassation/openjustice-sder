@@ -139,7 +139,7 @@ class DilaUtils {
     }
   }
 
-  static Normalize(document, previousVersion) {
+  static async Normalize(document, previousVersion) {
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
       _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),

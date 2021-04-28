@@ -117,7 +117,7 @@ async function syncJurinet() {
       let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurinet' });
       if (normalized === null) {
         try {
-          let normDec = JurinetUtils.Normalize(row);
+          let normDec = await JurinetUtils.Normalize(row);
           normDec._version = decisionsVersion;
           await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           normalizeCount++;
@@ -128,7 +128,7 @@ async function syncJurinet() {
       } else if (normalized.locked === false) {
         if (updated === true || normalized._version !== decisionsVersion) {
           try {
-            let normDec = JurinetUtils.Normalize(row, normalized);
+            let normDec = await JurinetUtils.Normalize(row, normalized);
             normDec._version = decisionsVersion;
             await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
               bypassDocumentValidation: true,
@@ -246,7 +246,7 @@ async function syncJurica() {
       let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurica' });
       if (normalized === null) {
         try {
-          let normDec = JuricaUtils.Normalize(row);
+          let normDec = await JuricaUtils.Normalize(row);
           normDec._version = decisionsVersion;
           await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           normalizeCount++;
@@ -257,7 +257,7 @@ async function syncJurica() {
       } else if (normalized.locked === false) {
         if (updated === true || normalized._version !== decisionsVersion) {
           try {
-            let normDec = JuricaUtils.Normalize(row, normalized);
+            let normDec = await JuricaUtils.Normalize(row, normalized);
             normDec._version = decisionsVersion;
             await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
               bypassDocumentValidation: true,

@@ -12,7 +12,7 @@ class JuricaUtils {
     return he.decode(html).trim();
   }
 
-  static Normalize(document, previousVersion) {
+  static async Normalize(document, previousVersion) {
     let originalText = undefined;
     let pseudoText = undefined;
     let pseudoStatus = document.IND_ANO;

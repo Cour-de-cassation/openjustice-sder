@@ -293,10 +293,10 @@ async function main() {
             sourceName: 'jurinet',
           });
           if (alreadyFromJurinet === null) {
-            normalizeDoc = DilaUtils.Normalize(decisionToStore);
+            normalizeDoc = await DilaUtils.Normalize(decisionToStore);
           }
         } else {
-          normalizeDoc = DilaUtils.Normalize(decisionToStore);
+          normalizeDoc = await DilaUtils.Normalize(decisionToStore);
         }
         if (normalizeDoc !== null) {
           normalizeDoc._version = decisionsVersion;

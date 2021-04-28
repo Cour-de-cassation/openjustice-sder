@@ -51,12 +51,12 @@ async function reimportJurinet(n) {
           newCount++;
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
-            let normDec = JurinetUtils.Normalize(row);
+            let normDec = await JurinetUtils.Normalize(row);
             normDec._version = decisionsVersion;
             await decisions.insertOne(normDec, { bypassDocumentValidation: true });
             normalizedCount++;
           } else {
-            let normDec = JurinetUtils.Normalize(row, normalized, true);
+            let normDec = await JurinetUtils.Normalize(row, normalized, true);
             normDec._version = decisionsVersion;
             await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
               bypassDocumentValidation: true,
@@ -73,12 +73,12 @@ async function reimportJurinet(n) {
           updateCount++;
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
-            let normDec = JurinetUtils.Normalize(row);
+            let normDec = await JurinetUtils.Normalize(row);
             normDec._version = decisionsVersion;
             await decisions.insertOne(normDec, { bypassDocumentValidation: true });
             normalizedCount++;
           } else {
-            let normDec = JurinetUtils.Normalize(row, normalized, true);
+            let normDec = await JurinetUtils.Normalize(row, normalized, true);
             normDec._version = decisionsVersion;
             await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
               bypassDocumentValidation: true,

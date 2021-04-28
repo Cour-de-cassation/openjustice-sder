@@ -145,7 +145,7 @@ class JurinetUtils {
     }
   }
 
-  static Normalize(document, previousVersion, ignorePreviousContent) {
+  static async Normalize(document, previousVersion, ignorePreviousContent) {
     let cleanedXml = null;
     let cleanedXmla = null;
     let originalText = undefined;
