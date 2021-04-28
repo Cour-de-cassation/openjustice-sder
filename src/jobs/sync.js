@@ -97,7 +97,7 @@ async function syncJurinet() {
         ];
         diff.forEach((key) => {
           if (row[key] !== rawDocument[key]) {
-            console.log(`${key} has been updated...`);
+            console.log(`${key} has been updated: was '${rawDocument[key]}', now is '${row[key]}'`);
             updated = true;
           }
         });
@@ -226,7 +226,7 @@ async function syncJurica() {
         ];
         diff.forEach((key) => {
           if (row[key] !== rawDocument[key]) {
-            console.log(`${key} has been updated...`);
+            console.log(`${key} has been updated: was '${rawDocument[key]}', now is '${row[key]}'`);
             updated = true;
           }
         });
