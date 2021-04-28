@@ -25,9 +25,6 @@ class JuricaUtils {
     } catch (ignore) {}
 
     if (previousVersion) {
-      if (previousVersion.originalText) {
-        originalText = previousVersion.originalText;
-      }
       if (previousVersion.pseudoText) {
         pseudoText = previousVersion.pseudoText;
       }

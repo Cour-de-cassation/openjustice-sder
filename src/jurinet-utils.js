@@ -173,9 +173,6 @@ class JurinetUtils {
     } catch (ignore) {}
 
     if (previousVersion && !ignorePreviousContent) {
-      if (previousVersion.originalText) {
-        originalText = previousVersion.originalText;
-      }
       if (previousVersion.pseudoText) {
         pseudoText = previousVersion.pseudoText;
       }
@@ -329,9 +326,13 @@ class JurinetUtils {
 
     if (normalizedDecision.pseudoText) {
       try {
-        const zoning = await ZoningUtils.getZones(normalizedDecision.sourceId, normalizedDecision.sourceName, normalizedDecision.pseudoText);
+        const zoning = await ZoningUtils.getZones(
+          normalizedDecision.sourceId,
+          normalizedDecision.sourceName,
+          normalizedDecision.pseudoText,
+        );
         if (zoning && !zoning.detail) {
-          normalizedDecision.zoning = zoning
+          normalizedDecision.zoning = zoning;
         }
       } catch (e) {
         normalizedDecision.zoning = undefined;
