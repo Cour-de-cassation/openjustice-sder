@@ -28,7 +28,7 @@ async function main() {
 
 async function syncJurinet() {
   const jurinetOrder = 'DESC';
-  const jurinetBatch = 1000;
+  const jurinetBatch = 100;
   const jurinetSource = new JurinetOracle({
     verbose: false,
   });
@@ -66,7 +66,7 @@ async function syncJurinet() {
 
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
-      let rawDocument = await raw.findOne({ sourceId: row[process.env.MONGO_ID] });
+      let rawDocument = await raw.findOne({ _id: row[process.env.MONGO_ID] });
       let updated = false;
 
       if (rawDocument === null) {
@@ -161,7 +161,7 @@ async function syncJurinet() {
 
 async function syncJurica() {
   const juricaOrder = 'DESC';
-  const juricaBatch = 1000;
+  const juricaBatch = 100;
   const juricaSource = new JuricaOracle({
     verbose: false,
   });
@@ -199,7 +199,7 @@ async function syncJurica() {
 
     for (let i = 0; i < juricaResult.length; i++) {
       let row = juricaResult[i];
-      let rawDocument = await raw.findOne({ sourceId: row[process.env.MONGO_ID] });
+      let rawDocument = await raw.findOne({ _id: row[process.env.MONGO_ID] });
       let updated = false;
 
       if (rawDocument === null) {
