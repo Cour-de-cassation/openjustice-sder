@@ -1,6 +1,8 @@
 const parser = require('fast-xml-parser');
 const he = require('he');
 
+const { ZoningUtils } = require('./zoning-utils');
+
 const parserOptions = {
   attributeNamePrefix: '$',
   attrNodeName: '$attributes',
@@ -95,12 +97,12 @@ class JurinetUtils {
     xml = xml.replace(/<\/numpourvoi><numpourvoi\s+id=\"\d+\">/gim, ',');
 
     // Reinject the merged <TEXTE_ARRET> element(s):
-    if (xml.indexOf('</DOCUMENT>') !== -1) {
-      xml = xml.replace('</DOCUMENT>', '<TEXTE_ARRET>' + texteArret.join(' ').trim() + '</TEXTE_ARRET></DOCUMENT>');
+    if (xml.indexOf('</CAT_PUB>') !== -1) {
+      xml = xml.replace('</CAT_PUB>', '</CAT_PUB><TEXTE_ARRET>' + texteArret.join(' ').trim() + '</TEXTE_ARRET>');
       xml = xml.trim();
     } else {
       throw new Error(
-        'JurinetUtils.CleanXML: End of <DOCUMENT> tag not found: the document could be malformed or corrupted.',
+        'JurinetUtils.CleanXML: End of <CAT_PUB> tag not found: the document could be malformed or corrupted.',
       );
     }
 
@@ -226,6 +228,7 @@ class JurinetUtils {
       locked: false,
       labelStatus: pseudoText ? 'exported' : 'toBeTreated',
       labelTreatments: [],
+      zoning: undefined,
     };
 
     if (previousVersion) {
@@ -322,6 +325,17 @@ class JurinetUtils {
 
     if (document._decatt && document._decatt.length > 0) {
       normalizedDecision.decatt = document._decatt;
+    }
+
+    if (normalizedDecision.pseudoText) {
+      try {
+        const zoning = await ZoningUtils.getZones(normalizedDecision.sourceId, normalizedDecision.sourceName, normalizedDecision.pseudoText);
+        if (zoning && !zoning.detail) {
+          normalizedDecision.zoning = zoning
+        }
+      } catch (e) {
+        normalizedDecision.zoning = undefined;
+      }
     }
 
     return normalizedDecision;

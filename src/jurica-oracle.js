@@ -66,6 +66,12 @@ class JuricaOracle {
           case process.env.DB_ID_FIELD_JURICA:
             data[process.env.MONGO_ID] = row[key];
             break;
+          case 'rnum':
+            // Ignore rnum key (added by offset/limit queries)
+            break;
+          case 'RNUM':
+            // Ignore RNUM key (added by offset/limit queries)
+            break;
           default:
             try {
               if (typeof row[key].getData === 'function') {
@@ -180,6 +186,60 @@ class JuricaOracle {
       }
     } else {
       throw new Error('Jurica.getLastNMonth: not connected.');
+    }
+  }
+
+  /**
+   * Get a batch of decisions from Jurica using offset/limit/order.
+   *
+   * @returns {Array} An array of documents (with UTF-8 encoded content)
+   */
+  async getBatch(opt) {
+    opt = opt || {};
+    opt.offset = opt.offset || 0;
+    opt.limit = opt.limit || 0;
+    opt.order = opt.order || 'ASC';
+
+    if (this.connected === true && this.connection !== null) {
+      let query = `SELECT * 
+        FROM ${process.env.DB_TABLE_JURICA}
+        ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
+
+      // LIMIT-like query for old versions of Oracle:
+      if (opt.limit || opt.offset) {
+        if (opt.offset > 0) {
+          opt.limit += opt.offset;
+          opt.offset++;
+        }
+        query = `SELECT * FROM (
+          SELECT a.*, ROWNUM rnum FROM (
+            ${query}
+          ) a WHERE rownum <= ${opt.limit}
+        ) WHERE rnum >= ${opt.offset}`;
+      }
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        const data = await this.buildRawData(resultRow, true);
+        rows.push(data);
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurica.getBatch: not connected.');
     }
   }
 

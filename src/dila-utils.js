@@ -170,11 +170,14 @@ class DilaUtils {
         title: document.TITRAGE,
         summary: document.SOMMAIRE,
         reference: document.TEXTES_APPLIQUES,
+        analyse: [],
       },
       parties: {},
+      decatt: null,
       locked: false,
       labelStatus: 'exported',
       labelTreatments: [],
+      zoning: undefined,
     };
 
     return normalizedDecision;
