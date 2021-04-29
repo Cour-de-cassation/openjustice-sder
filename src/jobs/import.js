@@ -61,7 +61,9 @@ async function importJurinet() {
             let normDec = await JurinetUtils.Normalize(row);
             normDec._version = decisionsVersion;
             await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            await jurinetSource.markAsImported(row._id);
+            try {
+              await jurinetSource.markAsImported(row._id);
+            } catch (ignore) {}
             newCount++;
           } else {
             skipCount++;
@@ -77,7 +79,9 @@ async function importJurinet() {
             let normDec = await JurinetUtils.Normalize(row);
             normDec._version = decisionsVersion;
             await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            await jurinetSource.markAsImported(row._id);
+            try {
+              await jurinetSource.markAsImported(row._id);
+            } catch (ignore) {}
             newCount++;
           } else {
             skipCount++;
@@ -127,7 +131,9 @@ async function importJurica() {
             let normDec = await JuricaUtils.Normalize(row);
             normDec._version = decisionsVersion;
             await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            await juricaSource.markAsImported(row._id);
+            try {
+              await juricaSource.markAsImported(row._id);
+            } catch (ignore) {}
             newCount++;
           } else {
             skipCount++;
