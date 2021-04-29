@@ -10,11 +10,11 @@ const bree = new Bree({
     },
     {
       name: 'import',
-      interval: 'at 5:30 am',
+      interval: 'at 4:30 am',
     },
     {
       name: 'reinject',
-      interval: 'at 11:00 pm',
+      interval: 'at 12:00 am',
     },
     {
       name: 'sync',
