@@ -48,6 +48,7 @@ async function syncJurinet() {
     offset: jurinetOffset,
     limit: jurinetBatch,
     order: jurinetOrder,
+    onlyTreated: true,
   });
   await jurinetSource.close();
 
@@ -123,9 +124,6 @@ async function syncJurinet() {
           let normDec = await JurinetUtils.Normalize(row);
           normDec._version = decisionsVersion;
           await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-          try {
-            await jurinetSource.markAsImported(row._id);
-          } catch (ignore) {}
           normalizeCount++;
         } catch (e) {
           console.error(e);
@@ -181,6 +179,7 @@ async function syncJurica() {
     offset: juricaOffset,
     limit: juricaBatch,
     order: juricaOrder,
+    onlyTreated: true,
   });
   await juricaSource.close();
 
@@ -252,9 +251,6 @@ async function syncJurica() {
           let normDec = await JuricaUtils.Normalize(row);
           normDec._version = decisionsVersion;
           await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-          try {
-            await juricaSource.markAsImported(row._id);
-          } catch (ignore) {}
           normalizeCount++;
         } catch (e) {
           console.error(e);

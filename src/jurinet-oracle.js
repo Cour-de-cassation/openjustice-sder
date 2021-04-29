@@ -257,12 +257,22 @@ class JurinetOracle {
     opt.offset = opt.offset || 0;
     opt.limit = opt.limit || 0;
     opt.order = opt.order || 'ASC';
+    opt.onlyTreated = opt.onlyTreated || false;
 
     if (this.connected === true && this.connection !== null) {
-      let query = `SELECT * 
-        FROM ${process.env.DB_TABLE}
-        ORDER BY ${process.env.DB_ID_FIELD} ${opt.order}`;
+      let query;
 
+      if (!opt.onlyTreated) {
+        query = `SELECT * 
+          FROM ${process.env.DB_TABLE}
+          ORDER BY ${process.env.DB_ID_FIELD} ${opt.order}`;
+      } else {
+        query = `SELECT * 
+          FROM ${process.env.DB_TABLE}
+          WHERE ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} IS NOT NULL
+          AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} > 0
+          ORDER BY ${process.env.DB_ID_FIELD} ${opt.order}`;
+      }
       // LIMIT-like query for old versions of Oracle:
       if (opt.limit || opt.offset) {
         if (opt.offset > 0) {

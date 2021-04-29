@@ -189,11 +189,22 @@ class JuricaOracle {
     opt.offset = opt.offset || 0;
     opt.limit = opt.limit || 0;
     opt.order = opt.order || 'ASC';
+    opt.onlyTreated = opt.onlyTreated || false;
 
     if (this.connected === true && this.connection !== null) {
-      let query = `SELECT * 
-        FROM ${process.env.DB_TABLE_JURICA}
-        ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
+      let query;
+
+      if (!opt.onlyTreated) {
+        query = `SELECT * 
+          FROM ${process.env.DB_TABLE_JURICA}
+          ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
+      } else {
+        query = `SELECT * 
+          FROM ${process.env.DB_TABLE_JURICA}
+          WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NOT NULL
+          AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} > 0
+          ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
+      }
 
       // LIMIT-like query for old versions of Oracle:
       if (opt.limit || opt.offset) {
