@@ -34,9 +34,7 @@ async function importJurinet() {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const jurinetSource = new JurinetOracle({
-    verbose: false,
-  });
+  const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
   let newCount = 0;
@@ -102,9 +100,7 @@ async function importJurica() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const juricaSource = new JuricaOracle({
-    verbose: false,
-  });
+  const juricaSource = new JuricaOracle();
   await juricaSource.connect();
 
   let newCount = 0;

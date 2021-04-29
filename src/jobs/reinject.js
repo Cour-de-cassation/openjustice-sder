@@ -14,9 +14,7 @@ async function main() {
   const database = client.db(process.env.MONGO_DBNAME);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const jurinetSource = new JurinetOracle({
-    verbose: true,
-  });
+  const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
   console.log('Retrieve all "done" decisions for Jurinet...');

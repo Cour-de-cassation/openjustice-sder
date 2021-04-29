@@ -10,7 +10,6 @@ oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 class JuricaOracle {
   constructor(opt) {
     opt = opt || {};
-    this.verbose = opt.verbose || false;
     this.connected = false;
     this.connection = null;
   }
@@ -26,9 +25,6 @@ class JuricaOracle {
         connectString: process.env.DB_HOST_JURICA,
       });
       this.connected = true;
-      if (this.verbose === true) {
-        console.info(`Jurica.connect: connected to Oracle v${this.connection.oracleServerVersionString}.`);
-      }
     } else {
       throw new Error('Jurica.connect: already connected.');
     }
@@ -37,9 +33,6 @@ class JuricaOracle {
   async close() {
     if (this.connected === true && this.connection !== null) {
       await this.connection.close();
-      if (this.verbose === true) {
-        console.info('Jurica.close: disconnected from Oracle.');
-      }
     } else {
       throw new Error('Jurica.close: not connected.');
     }

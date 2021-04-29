@@ -27,9 +27,7 @@ async function reimportJurinet(n) {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const jurinetSource = new JurinetOracle({
-    verbose: true,
-  });
+  const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
   let newCount = 0;

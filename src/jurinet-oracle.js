@@ -10,7 +10,6 @@ oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 class JurinetOracle {
   constructor(opt) {
     opt = opt || {};
-    this.verbose = opt.verbose || false;
     this.connected = false;
     this.connection = null;
   }
@@ -24,9 +23,6 @@ class JurinetOracle {
         connectString: process.env.DB_HOST,
       });
       this.connected = true;
-      if (this.verbose === true) {
-        console.info(`Jurinet.connect: connected to Oracle v${this.connection.oracleServerVersionString}.`);
-      }
     } else {
       throw new Error('Jurinet.connect: already connected.');
     }
@@ -35,9 +31,6 @@ class JurinetOracle {
   async close() {
     if (this.connected === true && this.connection !== null) {
       await this.connection.close();
-      if (this.verbose === true) {
-        console.info('Jurinet.close: disconnected from Oracle.');
-      }
     } else {
       throw new Error('Jurinet.close: not connected.');
     }
@@ -143,9 +136,7 @@ class JurinetOracle {
         try {
           // Inject "decatt" data (if any) into the document:
           const { JuricaOracle } = require('../jurica-oracle');
-          const juricaSource = new JuricaOracle({
-            verbose: false,
-          });
+          const juricaSource = new JuricaOracle();
           await juricaSource.connect();
           const decattInfo = await this.getDecatt(row[process.env.DB_ID_FIELD]);
           const decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);

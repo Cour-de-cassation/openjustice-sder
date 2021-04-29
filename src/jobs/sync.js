@@ -29,9 +29,7 @@ async function main() {
 async function syncJurinet() {
   const jurinetOrder = 'DESC';
   const jurinetBatch = 100;
-  const jurinetSource = new JurinetOracle({
-    verbose: false,
-  });
+  const jurinetSource = new JurinetOracle();
   let jurinetOffset = 0;
   try {
     jurinetOffset = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'jurinet.offset')).toString(), 10);
@@ -164,9 +162,7 @@ async function syncJurinet() {
 async function syncJurica() {
   const juricaOrder = 'DESC';
   const juricaBatch = 100;
-  const juricaSource = new JuricaOracle({
-    verbose: false,
-  });
+  const juricaSource = new JuricaOracle();
   let juricaOffset = 0;
   try {
     juricaOffset = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'jurica.offset')).toString(), 10);

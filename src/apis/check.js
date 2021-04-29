@@ -26,14 +26,10 @@ async function check(id) {
     },
   };
 
-  const jurinetSource = new JurinetOracle({
-    verbose: false,
-  });
+  const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
-  const juricaSource = new JuricaOracle({
-    verbose: false,
-  });
+  const juricaSource = new JuricaOracle();
   await juricaSource.connect();
 
   try {
