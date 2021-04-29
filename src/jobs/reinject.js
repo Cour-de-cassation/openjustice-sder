@@ -48,7 +48,6 @@ async function main() {
 }
 
 function end() {
-  console.log('OpenJustice - Exit "reinject" job.');
   if (parentPort) parentPort.postMessage('done');
   else process.exit(0);
 }

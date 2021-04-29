@@ -26,7 +26,6 @@ async function main() {
 }
 
 function end() {
-  console.log('OpenJustice - Exit "import" job.');
   if (parentPort) parentPort.postMessage('done');
   else process.exit(0);
 }
