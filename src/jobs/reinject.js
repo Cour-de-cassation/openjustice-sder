@@ -44,8 +44,13 @@ async function main() {
   await client.close();
   await jurinetSource.close();
   console.log('OpenJustice - End "reinject" job:', new Date().toLocaleString());
+  setTimeout(end, 1000);
+}
+
+function end() {
   console.log('OpenJustice - Exit "reinject" job.');
-  process.exit(0);
+  if (parentPort) parentPort.postMessage('done');
+  else process.exit(0);
 }
 
 main();

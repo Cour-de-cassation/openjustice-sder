@@ -22,8 +22,13 @@ async function main() {
     console.error('Jurica import error', e);
   }
   console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
+  setTimeout(end, 1000);
+}
+
+function end() {
   console.log('OpenJustice - Exit "import" job.');
-  process.exit(0);
+  if (parentPort) parentPort.postMessage('done');
+  else process.exit(0);
 }
 
 async function importJurinet() {
