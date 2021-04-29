@@ -269,8 +269,7 @@ class JurinetOracle {
       } else {
         query = `SELECT * 
           FROM ${process.env.DB_TABLE}
-          WHERE ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} IS NOT NULL
-          AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} > 0
+          WHERE ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 2
           ORDER BY ${process.env.DB_ID_FIELD} ${opt.order}`;
       }
       // LIMIT-like query for old versions of Oracle:
@@ -324,15 +323,14 @@ class JurinetOracle {
     // because we may need to force the reinjection of the given decision
     // independently of its status within the Label workflow,
     // so the only required properties are sourceId and pseudoText:
-    if (!decision || !decision.sourceId || !decision.pseudoText) {
+    if (!decision || !decision.sourceId || !decision.pseudoText || decision.sourceName !== 'jurinet') {
       throw new Error('Jurinet.reinject: invalid decision to reinject.');
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the original decision from Jurinet:
       const readQuery = `SELECT * 
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-      //  AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :pending`;
-      const readResult = await this.connection.execute(readQuery, [decision.sourceId]); // , 1]);
+      const readResult = await this.connection.execute(readQuery, [decision.sourceId]);
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Get the content of the original XML field to create the new XMLA field:
         let xmla = await readResult.rows[0]['XML'].getData();

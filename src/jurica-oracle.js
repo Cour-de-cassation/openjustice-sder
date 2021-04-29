@@ -201,8 +201,7 @@ class JuricaOracle {
       } else {
         query = `SELECT * 
           FROM ${process.env.DB_TABLE_JURICA}
-          WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NOT NULL
-          AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} > 0
+          WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 2
           ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
       }
 
@@ -241,6 +240,47 @@ class JuricaOracle {
       }
     } else {
       throw new Error('Jurica.getBatch: not connected.');
+    }
+  }
+
+  /**
+   * Method to "reinject" into Jurica.
+   * The pseudonimized text cannot be reinjected, so we only change the document status.
+   *
+   * @param {*} decision
+   * @returns
+   * @throws
+   */
+  async reinject(decision) {
+    // We don't check the value of labelStatus or some other Label properties
+    // because we may need to force the reinjection of the given decision
+    // independently of its status within the Label workflow,
+    // so the only required properties are sourceId and pseudoText:
+    if (!decision || !decision.sourceId || !decision.pseudoText || decision.sourceName !== 'jurica') {
+      throw new Error('Jurica.reinject: invalid decision to reinject.');
+    } else if (this.connected === true && this.connection !== null) {
+      // 1. Get the original decision from Jurica:
+      const readQuery = `SELECT * 
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
+      const readResult = await this.connection.execute(readQuery, [decision.sourceId]);
+      if (readResult && readResult.rows && readResult.rows.length > 0) {
+        // 2. Update query:
+        const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
+            SET ${process.env.DB_STATE_FIELD_JURICA}=:ok,
+            AUT_ANO=:label,
+            WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
+        await this.connection.execute(
+          updateQuery,
+          [parseInt(process.env.DB_STATE_OK_JURICA), 'LABEL', decision.sourceId],
+          { autoCommit: true },
+        );
+        return true;
+      } else {
+        throw new Error(`Jurica.reinject: pending decision '${decision.sourceId}' not found.`);
+      }
+    } else {
+      throw new Error('Jurica.reinject: not connected.');
     }
   }
 

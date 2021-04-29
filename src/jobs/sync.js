@@ -215,7 +215,6 @@ async function syncJurica() {
         }
       } else {
         const diff = [
-          'JDEC_HTML_SOURCE',
           'JDEC_DATE',
           'JDEC_ID_JURIDICTION',
           'JDEC_CODE_JURIDICTION',
