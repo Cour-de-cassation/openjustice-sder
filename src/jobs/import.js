@@ -21,7 +21,8 @@ async function main() {
   } catch (e) {
     console.error('Jurica import error', e);
   }
-  console.log('OpenJustice - Exit "import" job:', new Date().toLocaleString());
+  console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
+  console.log('OpenJustice - Exit "import" job.');
   process.exit(0);
 }
 

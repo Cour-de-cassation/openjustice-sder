@@ -22,7 +22,8 @@ async function main() {
   } catch (e) {
     console.error('Jurica sync error', e);
   }
-  console.log('OpenJustice - Exit "sync" job:', new Date().toLocaleString());
+  console.log('OpenJustice - End "sync" job:', new Date().toLocaleString());
+  console.log('OpenJustice - Exit "sync" job.');
   process.exit(0);
 }
 

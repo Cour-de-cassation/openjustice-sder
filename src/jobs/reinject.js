@@ -43,7 +43,8 @@ async function main() {
   console.log(`Jurinet reinjection done (success: ${successCount}, errors: ${errorCount}).`);
   await client.close();
   await jurinetSource.close();
-  console.log('OpenJustice - Exit "reinject" job:', new Date().toLocaleString());
+  console.log('OpenJustice - End "reinject" job:', new Date().toLocaleString());
+  console.log('OpenJustice - Exit "reinject" job.');
   process.exit(0);
 }
 
