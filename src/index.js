@@ -10,7 +10,7 @@ const bree = new Bree({
     },
     {
       name: 'import',
-      interval: 'every 5 minutes after 8:00am and before 12:00pm also every hour after 12:00pm and before 7:00pm',
+      interval: 'every 5 minutes after 8:00am and before 12:00pm',
     },
     {
       name: 'reinject',
