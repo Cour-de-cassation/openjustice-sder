@@ -268,7 +268,7 @@ class JuricaOracle {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
             SET ${process.env.DB_STATE_FIELD_JURICA}=:ok,
-            AUT_ANO=:label,
+            AUT_ANO=:label
             WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
         await this.connection.execute(
           updateQuery,
