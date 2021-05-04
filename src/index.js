@@ -12,7 +12,7 @@ const bree = new Bree({
     {
       name: 'import',
       interval: 'every 5 minutes after 8:00am and before 12:00pm',
-      closeWorkerAfterMs: ms('1h'),
+      closeWorkerAfterMs: ms('30m'),
     },
     {
       name: 'reinject',
@@ -21,8 +21,8 @@ const bree = new Bree({
     },
     {
       name: 'sync',
-      interval: 'every 5 minutes after 9:00am and before 11:00pm',
-      closeWorkerAfterMs: ms('1h'),
+      interval: 'every 7 minutes after 9:00am and before 11:00pm',
+      closeWorkerAfterMs: ms('30m'),
     },
   ],
 });

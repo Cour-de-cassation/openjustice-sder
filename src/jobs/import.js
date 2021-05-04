@@ -28,7 +28,7 @@ async function main() {
 
 function end() {
   if (parentPort) parentPort.postMessage('done');
-  else process.exit(0);
+  process.exit(0);
 }
 
 async function importJurinet() {
