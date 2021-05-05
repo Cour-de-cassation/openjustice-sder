@@ -2,6 +2,72 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
+const { JurinetOracle } = require('../jurinet-oracle');
+const { MongoClient } = require('mongodb');
+
+async function main() {
+  try {
+    await testJurinet();
+  } catch (e) {
+    console.error('Jurinet error', e);
+  }
+  process.exit(0);
+}
+
+async function testJurinet(n) {
+  const jurinetSource = new JurinetOracle();
+  await jurinetSource.connect();
+
+  const query = `SELECT * 
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.DT_ANO IS NOT NULL
+        AND ${process.env.DB_TABLE}.IND_ANO = 2
+        AND ${process.env.DB_TABLE}.XMLA IS NOT NULL
+        AND ${process.env.DB_TABLE}.AUT_ANO = 'LABEL'
+        AND ${process.env.DB_TABLE}.DT_ENVOI_DILA IS NULL
+        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
+
+  const result = await jurinetSource.connection.execute(query, [], {
+    resultSet: true,
+  });
+
+  const rs = result.resultSet;
+  let rows = [];
+  let resultRow;
+
+  while ((resultRow = await rs.getRow())) {
+    rows.push(resultRow['ID_DOCUMENT']);
+  }
+
+  await rs.close();
+  await jurinetSource.close();
+
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+  const database = client.db(process.env.MONGO_DBNAME);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+  for (let i = 0; i < rows.length; i++) {
+    let decision = await decisions.findOne({ sourceId: rows[i], sourceName: 'jurinet' });
+    if (decision) {
+      console.log(i, decision.sourceId, decision.dateDecision);
+    }
+  }
+
+  await client.close();
+
+  return true;
+}
+
+main();
+
+/*
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+
 const { parentPort } = require('worker_threads');
 const { MongoClient } = require('mongodb');
 
@@ -40,6 +106,8 @@ function end() {
 }
 
 main();
+*/
+
 /*
 const fs = require('fs');
 const path = require('path');
@@ -93,6 +161,7 @@ async function reimportJurinet(n) {
 
 main();
 */
+
 /*
 const { parentPort } = require('worker_threads');
 
