@@ -63,14 +63,18 @@ class JuricaOracle {
             // Ignore RNUM key (added by offset/limit queries)
             break;
           default:
-            try {
-              if (typeof row[key].getData === 'function') {
+            if (typeof row[key].getData === 'function') {
+              try {
                 data[key] = await row[key].getData();
-              } else {
-                data[key] = row[key];
+              } catch (e) {
+                data[key] = null;
               }
+            } else {
+              data[key] = row[key];
+            }
+            if (Buffer.isBuffer(data[key])) {
               data[key] = iconv.decode(data[key], process.env.ENCODING);
-            } catch (ignore) {}
+            }
             break;
         }
       }

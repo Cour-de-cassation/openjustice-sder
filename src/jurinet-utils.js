@@ -268,6 +268,8 @@ class JurinetUtils {
             default:
               if (reference[key] && typeof reference[key] === 'string') {
                 normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
+              } else {
+                normalizedReference.push(reference[key]);
               }
               break;
           }
@@ -290,6 +292,8 @@ class JurinetUtils {
             default:
               if (reference[key] && typeof reference[key] === 'string') {
                 normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
+              } else {
+                normalizedReference.push(reference[key]);
               }
               break;
           }
@@ -310,6 +314,8 @@ class JurinetUtils {
             default:
               if (reference[key] && typeof reference[key] === 'string') {
                 normalizedReference.push(reference[key].replace(/\*/gim, '').trim());
+              } else {
+                normalizedReference.push(reference[key]);
               }
               break;
           }

@@ -63,14 +63,18 @@ class JurinetOracle {
             // Ignore RNUM key (added by offset/limit queries)
             break;
           default:
-            try {
-              if (typeof row[key].getData === 'function') {
+            if (typeof row[key].getData === 'function') {
+              try {
                 data[key] = await row[key].getData();
-              } else {
-                data[key] = row[key];
+              } catch (e) {
+                data[key] = null;
               }
+            } else {
+              data[key] = row[key];
+            }
+            if (Buffer.isBuffer(data[key])) {
               data[key] = iconv.decode(data[key], process.env.ENCODING);
-            } catch (ignore) {}
+            }
             break;
         }
       }
@@ -345,7 +349,10 @@ class JurinetOracle {
           pseudoText = pseudoText.replace(/>/g, '&gt;');
           pseudoText = pseudoText.replace(/"/g, '&quot;');
           pseudoText = pseudoText.replace(/'/g, '&apos;');
-          xmla = xmla.replace(/<TEXTE_ARRET>[\s\S]*<\/TEXTE_ARRET>/gim, '<TEXTE_ARRET>' + pseudoText + '</TEXTE_ARRET>');
+          xmla = xmla.replace(
+            /<TEXTE_ARRET>[\s\S]*<\/TEXTE_ARRET>/gim,
+            '<TEXTE_ARRET>' + pseudoText + '</TEXTE_ARRET>',
+          );
           xmla = iconv.encode(xmla, process.env.ENCODING);
 
           // 5. Set the date:

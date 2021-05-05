@@ -12,7 +12,7 @@ class JuricaUtils {
     return he.decode(html).trim();
   }
 
-  static async Normalize(document, previousVersion) {
+  static async Normalize(document, previousVersion, ignorePreviousContent) {
     let originalText = undefined;
     let pseudoText = undefined;
     let pseudoStatus = document.IND_ANO;
@@ -24,7 +24,7 @@ class JuricaUtils {
       pseudoText = JuricaUtils.CleanHTML(document.HTMLA);
     } catch (ignore) {}
 
-    if (previousVersion) {
+    if (previousVersion && !ignorePreviousContent) {
       if (previousVersion.pseudoText) {
         pseudoText = previousVersion.pseudoText;
       }
