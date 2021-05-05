@@ -40,7 +40,6 @@ async function testJurinet(n) {
   }
 
   await rs.close();
-  await jurinetSource.close();
 
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
@@ -53,9 +52,15 @@ async function testJurinet(n) {
     let decision = await decisions.findOne({ sourceId: rows[i], sourceName: 'jurinet' });
     if (decision) {
       console.log(i, decision.sourceId, decision.dateDecision);
+      try {
+        await jurinetSource.reinject(decision);
+      } catch (e) {
+        console.error(e);
+      }
     }
   }
 
+  await jurinetSource.close();
   await client.close();
 
   return true;
