@@ -63,7 +63,7 @@ class JurinetOracle {
             // Ignore RNUM key (added by offset/limit queries)
             break;
           default:
-            if (typeof row[key].getData === 'function') {
+            if (row[key] && typeof row[key].getData === 'function') {
               try {
                 data[key] = await row[key].getData();
               } catch (e) {
