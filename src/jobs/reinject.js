@@ -5,6 +5,7 @@ const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JuricaOracle } = require('../jurica-oracle');
 const { MongoClient } = require('mongodb');
+const ms = require('ms');
 
 async function main() {
   console.log('OpenJustice - Start "reinject" job:', new Date().toLocaleString());
@@ -19,12 +20,17 @@ async function main() {
     console.error('Jurica reinject error', e);
   }
   console.log('OpenJustice - End "reinject" job:', new Date().toLocaleString());
-  setTimeout(end, 1000);
+  setTimeout(end, ms('1s'));
 }
 
 function end() {
   if (parentPort) parentPort.postMessage('done');
-  process.exit(0);
+  else process.exit(0);
+}
+
+function cancel() {
+  if (parentPort) parentPort.postMessage('cancelled');
+  else process.exit(1);
 }
 
 async function reinjectJurinet() {
@@ -107,4 +113,5 @@ async function reinjectJurica() {
   return true;
 }
 
+setTimeout(cancel, ms('30m'));
 main();

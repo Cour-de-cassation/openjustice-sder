@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const { JurinetOracle } = require('../jurinet-oracle');
 const { MongoClient } = require('mongodb');
+const ms = require('ms');
 
 async function main() {
   try {
@@ -11,7 +12,17 @@ async function main() {
   } catch (e) {
     console.error('Jurinet error', e);
   }
-  process.exit(0);
+  setTimeout(end, ms('1s'));
+}
+
+function end() {
+  if (parentPort) parentPort.postMessage('done');
+  else process.exit(0);
+}
+
+function cancel() {
+  if (parentPort) parentPort.postMessage('cancelled');
+  else process.exit(1);
 }
 
 async function testJurinet(n) {
@@ -66,6 +77,7 @@ async function testJurinet(n) {
   return true;
 }
 
+setTimeout(cancel, ms('30m'));
 main();
 
 /*
