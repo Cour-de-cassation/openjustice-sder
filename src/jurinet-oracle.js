@@ -335,14 +335,17 @@ class JurinetOracle {
         // 2. Get the content of the original XML field to create the new XMLA field:
         let xmla = await readResult.rows[0]['XML'].getData();
 
-        // 3. Decode the XML content from CP1252 to UTF-8 then remove its <TEXTE_ARRET> tag:
+        // 3. Decode the XML content from CP1252 to UTF-8:
         xmla = iconv.decode(xmla, process.env.ENCODING);
-        xmla = xmla.replace(/<texte_arret>[\s\S]*<\/texte_arret>/gim, '');
 
-        if (xmla.indexOf('</CAT_PUB>') !== -1) {
-          // 4. Reinject the <TEXTE_ARRET> tag but with the pseudonymized content,
-          // then encode it back to CP1252 (required by the DILA export script):
-          xmla = xmla.replace('</CAT_PUB>', '</CAT_PUB><TEXTE_ARRET>' + decision.pseudoText + '</TEXTE_ARRET>');
+        if (xmla.indexOf('<TEXTE_ARRET>') !== -1) {
+          // 4. Reinject the <TEXTE_ARRET> tag but with the reencoded pseudonymized content,
+          let pseudoText = decision.pseudoText.replace(/&/g, '&amp;').replace(/&amp;amp;/g, '&amp;');
+          pseudoText = pseudoText.replace(/</g, '&lt;');
+          pseudoText = pseudoText.replace(/>/g, '&gt;');
+          pseudoText = pseudoText.replace(/"/g, '&quot;');
+          pseudoText = pseudoText.replace(/'/g, '&apos;');
+          xmla = xmla.replace(/<TEXTE_ARRET>[\s\S]*<\/TEXTE_ARRET>/gim, '<TEXTE_ARRET>' + pseudoText + '</TEXTE_ARRET>');
           xmla = iconv.encode(xmla, process.env.ENCODING);
 
           // 5. Set the date:
@@ -365,7 +368,7 @@ class JurinetOracle {
           return true;
         } else {
           throw new Error(
-            'Jurinet.reinject: end of <CAT_PUB> tag not found: the document could be malformed or corrupted.',
+            'Jurinet.reinject: <TEXTE_ARRET> tag not found: the document could be malformed or corrupted.',
           );
         }
       } else {
