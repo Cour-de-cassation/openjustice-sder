@@ -138,7 +138,7 @@ class JurinetOracle {
 
         try {
           // Inject "decatt" data (if any) into the document:
-          const { JuricaOracle } = require('../jurica-oracle');
+          const { JuricaOracle } = require('./jurica-oracle');
           const juricaSource = new JuricaOracle();
           await juricaSource.connect();
           const decattInfo = await this.getDecatt(row[process.env.DB_ID_FIELD]);
