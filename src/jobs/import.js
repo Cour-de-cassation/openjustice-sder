@@ -12,6 +12,23 @@ const ms = require('ms');
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
+let selfKill = setTimeout(cancel, ms('15m'));
+
+function end() {
+  if (parentPort) parentPort.postMessage('done');
+  setTimeout(kill, ms('1s'), 0);
+}
+
+function cancel() {
+  if (parentPort) parentPort.postMessage('cancelled');
+  setTimeout(kill, ms('1s'), 1);
+}
+
+function kill(code) {
+  clearTimeout(selfKill);
+  process.exit(code);
+}
+
 async function main() {
   console.log('OpenJustice - Start "import" job:', new Date().toLocaleString());
   try {
@@ -26,16 +43,6 @@ async function main() {
   }
   console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
-}
-
-function end() {
-  if (parentPort) parentPort.postMessage('done');
-  else process.exit(0);
-}
-
-function cancel() {
-  if (parentPort) parentPort.postMessage('cancelled');
-  else process.exit(1);
 }
 
 async function importJurinet() {
@@ -162,5 +169,4 @@ async function importJurica() {
   return true;
 }
 
-setTimeout(cancel, ms('30m'));
 main();

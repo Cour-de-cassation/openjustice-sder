@@ -1,6 +1,5 @@
 const Graceful = require('@ladjs/graceful');
 const Bree = require('bree');
-const ms = require('ms');
 const path = require('path');
 
 const bree = new Bree({

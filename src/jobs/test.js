@@ -6,6 +6,23 @@ const { JurinetOracle } = require('../jurinet-oracle');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
+let selfKill = setTimeout(cancel, ms('15m'));
+
+function end() {
+  if (parentPort) parentPort.postMessage('done');
+  setTimeout(kill, ms('1s'), 0);
+}
+
+function cancel() {
+  if (parentPort) parentPort.postMessage('cancelled');
+  setTimeout(kill, ms('1s'), 1);
+}
+
+function kill(code) {
+  clearTimeout(selfKill);
+  process.exit(code);
+}
+
 async function main() {
   try {
     await testJurinet();
@@ -13,16 +30,6 @@ async function main() {
     console.error('Jurinet error', e);
   }
   setTimeout(end, ms('1s'));
-}
-
-function end() {
-  if (parentPort) parentPort.postMessage('done');
-  else process.exit(0);
-}
-
-function cancel() {
-  if (parentPort) parentPort.postMessage('cancelled');
-  else process.exit(1);
 }
 
 async function testJurinet(n) {
@@ -77,7 +84,6 @@ async function testJurinet(n) {
   return true;
 }
 
-setTimeout(cancel, ms('30m'));
 main();
 
 /*
