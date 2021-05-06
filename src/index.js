@@ -20,7 +20,7 @@ const bree = new Bree({
     },
     {
       name: 'sync',
-      interval: 'every 7 minutes after 9:00am and before 11:00pm',
+      interval: 'every 7 minutes after 8:30am and before 11:30pm',
     },
   ],
 });
