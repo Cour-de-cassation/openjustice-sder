@@ -10,17 +10,18 @@ const ms = require('ms');
 let selfKill = setTimeout(cancel, ms('15m'));
 
 function end() {
+  clearTimeout(selfKill);
   if (parentPort) parentPort.postMessage('done');
-  setTimeout(kill, ms('1s'), 0);
+  kill(0);
 }
 
 function cancel() {
+  clearTimeout(selfKill);
   if (parentPort) parentPort.postMessage('cancelled');
-  setTimeout(kill, ms('1s'), 1);
+  kill(1);
 }
 
 function kill(code) {
-  clearTimeout(selfKill);
   process.exit(code);
 }
 

@@ -5,9 +5,11 @@ const path = require('path');
 const bree = new Bree({
   root: path.join(__dirname, 'jobs'),
   jobs: [
+    /*
     {
       name: 'server', // on start
     },
+    */
     {
       name: 'import',
       interval: 'every 5 minutes after 8:00am and before 12:00pm',
