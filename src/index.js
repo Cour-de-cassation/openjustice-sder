@@ -22,6 +22,10 @@ const bree = new Bree({
       name: 'sync',
       interval: 'every 7 minutes after 8:30am and before 11:30pm',
     },
+    {
+      name: 'cleanup',
+      interval: 'every 13 minutes',
+    },
   ],
 });
 
