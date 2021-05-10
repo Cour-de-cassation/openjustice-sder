@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
-const { JurinetOracle } = require('../jurinet-oracle');
+const { parentPort } = require('worker_threads');
+// const { JurinetOracle } = require('../jurinet-oracle');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -45,10 +46,18 @@ async function testDila() {
   const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
 
   let document;
-  const cursor = await rawDila.find({}, { allowDiskUse: true }).limit(100);
+  const cursor = await rawDila.find({}, { allowDiskUse: true });
   while ((document = await cursor.next())) {
-    console.log(document);
+    try {
+      const year = document['DATE_DEC'].split('-')[0];
+      if (typeof history[year] === undefined) {
+        history[year] = 0;
+      }
+      history[year]++;
+    } catch (e) {}
   }
+
+  console.log(JSON.stringify(history, null, 2));
 
   await client.close();
 }
