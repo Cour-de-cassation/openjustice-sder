@@ -50,7 +50,7 @@ async function testDila() {
   while ((document = await cursor.next())) {
     try {
       const year = document['DATE_DEC'].split('-')[0];
-      if (typeof history[year] === undefined) {
+      if (typeof history[year] === 'undefined') {
         history[year] = 0;
       }
       history[year]++;
