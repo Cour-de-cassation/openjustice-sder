@@ -25,13 +25,35 @@ function kill(code) {
 
 async function main() {
   try {
-    await testJurinet();
+    // await testJurinet();
+    await testDila();
   } catch (e) {
-    console.error('Jurinet error', e);
+    console.error('Test error', e);
   }
   setTimeout(end, ms('1s'));
 }
 
+async function testDila() {
+  const history = {};
+
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
+
+  let document;
+  const cursor = await rawDila.find({}, { allowDiskUse: true }).limit(100);
+  while ((document = await cursor.next())) {
+    console.log(document);
+  }
+
+  await client.close();
+}
+
+/*
 async function testJurinet(n) {
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
@@ -83,6 +105,7 @@ async function testJurinet(n) {
 
   return true;
 }
+*/
 
 main();
 
