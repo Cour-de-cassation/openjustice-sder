@@ -54,7 +54,7 @@ async function testDoublon() {
   }
   await client.close();
   for (let i = 0; i < juricaData.length; i++) {
-    const found = JuricaUtils.GetJurinetDuplicate(juricaData[i]);
+    const found = await JuricaUtils.GetJurinetDuplicate(juricaData[i]);
     if (found !== null) {
       console.log('Looking for a duplicate of', juricaData[i]);
       console.log('...found:', found);
