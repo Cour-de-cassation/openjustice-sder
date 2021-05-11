@@ -45,21 +45,64 @@ async function testDoublon() {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
 
+let min = null
+let max = null
+let juricaData = []
   let juricaDoc;
-  const juricaCursor = await rawJurica.find({ JDEC_DATE: /^2021-05/ }, { allowDiskUse: true });
+  const juricaCursor = await rawJurica.find({ JDEC_DATE: /^2021-04/ }, { allowDiskUse: true });
   while ((juricaDoc = await juricaCursor.next())) {
-    console.log(JSON.stringify(juricaDoc));
+try {
+let html = juricaDoc['JDEC_HTML_SOURCE']
+    html = html.replace(/<\/?[^>]+(>|$)/gm, '');
+    let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
+portalis =  portalis[1].replace(/\s/g, '').trim()
+    let bottomDate = new Date(juricaDoc['JDEC_DATE']);
+    bottomDate.setDate(bottomDate.getDate() - 1)
+    let topDate = new Date(juricaDoc['JDEC_DATE']);
+    topDate.setDate(topDate.getDate() + 1)
+if (min === null) {
+min = bottomDate
+} else {
+min = Math.min(min, bottomDate)
+}
+if (max === null) {
+max = topDate
+} else {
+max = Math.max(max, topDate)
+}
+juricaData.push({
+doc: juricaDoc,
+portalis: portalis,
+bottom: bottomDate,
+top: topDate
+})
+} catch (e) {}
+}
+console.log(juricaData.length, new Date(min), new Date(max))
+/*
+for (let i = 0; i < juricaData.length; i++) {
     let jurinetDoc;
     const jurinetCursor = await rawJurinet.find(
-      { TYPE_ARRET: { $ne: 'CC' }, DT_DECISION: { $regex: '^' + juricaDoc['JDEC_DATE'].substring(0, 7) } },
+      { 
+        TYPE_ARRET: { $ne: 'CC' },
+        DT_DECISION: { $gte: bottomDate, $lte: topDate},
+      },
       { allowDiskUse: true },
     );
     while ((jurinetDoc = await jurinetCursor.next())) {
-      console.log(JSON.stringify(jurinetDoc));
+try {
+    	let portalis2 = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(jurinetDoc['XML']);
+portalis2 =  portalis2[1].replace(/\s/g, '').trim()
+	if (portalis ===  portalis2) {
+      		console.log('***', jurinetDoc._id, jurinetDoc['DT_DECISION'], portalis2);
+	}
+else {
+      		console.log(jurinetDoc._id, jurinetDoc['DT_DECISION'], portalis2);
+}
+} catch (ignore) {}
     }
-    break;
-  }
-
+}
+*/
   await client.close();
 }
 
