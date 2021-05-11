@@ -181,13 +181,14 @@ class JuricaUtils {
     );
     while (found === null && (jurinetDoc = await jurinetCursor.next())) {
       try {
-        let html = jurinetDoc['XML'];
-        let portalis2 = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
+        let portalis2 = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(jurinetDoc['XML']);
         portalis2 = portalis2[1].replace(/\s/g, '').trim();
         if (portalis === portalis2) {
           found = jurinetDoc._id;
         }
-      } catch (ignore) {}
+      } catch (e) {
+        console.error(e);
+      }
     }
     await client.close();
     return found;

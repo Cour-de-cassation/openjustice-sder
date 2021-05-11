@@ -43,7 +43,6 @@ async function testDoublon() {
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);
-  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
 
   let juricaData = [];
@@ -53,10 +52,16 @@ async function testDoublon() {
     juricaData.push(juricaDoc._id);
   }
   await client.close();
+
   for (let i = 0; i < juricaData.length; i++) {
-    const found = await JuricaUtils.GetJurinetDuplicate(juricaData[i]);
+    console.log(`Looking for a duplicate of ${juricaData[i]} (${i + 1}/${juricaData.length})`);
+    let found = null;
+    try {
+      found = await JuricaUtils.GetJurinetDuplicate(juricaData[i]);
+    } catch (e) {
+      console.error(e);
+    }
     if (found !== null) {
-      console.log('Looking for a duplicate of', juricaData[i]);
       console.log('...found:', found);
     }
   }
