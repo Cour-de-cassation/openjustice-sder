@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const { parentPort } = require('worker_threads');
 // const { JurinetOracle } = require('../jurinet-oracle');
+const { JuricaUtils } = require('../jurica-utils');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -45,74 +46,18 @@ async function testDoublon() {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
 
-  let min = null;
-  let max = null;
   let juricaData = [];
   let juricaDoc;
   const juricaCursor = await rawJurica.find({ JDEC_DATE: /^2021-04/ }, { allowDiskUse: true });
   while ((juricaDoc = await juricaCursor.next())) {
-    try {
-      let html = juricaDoc['JDEC_HTML_SOURCE'];
-      html = html.replace(/<\/?[^>]+(>|$)/gm, '');
-      let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
-      portalis = portalis[1].replace(/\s/g, '').trim();
-      let bottomDate = new Date(juricaDoc['JDEC_DATE']);
-      bottomDate.setDate(bottomDate.getDate() - 1);
-      let topDate = new Date(juricaDoc['JDEC_DATE']);
-      topDate.setDate(topDate.getDate() + 1);
-      if (min === null) {
-        min = bottomDate;
-      } else {
-        min = Math.min(min, bottomDate);
-      }
-      if (max === null) {
-        max = topDate;
-      } else {
-        max = Math.max(max, topDate);
-      }
-      juricaData.push({
-        doc: juricaDoc,
-        portalis: portalis,
-      });
-    } catch (ignore) {}
-  }
-  let jurinetData = [];
-  let jurinetDoc;
-  const jurinetCursor = await rawJurinet.find(
-    {
-      TYPE_ARRET: { $ne: 'CC' },
-      DT_DECISION: { $gte: new Date(min), $lte: new Date(max) },
-    },
-    { allowDiskUse: true },
-  );
-  while ((jurinetDoc = await jurinetCursor.next())) {
-    try {
-      let html = jurinetDoc['XML'];
-      let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
-      portalis = portalis[1].replace(/\s/g, '').trim();
-      jurinetData.push({
-        doc: jurinetDoc,
-        portalis: portalis,
-      });
-    } catch (ignore) {}
+    juricaData.push(juricaDoc._id);
   }
   await client.close();
   for (let i = 0; i < juricaData.length; i++) {
-    let found = false;
-    for (let j = 0; j < jurinetData.length; j++) {
-      if (jurinetData[j].portalis === juricaData[i].portalis) {
-        found = j;
-        break;
-      }
-    }
-    if (found === false) {
-      // console.log('...not found');
-    } else {
-	console.log(JSON.stringify(juricaData[i].doc, null, 2))
-	console.log(JSON.stringify(jurinetData[found].doc, null, 2))
-break
-      // console.log('Looking for', juricaData[i].portalis, 'from', juricaData[i].doc._id);
-      // console.log('...found:', jurinetData[found].doc._id);
+    const found = JuricaUtils.GetJurinetDuplicate(juricaData[i]);
+    if (found !== null) {
+      console.log('Looking for a duplicate of', juricaData[i]);
+      console.log('...found:', found);
     }
   }
 }

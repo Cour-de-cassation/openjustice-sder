@@ -1,3 +1,6 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 const he = require('he');
 
 class JuricaUtils {
@@ -133,6 +136,61 @@ class JuricaUtils {
     }
 
     return normalizedDecision;
+  }
+
+  static async GetJurinetDuplicate(id) {
+    const { MongoClient } = require('mongodb');
+
+    const client = new MongoClient(process.env.MONGO_URI, {
+      useUnifiedTopology: true,
+    });
+    await client.connect();
+
+    const database = client.db(process.env.MONGO_DBNAME);
+    const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+    const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+
+    let portalis, bottomDate, topDate;
+    const juricaDoc = await rawJurica.findOne({ _id: id });
+    if (juricaDoc === null) {
+      await client.close();
+      throw new Error(`JuricaUtils.GetJurinetDuplicate: Jurica document ${id} not found.`);
+    }
+    try {
+      let html = juricaDoc['JDEC_HTML_SOURCE'];
+      html = html.replace(/<\/?[^>]+(>|$)/gm, '');
+      portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
+      portalis = portalis[1].replace(/\s/g, '').trim();
+      bottomDate = new Date(juricaDoc['JDEC_DATE']);
+      bottomDate.setDate(bottomDate.getDate() - 1);
+      topDate = new Date(juricaDoc['JDEC_DATE']);
+      topDate.setDate(topDate.getDate() + 1);
+    } catch (e) {
+      await client.close();
+      throw new Error(`JuricaUtils.GetJurinetDuplicate: Jurica document ${id} has no compliant Portalis ID.`);
+    }
+
+    let jurinetDoc;
+    let found = null;
+    const jurinetCursor = await rawJurinet.find(
+      {
+        TYPE_ARRET: { $ne: 'CC' },
+        DT_DECISION: { $gte: new Date(bottomDate), $lte: new Date(topDate) },
+      },
+      { allowDiskUse: true },
+    );
+    while (found === null && (jurinetDoc = await jurinetCursor.next())) {
+      try {
+        let html = jurinetDoc['XML'];
+        let portalis2 = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
+        portalis2 = portalis2[1].replace(/\s/g, '').trim();
+        if (portalis === portalis2) {
+          found = jurinetDoc._id;
+        }
+      } catch (ignore) {}
+    }
+    await client.close();
+    return found;
   }
 }
 
