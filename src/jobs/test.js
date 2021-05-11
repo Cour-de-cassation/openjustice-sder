@@ -98,7 +98,6 @@ async function testDoublon() {
   }
   await client.close();
   for (let i = 0; i < juricaData.length; i++) {
-    console.log('Looking for', juricaData[i].portalis, 'from', juricaData[i].doc._id);
     let found = false;
     for (let j = 0; j < jurinetData.length; j++) {
       if (jurinetData[j].portalis === juricaData[i].portalis) {
@@ -107,9 +106,13 @@ async function testDoublon() {
       }
     }
     if (found === false) {
-      console.log('...not found');
+      // console.log('...not found');
     } else {
-      console.log('...found:', jurinetData[found].doc._id);
+	console.log(JSON.stringify(juricaData[i].doc, null, 2))
+	console.log(JSON.stringify(jurinetData[found].doc, null, 2))
+break
+      // console.log('Looking for', juricaData[i].portalis, 'from', juricaData[i].doc._id);
+      // console.log('...found:', jurinetData[found].doc._id);
     }
   }
 }
