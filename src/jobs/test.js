@@ -27,13 +27,43 @@ function kill(code) {
 async function main() {
   try {
     // await testJurinet();
-    await testDila();
+    // await testDila();
+    await testDoublon();
   } catch (e) {
     console.error('Test error', e);
   }
   setTimeout(end, ms('1s'));
 }
 
+async function testDoublon() {
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+
+  let juricaDoc;
+  const juricaCursor = await rawJurica.find({ JDEC_DATE: /^2021-05/ }, { allowDiskUse: true });
+  while ((juricaDoc = await juricaCursor.next())) {
+    console.log(JSON.stringify(juricaDoc));
+    let jurinetDoc;
+    const jurinetCursor = await rawJurinet.find(
+      { TYPE_ARRET: { $ne: 'CC' }, DT_DECISION: { $regex: '^' + juricaDoc['JDEC_DATE'].substring(0, 7) } },
+      { allowDiskUse: true },
+    );
+    while ((jurinetDoc = await jurinetCursor.next())) {
+      console.log(JSON.stringify(jurinetDoc));
+    }
+    break;
+  }
+
+  await client.close();
+}
+
+/*
 async function testDila() {
   const history = {};
 
@@ -61,6 +91,7 @@ async function testDila() {
 
   await client.close();
 }
+*/
 
 /*
 async function testJurinet(n) {
