@@ -20,9 +20,17 @@
     "oracledb": "^5.1.0",
     "walkdir": "^0.4.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.12.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "jest": "26.6.3",
+    "prettier": "^2.1.2"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "format": "prettier --write \"src/**/*.js\"",
+    "lint": "eslint 'src/**/*.js' --quiet",
+    "test": "jest --config jestconfig.json"
   },
   "repository": {
     "type": "git",
