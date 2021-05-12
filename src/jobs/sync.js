@@ -12,7 +12,7 @@ const ms = require('ms');
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
-let selfKill = setTimeout(cancel, ms('30m'));
+let selfKill = setTimeout(cancel, ms('1h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -48,7 +48,7 @@ async function main() {
 
 async function syncJurinet() {
   const jurinetOrder = 'DESC';
-  const jurinetBatch = 200;
+  const jurinetBatch = 100;
   const jurinetSource = new JurinetOracle();
   let jurinetOffset = 0;
   try {
@@ -187,7 +187,7 @@ async function syncJurinet() {
 
 async function syncJurica() {
   const juricaOrder = 'DESC';
-  const juricaBatch = 200;
+  const juricaBatch = 100;
   const juricaSource = new JuricaOracle();
   let juricaOffset = 0;
   try {
