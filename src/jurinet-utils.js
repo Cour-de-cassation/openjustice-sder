@@ -345,6 +345,10 @@ class JurinetUtils {
       }
     }
 
+    if (!normalizedDecision.originalText) {
+      throw new Error(`JurinetUtils.Normalize: Document '${normalizedDecision.sourceId}' has not text.`);
+    }
+
     return normalizedDecision;
   }
 }
