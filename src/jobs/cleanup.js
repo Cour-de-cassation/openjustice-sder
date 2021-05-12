@@ -4,7 +4,7 @@ const ms = require('ms');
 const path = require('path');
 const fs = require('fs');
 
-let selfKill = setTimeout(cancel, ms('15m'));
+let selfKill = setTimeout(cancel, ms('5m'));
 
 function end() {
   clearTimeout(selfKill);

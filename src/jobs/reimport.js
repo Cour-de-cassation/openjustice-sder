@@ -12,7 +12,7 @@ const ms = require('ms');
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
-let selfKill = setTimeout(cancel, ms('15m'));
+let selfKill = setTimeout(cancel, ms('1h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -33,14 +33,14 @@ function kill(code) {
 async function main() {
   console.log('OpenJustice - Start "reimport" job:', new Date().toLocaleString());
   try {
-    // Get last two months:
-    await reimportJurinet(2);
+    // Get last month:
+    await reimportJurinet(1);
   } catch (e) {
     console.error('Jurinet reimport error', e);
   }
   try {
-    // Get last two months:
-    await reimportJurica(2);
+    // Get last month:
+    await reimportJurica(1);
   } catch (e) {
     console.error('Jurica reimport error', e);
   }
@@ -67,7 +67,7 @@ async function reimportJurinet(n) {
   let normalizedCount = 0;
   let wincicaCount = 0;
 
-  console.log(`Get last ${n} months decisions from Jurinet...`);
+  console.log(`Get last ${n} month(s) decisions from Jurinet...`);
   const jurinetResult = await jurinetSource.getLastNMonth(n);
 
   if (jurinetResult) {
@@ -129,7 +129,7 @@ async function reimportJurinet(n) {
   }
 
   console.log(
-    `Done Reimporting ${n} months of Jurinet - New: ${newCount}, Update: ${updateCount}, Normalized: ${normalizedCount}, WinciCA: ${wincicaCount}, Skip: ${skipCount}, Error: ${errorCount}).`,
+    `Done Reimporting ${n} month(s) of Jurinet - New: ${newCount}, Update: ${updateCount}, Normalized: ${normalizedCount}, WinciCA: ${wincicaCount}, Skip: ${skipCount}, Error: ${errorCount}).`,
   );
 
   await client.close();
@@ -156,8 +156,14 @@ async function reimportJurica(n) {
   let normalizedCount = 0;
   let duplicateCount = 0;
 
-  console.log(`Get last ${n} months decisions from Jurica...`);
-  const juricaResult = await juricaSource.getLastNMonth(n);
+  console.log(`Get last ${n} month(s) decisions from Jurica...`);
+  // NOT ENOUGH MEMORY: const juricaResult = await juricaSource.getLastNMonth(n);
+  const juricaResult = await juricaSource.getBatch({
+    offset: 0,
+    limit: 200,
+    order: 'DESC',
+    onlyTreated: false,
+  });
 
   if (juricaResult) {
     for (let i = 0; i < juricaResult.length; i++) {
@@ -246,7 +252,7 @@ async function reimportJurica(n) {
   }
 
   console.log(
-    `Done Reimporting ${n} months of Jurica - New: ${newCount}, Update: ${updateCount}, Normalized: ${normalizedCount}, Duplicate: ${duplicateCount}, Skip: ${skipCount}, Error: ${errorCount}).`,
+    `Done Reimporting ${n} month(s) of Jurica - New: ${newCount}, Update: ${updateCount}, Normalized: ${normalizedCount}, Duplicate: ${duplicateCount}, Skip: ${skipCount}, Error: ${errorCount}).`,
   );
 
   await client.close();

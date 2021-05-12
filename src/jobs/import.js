@@ -12,7 +12,7 @@ const ms = require('ms');
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
-let selfKill = setTimeout(cancel, ms('15m'));
+let selfKill = setTimeout(cancel, ms('30m'));
 
 function end() {
   clearTimeout(selfKill);

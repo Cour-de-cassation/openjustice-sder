@@ -8,7 +8,7 @@ const { JuricaUtils } = require('../jurica-utils');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
-let selfKill = setTimeout(cancel, ms('15m'));
+let selfKill = setTimeout(cancel, ms('1h'));
 
 function end() {
   if (parentPort) parentPort.postMessage('done');
