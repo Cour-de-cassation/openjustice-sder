@@ -88,8 +88,35 @@ async function importJurinet() {
             skipCount++;
           }
         } catch (e) {
-          console.error(`Jurinet import error processing decision ${row._id}`, e);
+          console.error(`Jurinet import error (a) processing decision ${row._id}`, e);
           errorCount++;
+        }
+      } else {
+        let testNormalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+        if (testNormalized === null) {
+          try {
+            await rawJurinet.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
+            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+            if (normalized === null) {
+              let normDec = await JurinetUtils.Normalize(row);
+              normDec._version = decisionsVersion;
+              await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              try {
+                await jurinetSource.markAsImported(row._id);
+              } catch (ignore) {}
+              newCount++;
+              if (row['TYPE_ARRET'] !== 'CC') {
+                wincicaCount++;
+              }
+            } else {
+              skipCount++;
+            }
+          } catch (e) {
+            console.error(`Jurinet import error (b) processing decision ${row._id}`, e);
+            errorCount++;
+          }
+        } else {
+          skipCount++;
         }
       }
     }
@@ -159,11 +186,50 @@ async function importJurica() {
             duplicateCount++;
           }
         } catch (e) {
-          console.error(`Jurica import error processing decision ${row._id}`, e);
+          console.error(`Jurica import error (a) processing decision ${row._id}`, e);
           errorCount++;
         }
       } else {
-        skipCount++;
+        let testNormalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+        if (testNormalized === null) {
+          try {
+            await rawJurica.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
+
+            let duplicate;
+            try {
+              let duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
+              if (duplicateId !== null) {
+                duplicate = true;
+              } else {
+                duplicate = false;
+              }
+            } catch (e) {
+              duplicate = false;
+            }
+
+            if (duplicate === false) {
+              let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+              if (normalized === null) {
+                let normDec = await JuricaUtils.Normalize(row);
+                normDec._version = decisionsVersion;
+                await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                try {
+                  await juricaSource.markAsImported(row._id);
+                } catch (ignore) {}
+                newCount++;
+              } else {
+                skipCount++;
+              }
+            } else {
+              duplicateCount++;
+            }
+          } catch (e) {
+            console.error(`Jurica import error (b) processing decision ${row._id}`, e);
+            errorCount++;
+          }
+        } else {
+          skipCount++;
+        }
       }
     }
   }
