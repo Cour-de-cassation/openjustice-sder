@@ -79,6 +79,18 @@ class JurinetOracle {
         }
       }
       if (withExtraneous) {
+        if (data['TYPE_ARRET'] !== 'CC') {
+          try {
+            let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(data['XML']);
+            portalis = portalis[1].replace(/\s/g, '').trim();
+            data['_portalis'] = portalis;
+          } catch (e) {
+            data['_portalis'] = null;
+          }
+        } else {
+          data['_portalis'] = null;
+        }
+
         try {
           // Inject "titrage" data (if any) into the document:
           const queryTitrage = `SELECT * 

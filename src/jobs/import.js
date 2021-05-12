@@ -61,8 +61,8 @@ async function importJurinet() {
   let newCount = 0;
   let errorCount = 0;
   let skipCount = 0;
+  let wincicaCount = 0;
 
-  console.log(`Get new decisions from Jurinet...`);
   const jurinetResult = await jurinetSource.getNew();
 
   if (jurinetResult) {
@@ -81,36 +81,23 @@ async function importJurinet() {
               await jurinetSource.markAsImported(row._id);
             } catch (ignore) {}
             newCount++;
+            if (row['TYPE_ARRET'] !== 'CC') {
+              wincicaCount++;
+            }
           } else {
             skipCount++;
           }
         } catch (e) {
-          console.error(`Jurinet import error (a) processing decision ${row._id}`, e);
-          errorCount++;
-        }
-      } else if (row['AUT_CREATION'] === 'WINCI' || row['TYPE_ARRET'] !== 'CC') {
-        try {
-          let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
-          if (normalized === null) {
-            let normDec = await JurinetUtils.Normalize(row);
-            normDec._version = decisionsVersion;
-            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            try {
-              await jurinetSource.markAsImported(row._id);
-            } catch (ignore) {}
-            newCount++;
-          } else {
-            skipCount++;
-          }
-        } catch (e) {
-          console.error(`Jurinet import error (b) processing decision ${row._id}`, e);
+          console.error(`Jurinet import error processing decision ${row._id}`, e);
           errorCount++;
         }
       }
     }
   }
 
-  console.log(`Jurinet import done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}).`);
+  console.log(
+    `Done Importing Jurinet - New: ${newCount}, Skip: ${skipCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`,
+  );
   await client.close();
   await jurinetSource.close();
   return true;
@@ -131,8 +118,8 @@ async function importJurica() {
   let newCount = 0;
   let errorCount = 0;
   let skipCount = 0;
+  let duplicateCount = 0;
 
-  console.log(`Get new decisions from Jurica...`);
   const juricaResult = await juricaSource.getNew();
 
   if (juricaResult) {
@@ -142,17 +129,34 @@ async function importJurica() {
       if (raw === null) {
         try {
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
-          let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-          if (normalized === null) {
-            let normDec = await JuricaUtils.Normalize(row);
-            normDec._version = decisionsVersion;
-            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            try {
-              await juricaSource.markAsImported(row._id);
-            } catch (ignore) {}
-            newCount++;
+
+          let duplicate;
+          try {
+            let duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
+            if (duplicateId !== null) {
+              duplicate = true;
+            } else {
+              duplicate = false;
+            }
+          } catch (e) {
+            duplicate = false;
+          }
+
+          if (duplicate === false) {
+            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+            if (normalized === null) {
+              let normDec = await JuricaUtils.Normalize(row);
+              normDec._version = decisionsVersion;
+              await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              try {
+                await juricaSource.markAsImported(row._id);
+              } catch (ignore) {}
+              newCount++;
+            } else {
+              skipCount++;
+            }
           } else {
-            skipCount++;
+            duplicateCount++;
           }
         } catch (e) {
           console.error(`Jurica import error processing decision ${row._id}`, e);
@@ -164,7 +168,9 @@ async function importJurica() {
     }
   }
 
-  console.log(`Jurica import done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}).`);
+  console.log(
+    `Done Importing Jurica - New: ${newCount}, Skip: ${skipCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
+  );
   await client.close();
   await juricaSource.close();
   return true;

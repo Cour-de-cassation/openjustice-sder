@@ -81,6 +81,7 @@ async function syncJurinet() {
     let newCount = 0;
     let updateCount = 0;
     let normalizeCount = 0;
+    let wincicaCount = 0;
     let errorCount = 0;
 
     for (let i = 0; i < jurinetResult.length; i++) {
@@ -92,6 +93,9 @@ async function syncJurinet() {
         try {
           await raw.insertOne(row, { bypassDocumentValidation: true });
           newCount++;
+          if (row['TYPE_ARRET'] !== 'CC') {
+            wincicaCount++;
+          }
         } catch (e) {
           console.error(e);
           errorCount++;
@@ -113,6 +117,7 @@ async function syncJurinet() {
           '_analyse',
           '_partie',
           '_decatt',
+          '_portalis',
         ];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
@@ -124,6 +129,9 @@ async function syncJurinet() {
           try {
             await raw.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
             updateCount++;
+            if (row['TYPE_ARRET'] !== 'CC') {
+              wincicaCount++;
+            }
           } catch (e) {
             updated = false;
             console.error(e);
@@ -165,7 +173,7 @@ async function syncJurinet() {
     await client.close();
 
     console.log(
-      `Done Syncing Jurinet - New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Error: ${errorCount}.`,
+      `Done Syncing Jurinet - New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`,
     );
   } else {
     console.log(`Done Syncing Jurinet - Empty round.`);
@@ -212,6 +220,7 @@ async function syncJurica() {
     let newCount = 0;
     let updateCount = 0;
     let normalizeCount = 0;
+    let duplicateCount = 0;
     let errorCount = 0;
 
     for (let i = 0; i < juricaResult.length; i++) {
@@ -239,6 +248,7 @@ async function syncJurica() {
           'JDEC_NUM_REGISTRE',
           'JDEC_NOTICE_FORMAT',
           'JDEC_LIBELLE',
+          '_portalis',
         ];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
@@ -258,31 +268,47 @@ async function syncJurica() {
         }
       }
 
-      let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurica' });
-      if (normalized === null) {
-        try {
-          let normDec = await JuricaUtils.Normalize(row);
-          normDec._version = decisionsVersion;
-          await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-          normalizeCount++;
-        } catch (e) {
-          console.error(e);
-          errorCount++;
+      let duplicate;
+      try {
+        let duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
+        if (duplicateId !== null) {
+          duplicate = true;
+        } else {
+          duplicate = false;
         }
-      } else if (normalized.locked === false) {
-        if (updated === true || normalized._version !== decisionsVersion) {
+      } catch (e) {
+        duplicate = false;
+      }
+
+      if (duplicate === false) {
+        let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurica' });
+        if (normalized === null) {
           try {
-            let normDec = await JuricaUtils.Normalize(row, normalized);
+            let normDec = await JuricaUtils.Normalize(row);
             normDec._version = decisionsVersion;
-            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
-              bypassDocumentValidation: true,
-            });
+            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
             normalizeCount++;
           } catch (e) {
             console.error(e);
             errorCount++;
           }
+        } else if (normalized.locked === false) {
+          if (updated === true || normalized._version !== decisionsVersion) {
+            try {
+              let normDec = await JuricaUtils.Normalize(row, normalized);
+              normDec._version = decisionsVersion;
+              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
+                bypassDocumentValidation: true,
+              });
+              normalizeCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          }
         }
+      } else {
+        duplicateCount++;
       }
 
       juricaOffset++;
@@ -291,7 +317,7 @@ async function syncJurica() {
     await client.close();
 
     console.log(
-      `Done Syncing Jurica - New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Error: ${errorCount}.`,
+      `Done Syncing Jurica - New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
     );
   } else {
     console.log(`Done Syncing Jurica - Empty round.`);

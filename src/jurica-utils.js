@@ -150,48 +150,23 @@ class JuricaUtils {
     const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
     const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
 
-    let portalis, bottomDate, topDate;
     const juricaDoc = await rawJurica.findOne({ _id: id });
     if (juricaDoc === null) {
       await client.close();
       throw new Error(`JuricaUtils.GetJurinetDuplicate: Jurica document ${id} not found.`);
     }
-    try {
-      let html = juricaDoc['JDEC_HTML_SOURCE'];
-      html = html.replace(/<\/?[^>]+(>|$)/gm, '');
-      portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
-      portalis = portalis[1].replace(/\s/g, '').trim();
-      bottomDate = new Date(juricaDoc['JDEC_DATE']);
-      bottomDate.setDate(bottomDate.getDate() - 1);
-      topDate = new Date(juricaDoc['JDEC_DATE']);
-      topDate.setDate(topDate.getDate() + 1);
-    } catch (e) {
+
+    if (!juricaDoc._portalis) {
       await client.close();
-      throw new Error(`JuricaUtils.GetJurinetDuplicate: Jurica document ${id} has no compliant Portalis ID.`);
+      throw new Error(`JuricaUtils.GetJurinetDuplicate: Jurica document ${id} has no Portalis ID.`);
     }
 
-    let jurinetDoc;
-    let found = null;
-    const jurinetCursor = await rawJurinet.find(
-      {
-        TYPE_ARRET: { $ne: 'CC' },
-        DT_DECISION: { $gte: new Date(bottomDate), $lte: new Date(topDate) },
-      },
-      { allowDiskUse: true },
-    );
-    while (found === null && (jurinetDoc = await jurinetCursor.next())) {
-      try {
-        let portalis2 = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(jurinetDoc['XML']);
-        portalis2 = portalis2[1].replace(/\s/g, '').trim();
-        if (portalis === portalis2) {
-          found = jurinetDoc._id;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
+    const jurinetDoc = await rawJurinet.findOne({ _portalis: juricaDoc._portalis });
     await client.close();
-    return found;
+    if (jurinetDoc === null) {
+      return null;
+    }
+    return jurinetDoc._id;
   }
 }
 

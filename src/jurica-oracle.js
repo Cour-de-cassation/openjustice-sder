@@ -79,7 +79,15 @@ class JuricaOracle {
         }
       }
       if (withExtraneous) {
-        // @TODO
+        try {
+          let html = data['JDEC_HTML_SOURCE'];
+          html = html.replace(/<\/?[^>]+(>|$)/gm, '');
+          let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
+          portalis = portalis[1].replace(/\s/g, '').trim();
+          data['_portalis'] = portalis;
+        } catch (e) {
+          data['_portalis'] = null;
+        }
       }
       return data;
     } else {

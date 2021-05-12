@@ -58,9 +58,7 @@ async function testDoublon() {
     let found = null;
     try {
       found = await JuricaUtils.GetJurinetDuplicate(juricaData[i]);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) {}
     if (found !== null) {
       console.log('...found:', found);
     }
