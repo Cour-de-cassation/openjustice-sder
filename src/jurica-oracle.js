@@ -82,9 +82,28 @@ class JuricaOracle {
         try {
           let html = data['JDEC_HTML_SOURCE'];
           html = html.replace(/<\/?[^>]+(>|$)/gm, '');
-          let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
-          portalis = portalis[1].replace(/\s/g, '').trim();
-          data['_portalis'] = portalis;
+          if (html && html.indexOf('Portalis') !== -1) {
+            // Strict :
+            let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(html);
+            if (portalis === null) {
+              // Less strict :
+              portalis =
+                /Portalis(?:\s*|\n*):?(?:\s+|\n+)(\b\S{2,4}(?:\s*)-(?:\s*)\S(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
+                  html,
+                );
+              if (portalis === null) {
+                // Even less strict :
+                portalis =
+                  /Portalis(?:\s*|\n*):?(?:\s+|\n+)(\b\S{2,4}(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
+                    html,
+                  );
+              }
+            }
+            portalis = portalis[1].replace(/\s/g, '').trim();
+            data['_portalis'] = portalis;
+          } else {
+            data['_portalis'] = null;
+          }
         } catch (e) {
           data['_portalis'] = null;
         }
