@@ -59,6 +59,13 @@ async function testPortalis() {
             /Portalis(?:\s*|\n*):?(?:\s+|\n+)(\b\S{2,4}(?:\s*)-(?:\s*)\S(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
               jurinetDoc['XML'],
             );
+            if (portalis === null) {
+              // Even less strict :
+              portalis =
+                /Portalis(?:\s*|\n*):?(?:\s+|\n+)(\b\S{2,4}(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
+                  jurinetDoc['XML'],
+                );
+            }
         }
         portalis = portalis[1].replace(/\s/g, '').trim();
       }
