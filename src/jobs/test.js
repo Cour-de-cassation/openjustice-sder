@@ -4,7 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const { parentPort } = require('worker_threads');
 // const { JurinetOracle } = require('../jurinet-oracle');
-const { JuricaUtils } = require('../jurica-utils');
+// const { JuricaUtils } = require('../jurica-utils');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -29,13 +29,45 @@ async function main() {
   try {
     // await testJurinet();
     // await testDila();
-    await testDoublon();
+    // await testDoublon();
+    await testPortalis();
   } catch (e) {
     console.error('Test error', e);
   }
   setTimeout(end, ms('1s'));
 }
 
+async function testPortalis() {
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+
+  let jurinetDoc;
+  const jurinetCursor = await rawJurinet.find({ TYPE_ARRET: { $ne: 'CC' } }, { allowDiskUse: true });
+  while ((jurinetDoc = await jurinetCursor.next())) {
+    try {
+      // Strict :
+      let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(jurinetDoc['XML']);
+      if (portalis === null) {
+        // Less strict :
+        portalis =
+          /Portalis(?:\s+|\n+)(\b\S{4}(?:\s*)-(?:\s*)\S(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
+            jurinetDoc['XML'],
+          );
+      }
+      portalis = portalis[1].replace(/\s/g, '').trim();
+    } catch (e) {
+      console.log(jurinetDoc._id, jurinetDoc['XML'])
+    }
+  }
+  await client.close();
+}
+
+/*
 async function testDoublon() {
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
@@ -64,6 +96,7 @@ async function testDoublon() {
     }
   }
 }
+*/
 
 /*
 async function testDila() {
