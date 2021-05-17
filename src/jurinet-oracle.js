@@ -81,9 +81,28 @@ class JurinetOracle {
       if (withExtraneous) {
         if (data['TYPE_ARRET'] !== 'CC') {
           try {
-            let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(data['XML']);
-            portalis = portalis[1].replace(/\s/g, '').trim();
-            data['_portalis'] = portalis;
+            if (data['XML'] && data['XML'].indexOf('Portalis') !== -1) {
+              // Strict :
+              let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(data['XML']);
+              if (portalis === null) {
+                // Less strict :
+                portalis =
+                  /Portalis(?:\s*|\n*):?(?:\s+|\n+)(\b\S{2,4}(?:\s*)-(?:\s*)\S(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
+                    data['XML'],
+                  );
+                if (portalis === null) {
+                  // Even less strict :
+                  portalis =
+                    /Portalis(?:\s*|\n*):?(?:\s+|\n+)(\b\S{2,4}(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
+                      data['XML'],
+                    );
+                }
+              }
+              portalis = portalis[1].replace(/\s/g, '').trim();
+              data['_portalis'] = portalis;
+            } else {
+              data['_portalis'] = null;
+            }
           } catch (e) {
             data['_portalis'] = null;
           }
