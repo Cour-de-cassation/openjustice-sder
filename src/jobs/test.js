@@ -50,18 +50,20 @@ async function testPortalis() {
   const jurinetCursor = await rawJurinet.find({ TYPE_ARRET: { $ne: 'CC' } }, { allowDiskUse: true });
   while ((jurinetDoc = await jurinetCursor.next())) {
     try {
-      // Strict :
-      let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(jurinetDoc['XML']);
-      if (portalis === null) {
-        // Less strict :
-        portalis =
-          /Portalis(?:\s+|\n+)(\b\S{4}(?:\s*)-(?:\s*)\S(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
-            jurinetDoc['XML'],
-          );
+      if (jurinetDoc['XML'] && jurinetDoc['XML'].indexOf('Portalis') !== -1) {
+        // Strict :
+        let portalis = /Portalis(?:\s+|\n+)(\b\S{4}-\S-\S{3}-(?:\s?|\n+)\S+\b)/g.exec(jurinetDoc['XML']);
+        if (portalis === null) {
+          // Less strict :
+          portalis =
+            /Portalis(?:\s+|\n+)(\b\S{4}(?:\s*)-(?:\s*)\S(?:\s*)-(?:\s*)\S{3}(?:\s*)-(?:\s*)(?:\s?|\n+)\S+\b)/g.exec(
+              jurinetDoc['XML'],
+            );
+        }
+        portalis = portalis[1].replace(/\s/g, '').trim();
       }
-      portalis = portalis[1].replace(/\s/g, '').trim();
     } catch (e) {
-      console.log(jurinetDoc._id, jurinetDoc['XML'])
+      console.log(jurinetDoc._id, jurinetDoc['XML']);
     }
   }
   await client.close();
