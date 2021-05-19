@@ -91,18 +91,18 @@ function cleanOld(html) {
 
 function cleanNew(text) {
   // Remove HTML tags:
-  html = html.replace(/<\/?[^>]+(>|$)/gm, '');
+  text = text.replace(/<\/?[^>]+(>|$)/gm, '');
   // Handling newlines and carriage returns:
-  html = html.replace(/\r\n/gim, '\n');
-  html = html.replace(/\r/gim, '\n');
+  text = text.replace(/\r\n/gim, '\n');
+  text = text.replace(/\r/gim, '\n');
   // Remove extra spaces:
-  html = html.replace(/\t/gim, '');
-  html = html.replace(/\\t/gim, ''); // That could happen...
-  html = html.replace(/\f/gim, '');
-  html = html.replace(/\\f/gim, ''); // That could happen too...
-  html = html.replace(/  +/gm, ' ').trim();
+  text = text.replace(/\t/gim, '');
+  text = text.replace(/\\t/gim, ''); // That could happen...
+  text = text.replace(/\f/gim, '');
+  text = text.replace(/\\f/gim, ''); // That could happen too...
+  text = text.replace(/  +/gm, ' ').trim();
   // Decode HTML entities:
-  return he.decode(html);
+  return he.decode(text);
 }
 
 /*
