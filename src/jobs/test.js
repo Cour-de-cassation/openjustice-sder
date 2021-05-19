@@ -8,6 +8,9 @@ const { parentPort } = require('worker_threads');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
+require('colors');
+const Diff = require('diff');
+
 let selfKill = setTimeout(cancel, ms('1h'));
 
 function end() {
@@ -30,13 +33,223 @@ async function main() {
     // await testJurinet();
     // await testDila();
     // await testDoublon();
-    await testPortalis();
+    // await testPortalis();
+    await testClean();
   } catch (e) {
     console.error('Test error', e);
   }
   setTimeout(end, ms('1s'));
 }
 
+async function testClean() {
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+
+  let jurinetDoc;
+  const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).limit(1000);
+  while ((jurinetDoc = await jurinetCursor.next())) {
+    let oldText, newText;
+    try {
+      oldText = cleanOld(jurinetDoc['XML']);
+    } catch (e) {
+      console.log(jurinetDoc._id, e);
+    }
+    try {
+      newText = cleanNew(jurinetDoc['XML']);
+    } catch (e) {
+      console.log(jurinetDoc._id, e);
+    }
+    if (oldText !== newText) {
+      console.log(jurinetDoc._id, 'NOT OK');
+      const diff = Diff.diffChars(oldText, newText);
+
+      diff.forEach((part) => {
+        const color = part.added ? 'green' : part.removed ? 'red' : 'grey';
+        process.stderr.write(part.value[color]);
+      });
+
+      console.log();
+    } else {
+      console.log(jurinetDoc._id, 'OK');
+    }
+  }
+  await client.close();
+}
+
+function cleanOld(xml) {
+  // <TEXTE_ARRET> splitting and removing:
+  const fragments = xml.split(/<\/?texte_arret>/gi);
+
+  if (fragments.length < 3) {
+    throw new Error(
+      'JurinetUtils.CleanXML: <TEXTE_ARRET> tag not found or incomplete: the document could be malformed or corrupted.',
+    );
+  }
+
+  xml = xml.replace(/<texte_arret>[\s\S]*<\/texte_arret>/gim, '');
+
+  // Cleaning of every <TEXTE_ARRET> fragment:
+  const texteArret = [];
+  for (let j = 0; j < fragments.length; j++) {
+    if ((j % 2 !== 0 || j > 1) && j < fragments.length - 1) {
+      // There could be some (useless) HTML tags to remove:
+      fragments[j] = fragments[j].replace(/<br\s*\/>/gim, '\r\n');
+      fragments[j] = fragments[j].replace(/<hr\s*\/>/gim, '\r\n');
+      fragments[j] = fragments[j].replace(/<a\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<b\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<i\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<u\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<em\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<strong\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<font\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<span\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<p\s+[^>]+>/gim, '');
+      fragments[j] = fragments[j].replace(/<h\d\s+[^>]+>/gim, '');
+
+      fragments[j] = fragments[j].replace(/<\/a>/gim, ' ');
+      fragments[j] = fragments[j].replace(/<\/b>/gim, ' ');
+      fragments[j] = fragments[j].replace(/<\/i>/gim, ' ');
+      fragments[j] = fragments[j].replace(/<\/u>/gim, ' ');
+      fragments[j] = fragments[j].replace(/<\/em>/gim, ' ');
+      fragments[j] = fragments[j].replace(/<\/strong>/gim, ' ');
+      fragments[j] = fragments[j].replace(/<\/font>/gim, ' ');
+      fragments[j] = fragments[j].replace(/<\/span>/gim, ' ');
+      fragments[j] = fragments[j].replace(/<\/p>/gim, '\r\n');
+      fragments[j] = fragments[j].replace(/<\/h\d>/gim, '\r\n');
+
+      fragments[j] = fragments[j].replace(/\t/gim, '');
+      fragments[j] = fragments[j].replace(/\\t/gim, '');
+      fragments[j] = fragments[j].replace(/\f/gim, '');
+      fragments[j] = fragments[j].replace(/\\f/gim, '');
+      fragments[j] = fragments[j].replace(/\r\n/gim, '\n');
+      fragments[j] = fragments[j].replace(/\r/gim, '\n');
+      fragments[j] = fragments[j].replace(/  +/gm, ' ');
+
+      // Minimal set of entities for XML validation:
+      fragments[j] = fragments[j]
+        .replace(/&/g, '&amp;')
+        .replace(/&amp;amp;/g, '&amp;')
+        .replace(/&amp;#/g, '&#');
+      fragments[j] = fragments[j].replace(/</g, '&lt;');
+      fragments[j] = fragments[j].replace(/>/g, '&gt;');
+      fragments[j] = fragments[j].trim();
+
+      // Ignore empty fragment:
+      if (fragments[j].length > 0) {
+        texteArret.push(fragments[j]);
+      }
+    }
+  }
+
+  // Cleaning the rest of the document:
+  xml = xml
+    .replace(/&/g, '&amp;')
+    .replace(/&amp;amp;/g, '&amp;')
+    .replace(/&amp;#/g, '&#');
+  xml = xml.replace(/\s<\s/g, ' &lt; ');
+  xml = xml.replace(/\s>\s/g, ' &gt; ');
+
+  // Bad XML, bad JSON...
+  xml = xml.replace(/<\/numpourvoi><numpourvoi\s+id=\"\d+\">/gim, ',');
+
+  // Reinject the merged <TEXTE_ARRET> element(s):
+  if (xml.indexOf('</CAT_PUB>') !== -1) {
+    xml = xml.replace('</CAT_PUB>', '</CAT_PUB><TEXTE_ARRET>' + texteArret.join(' ').trim() + '</TEXTE_ARRET>');
+    xml = xml.trim();
+  } else {
+    throw new Error(
+      'JurinetUtils.CleanXML: End of <CAT_PUB> tag not found: the document could be malformed or corrupted.',
+    );
+  }
+
+  return xml;
+}
+
+function cleanNew(text) {
+  // There could be more than one <TEXTE_ARRET> tags, so we first split the text around them:
+  const fragments = text.split(/<\/?texte_arret>/gi);
+
+  if (fragments.length < 3) {
+    throw new Error(
+      'jurinetLib.cleanText: <TEXTE_ARRET> tag not found or incomplete, the document could be malformed or corrupted.',
+    );
+  }
+
+  // Keep this info for later:
+  const textNextToCatPub = text.indexOf('</CAT_PUB><TEXTE_ARRET>') !== -1;
+
+  // Remove all <TEXT_ARRET> fragments from the text:
+  text = text.replace(/<texte_arret>[\s\S]*<\/texte_arret>/gim, '');
+
+  // Cleaning every <TEXTE_ARRET> fragment:
+  const mergedText = [];
+
+  for (let j = 0; j < fragments.length; j++) {
+    if ((j % 2 !== 0 || j > 1) && j < fragments.length - 1) {
+      // Remove HTML tags:
+      fragments[j] = fragments[j].replace(/<\/?[^>]+(>|$)/gm, '');
+
+      // Handling newlines and carriage returns:
+      fragments[j] = fragments[j].replace(/\r\n/gim, '\n');
+      fragments[j] = fragments[j].replace(/\r/gim, '\n');
+
+      // Remove extra spaces:
+      fragments[j] = fragments[j].replace(/\t/gim, '');
+      fragments[j] = fragments[j].replace(/\\t/gim, ''); // That could happen...
+      fragments[j] = fragments[j].replace(/\f/gim, '');
+      fragments[j] = fragments[j].replace(/\\f/gim, ''); // That could happen too...
+      fragments[j] = fragments[j].replace(/  +/gm, ' ').trim();
+
+      // Minimal set of entities for XML validation:
+      fragments[j] = fragments[j]
+        .replace(/&/g, '&amp;')
+        .replace(/&amp;amp;/g, '&amp;')
+        .replace(/&amp;#/g, '&#');
+      fragments[j] = fragments[j].replace(/</g, '&lt;');
+      fragments[j] = fragments[j].replace(/>/g, '&gt;');
+
+      // Ignore empty fragment:
+      if (fragments[j].length > 0) {
+        mergedText.push(fragments[j]);
+      }
+    }
+  }
+
+  // Cleaning the rest of the text:
+  text = text
+    .replace(/&/g, '&amp;')
+    .replace(/&amp;amp;/g, '&amp;')
+    .replace(/&amp;#/g, '&#');
+  text = text.replace(/\s<\s/g, ' &lt; ');
+  text = text.replace(/\s>\s/g, ' &gt; ');
+
+  // A bad XML could lead to a bad JSON (the related data does not matter):
+  text = text.replace(/<\/numpourvoi><numpourvoi\s+id=\"\d+\">/gim, ',');
+
+  // Reinject the merged <TEXTE_ARRET> fragments:
+  if (textNextToCatPub === true) {
+    text = text
+      .replace('</CAT_PUB>', '</CAT_PUB><TEXTE_ARRET>' + mergedText.join(' ').trim() + '</TEXTE_ARRET>')
+      .trim();
+  } else if (text.indexOf('</LIEN_WWW>') !== -1) {
+    text = text
+      .replace('</LIEN_WWW>', '</LIEN_WWW><TEXTE_ARRET>' + mergedText.join(' ').trim() + '</TEXTE_ARRET>')
+      .trim();
+  } else {
+    throw new Error(
+      'jurinetLib.cleanText: End of <CAT_PUB> or <LIEN_WWW> tag not found, the document could be malformed or corrupted.',
+    );
+  }
+
+  return text;
+}
+
+/*
 async function testPortalis() {
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
@@ -75,6 +288,7 @@ async function testPortalis() {
   }
   await client.close();
 }
+*/
 
 /*
 async function testDoublon() {
