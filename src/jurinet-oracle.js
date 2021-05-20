@@ -450,6 +450,37 @@ class JurinetOracle {
   }
 
   /**
+   * Method to mark a Jurinet document as being erroneous.
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+   async markAsErroneous(id) {
+    if (!id) {
+      throw new Error(`Jurinet.markAsErroneous: invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      // 1. Get the original decision from Jurinet:
+      const readQuery = `SELECT * 
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+      const readResult = await this.connection.execute(readQuery, [id]);
+      if (readResult && readResult.rows && readResult.rows.length > 0) {
+        // 2. Update query:
+        const updateQuery = `UPDATE ${process.env.DB_TABLE}
+          SET ${process.env.DB_STATE_FIELD}=:error
+          WHERE ${process.env.DB_ID_FIELD}=:id`;
+        await this.connection.execute(updateQuery, [4, id], { autoCommit: true });
+        return true;
+      } else {
+        throw new Error(`Jurinet.markAsErroneous: original decision '${id}' not found.`);
+      }
+    } else {
+      throw new Error('Jurinet.markAsErroneous: not connected.');
+    }
+  }
+
+  /**
    * Method to retrieve the info about the Jurica decision
    * contested by a Jurinet decision (using its ID).
    *

@@ -80,15 +80,21 @@ async function importJurinet() {
             try {
               await jurinetSource.markAsImported(row._id);
             } catch (ignore) {}
-            newCount++;
             if (row['TYPE_ARRET'] !== 'CC') {
               wincicaCount++;
             }
+            newCount++;
           } else {
+            try {
+              await jurinetSource.markAsImported(row._id);
+            } catch (ignore) {}
             skipCount++;
           }
         } catch (e) {
           console.error(`Jurinet import error (a) processing decision ${row._id}`, e);
+          try {
+            await jurinetSource.markAsErroneous(row._id);
+          } catch (ignore) {}
           errorCount++;
         }
       } else {
@@ -104,18 +110,27 @@ async function importJurinet() {
               try {
                 await jurinetSource.markAsImported(row._id);
               } catch (ignore) {}
-              newCount++;
               if (row['TYPE_ARRET'] !== 'CC') {
                 wincicaCount++;
               }
+              newCount++;
             } else {
+              try {
+                await jurinetSource.markAsImported(row._id);
+              } catch (ignore) {}
               skipCount++;
             }
           } catch (e) {
             console.error(`Jurinet import error (b) processing decision ${row._id}`, e);
+            try {
+              await jurinetSource.markAsErroneous(row._id);
+            } catch (ignore) {}
             errorCount++;
           }
         } else {
+          try {
+            await jurinetSource.markAsImported(row._id);
+          } catch (ignore) {}
           skipCount++;
         }
       }
@@ -180,13 +195,22 @@ async function importJurica() {
               } catch (ignore) {}
               newCount++;
             } else {
+              try {
+                await juricaSource.markAsImported(row._id);
+              } catch (ignore) {}
               skipCount++;
             }
           } else {
+            try {
+              await juricaSource.markAsImported(row._id);
+            } catch (ignore) {}
             duplicateCount++;
           }
         } catch (e) {
           console.error(`Jurica import error (a) processing decision ${row._id}`, e);
+          try {
+            await juricaSource.markAsErroneous(row._id);
+          } catch (ignore) {}
           errorCount++;
         }
       } else {
@@ -218,16 +242,28 @@ async function importJurica() {
                 } catch (ignore) {}
                 newCount++;
               } else {
+                try {
+                  await juricaSource.markAsImported(row._id);
+                } catch (ignore) {}
                 skipCount++;
               }
             } else {
+              try {
+                await juricaSource.markAsImported(row._id);
+              } catch (ignore) {}
               duplicateCount++;
             }
           } catch (e) {
             console.error(`Jurica import error (b) processing decision ${row._id}`, e);
+            try {
+              await juricaSource.markAsErroneous(row._id);
+            } catch (ignore) {}
             errorCount++;
           }
         } else {
+          try {
+            await juricaSource.markAsImported(row._id);
+          } catch (ignore) {}
           skipCount++;
         }
       }

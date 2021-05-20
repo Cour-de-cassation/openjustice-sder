@@ -113,6 +113,11 @@ async function syncJurinet() {
           'RAPROCHEMENT',
           'SOURCE',
           'DOCTRINE',
+          'IND_ANO',
+          'AUT_ANO',
+          'DT_ANO',
+          'DT_MODIF_ANO',
+          'DT_ENVOI_DILA',
           '_titrage',
           '_analyse',
           '_partie',
@@ -238,6 +243,7 @@ async function syncJurica() {
         }
       } else {
         const diff = [
+          'JDEC_HTML_SOURCE',
           'JDEC_DATE',
           'JDEC_ID_JURIDICTION',
           'JDEC_CODE_JURIDICTION',
@@ -248,6 +254,8 @@ async function syncJurica() {
           'JDEC_NUM_REGISTRE',
           'JDEC_NOTICE_FORMAT',
           'JDEC_LIBELLE',
+          'IND_ANO',
+          'AUT_ANO',
           '_portalis',
         ];
         diff.forEach((key) => {
