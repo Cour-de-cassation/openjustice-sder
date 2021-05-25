@@ -316,6 +316,15 @@ async function syncJurica() {
           }
         }
       } else {
+        let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurica' });
+        if (normalized !== null && normalized.locked === false) {
+          try {
+            await decisions.deleteOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurica' });
+          } catch (e) {
+            console.error(e);
+            errorCount++;
+          }
+        }
         duplicateCount++;
       }
 
