@@ -27,10 +27,18 @@ class JuricaUtils {
 
     try {
       originalText = JuricaUtils.CleanHTML(document.JDEC_HTML_SOURCE);
-    } catch (ignore) {}
+    } catch (e) {
+      console.warn(`JuricaUtils.Normalize: Could not properly clean the original text of document '${document._id}'.`);
+      console.warn(e);
+    }
     try {
       pseudoText = JuricaUtils.CleanHTML(document.HTMLA);
-    } catch (ignore) {}
+    } catch (e) {
+      console.warn(
+        `JuricaUtils.Normalize: Could not properly clean the pseudonymized text of document '${document._id}'.`,
+      );
+      console.warn(e);
+    }
 
     if (previousVersion && !ignorePreviousContent) {
       if (previousVersion.pseudoText) {
@@ -197,9 +205,6 @@ class JuricaUtils {
       }
     }
     await client.close();
-    if (found === null) {
-      return null;
-    }
     return found;
   }
 }
