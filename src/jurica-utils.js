@@ -134,6 +134,7 @@ class JuricaUtils {
       locked: false,
       labelStatus: pseudoText ? 'exported' : 'toBeTreated',
       labelTreatments: [],
+      zoning: undefined,
     };
 
     if (previousVersion) {

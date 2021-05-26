@@ -178,12 +178,14 @@ async function importJurica() {
           } else {
             let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized !== null && normalized.locked === false) {
+              /*
               try {
                 await decisions.deleteOne({ sourceId: row._id, sourceName: 'jurica' });
               } catch (e) {
                 console.error(e);
                 errorCount++;
               }
+              */
             }
             await juricaSource.markAsImported(row._id);
             duplicateCount++;
@@ -224,12 +226,14 @@ async function importJurica() {
           } else {
             let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized !== null && normalized.locked === false) {
+              /*
               try {
                 await decisions.deleteOne({ sourceId: row._id, sourceName: 'jurica' });
               } catch (e) {
                 console.error(e);
                 errorCount++;
               }
+              */
             }
             await juricaSource.markAsImported(row._id);
             duplicateCount++;

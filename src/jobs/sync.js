@@ -86,7 +86,7 @@ async function syncJurinet() {
 
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
-      let rawDocument = await raw.findOne({ _id: row[process.env.MONGO_ID] });
+      let rawDocument = await raw.findOne({ _id: row._id });
       let updated = false;
 
       if (rawDocument === null) {
@@ -132,7 +132,7 @@ async function syncJurinet() {
 
         if (updated === true) {
           try {
-            await raw.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
+            await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
             updateCount++;
             if (row['TYPE_ARRET'] !== 'CC') {
               wincicaCount++;
@@ -145,7 +145,7 @@ async function syncJurinet() {
         }
       }
 
-      let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurinet' });
+      let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
       if (normalized === null) {
         try {
           let normDec = await JurinetUtils.Normalize(row);
@@ -161,7 +161,7 @@ async function syncJurinet() {
           try {
             let normDec = await JurinetUtils.Normalize(row, normalized);
             normDec._version = decisionsVersion;
-            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
+            await decisions.replaceOne({ _id: normalized._id }, normDec, {
               bypassDocumentValidation: true,
             });
             normalizeCount++;
@@ -230,7 +230,7 @@ async function syncJurica() {
 
     for (let i = 0; i < juricaResult.length; i++) {
       let row = juricaResult[i];
-      let rawDocument = await raw.findOne({ _id: row[process.env.MONGO_ID] });
+      let rawDocument = await raw.findOne({ _id: row._id });
       let updated = false;
 
       if (rawDocument === null) {
@@ -266,7 +266,7 @@ async function syncJurica() {
 
         if (updated === true) {
           try {
-            await raw.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
+            await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
             updateCount++;
           } catch (e) {
             updated = false;
@@ -278,7 +278,7 @@ async function syncJurica() {
 
       let duplicate;
       try {
-        let duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
+        let duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
         if (duplicateId !== null) {
           duplicate = true;
         } else {
@@ -289,7 +289,7 @@ async function syncJurica() {
       }
 
       if (duplicate === false) {
-        let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurica' });
+        let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
         if (normalized === null) {
           try {
             let normDec = await JuricaUtils.Normalize(row);
@@ -305,7 +305,7 @@ async function syncJurica() {
             try {
               let normDec = await JuricaUtils.Normalize(row, normalized);
               normDec._version = decisionsVersion;
-              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
+              await decisions.replaceOne({ _id: normalized._id }, normDec, {
                 bypassDocumentValidation: true,
               });
               normalizeCount++;
@@ -316,14 +316,16 @@ async function syncJurica() {
           }
         }
       } else {
-        let normalized = await decisions.findOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurica' });
+        let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
         if (normalized !== null && normalized.locked === false) {
+          /*
           try {
-            await decisions.deleteOne({ sourceId: row[process.env.MONGO_ID], sourceName: 'jurica' });
+            await decisions.deleteOne({ sourceId: row._id, sourceName: 'jurica' });
           } catch (e) {
             console.error(e);
             errorCount++;
           }
+          */
         }
         duplicateCount++;
       }
