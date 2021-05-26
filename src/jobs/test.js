@@ -59,21 +59,29 @@ async function testLatest() {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
+          `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${
+            jurinetDoc.ID_CHAMBRE
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleString()}`,
         );
       } else {
         console.log(
-          `[Jurinet] sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
+          `sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${
+            jurinetDoc.ID_CHAMBRE
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleString()}`,
         );
       }
     } catch (e) {
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
+          `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${
+            jurinetDoc.ID_CHAMBRE
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleString()}`,
         );
       } else {
         console.log(
-          `[Jurinet] sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
+          `sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${
+            jurinetDoc.ID_CHAMBRE
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleString()}`,
         );
       }
     }
