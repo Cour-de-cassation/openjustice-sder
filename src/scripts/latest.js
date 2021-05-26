@@ -39,7 +39,7 @@ async function showOracleJurinetLatest(count) {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index}.\tsourceId: ${jurinetDoc._id} [WinciCA]\tPourvoi: ${numpourvoi}\tChambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id} [CA]\tPourvoi: ${numpourvoi}\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
@@ -53,7 +53,7 @@ async function showOracleJurinetLatest(count) {
     } catch (e) {
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index}.\tsourceId: ${jurinetDoc._id} [WinciCA]\tPourvoi: N/A\tChambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id} [CA]\tPourvoi: N/A\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
@@ -89,7 +89,7 @@ async function showMongoJurinetLatest(count) {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index}.\tsourceId: ${jurinetDoc._id} [WinciCA]\tPourvoi: ${numpourvoi}\tChambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id} [CA]\tPourvoi: ${numpourvoi}\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
@@ -103,7 +103,7 @@ async function showMongoJurinetLatest(count) {
     } catch (e) {
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index}.\tsourceId: ${jurinetDoc._id} [WinciCA]\tPourvoi: N/A\tChambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id} [CA]\tPourvoi: N/A\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
