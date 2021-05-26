@@ -31,7 +31,7 @@ async function showOracleJurinetLatest(count) {
   });
   await jurinetSource.close();
 
-  console.log(`Oracle 'Jurinet' - latest ${count} decisions:`);
+  console.log(`\nOracle 'Jurinet' - latest ${count} decisions:`);
   for (let i = 0; i < jurinetResult.length; i++) {
     let jurinetDoc = jurinetResult[i];
     let index = i + 1;
@@ -81,7 +81,7 @@ async function showMongoJurinetLatest(count) {
 
   let jurinetDoc;
   let index = 0;
-  console.log(`MongoDB 'rawJurinet' - latest ${count} decisions:`);
+  console.log(`\nMongoDB 'rawJurinet' - latest ${count} decisions:`);
   const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(count);
   while ((jurinetDoc = await jurinetCursor.next())) {
     index++;
