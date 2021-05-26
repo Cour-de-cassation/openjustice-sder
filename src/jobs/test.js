@@ -50,7 +50,7 @@ async function testLatest() {
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);
-  const rawJurinet = database.collection(process.env.MONGO_JURICA_COLLECTION);
+  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
 
   let jurinetDoc;
   const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(50);
