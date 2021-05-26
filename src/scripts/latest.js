@@ -34,6 +34,7 @@ async function showOracleJurinetLatest(count) {
   console.log(`Oracle 'Jurinet' - latest ${count} decisions:`);
   for (let i = 0; i < jurinetResult.length; i++) {
     let jurinetDoc = jurinetResult[i];
+    let index = i + 1;
     try {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
