@@ -53,35 +53,37 @@ async function testLatest() {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
 
   let jurinetDoc;
+  let index = 0;
   const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(200);
   while ((jurinetDoc = await jurinetCursor.next())) {
+    index++;
     try {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${
+          `${index} - sourceId: ${jurinetDoc._id} [WinciCA], Pourvoi: ${numpourvoi}, Chambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleString()}`,
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       } else {
         console.log(
-          `sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${
+          `${index} - sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleString()}`,
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       }
     } catch (e) {
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${
+          `${index} - sourceId: ${jurinetDoc._id} [WinciCA], Pourvoi: N/A, Chambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleString()}`,
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       } else {
         console.log(
-          `sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${
+          `${index} - sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleString()}`,
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       }
     }
