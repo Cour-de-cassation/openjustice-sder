@@ -1,4 +1,4 @@
-const fs = require('fs');
+// const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
@@ -7,10 +7,10 @@ const { parentPort } = require('worker_threads');
 // const { JuricaUtils } = require('../jurica-utils');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
-const he = require('he');
+// const he = require('he');
 
 require('colors');
-const Diff = require('diff');
+// const Diff = require('diff');
 
 let selfKill = setTimeout(cancel, ms('1h'));
 
@@ -35,13 +35,33 @@ async function main() {
     // await testDila();
     // await testDoublon();
     // await testPortalis();
-    await testClean();
+    // await testClean();
+    await testLatest();
   } catch (e) {
     console.error('Test error', e);
   }
   setTimeout(end, ms('1s'));
 }
 
+async function testLatest() {
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurinet = database.collection(process.env.MONGO_JURICA_COLLECTION);
+
+  let jurinetDoc;
+  const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(50);
+  while ((jurinetDoc = await jurinetCursor.next())) {
+    console.log(JSON.stringify(jurinetDoc, null, 2));
+  }
+
+  await client.close();
+}
+
+/*
 async function testClean() {
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
@@ -104,6 +124,7 @@ function cleanNew(text) {
   // Decode HTML entities:
   return he.decode(text);
 }
+*/
 
 /*
 async function testPortalis() {
@@ -212,7 +233,7 @@ async function testJurinet(n) {
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
-  const query = `SELECT * 
+  const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.DT_ANO IS NOT NULL
         AND ${process.env.DB_TABLE}.IND_ANO = 2
