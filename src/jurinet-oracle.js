@@ -8,8 +8,7 @@ iconv.skipDecodeWarning = true;
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 class JurinetOracle {
-  constructor(opt) {
-    opt = opt || {};
+  constructor() {
     this.connected = false;
     this.connection = null;
   }
@@ -112,7 +111,7 @@ class JurinetOracle {
 
         try {
           // Inject "titrage" data (if any) into the document:
-          const queryTitrage = `SELECT * 
+          const queryTitrage = `SELECT *
             FROM TITREREFERENCE
             WHERE ${process.env.DB_ID_FIELD} = :id`;
           const resultTitrage = await this.connection.execute(queryTitrage, [row[process.env.DB_ID_FIELD]]);
@@ -131,7 +130,7 @@ class JurinetOracle {
 
         try {
           // Inject "analyse" data (if any) into the document:
-          const queryAnalyse = `SELECT * 
+          const queryAnalyse = `SELECT *
             FROM ANALYSE
             WHERE ${process.env.DB_ID_FIELD} = :id`;
           const resultAnalyse = await this.connection.execute(queryAnalyse, [row[process.env.DB_ID_FIELD]]);
@@ -150,7 +149,7 @@ class JurinetOracle {
 
         try {
           // Inject "partie" data (if any) into the document:
-          const queryPartie = `SELECT * 
+          const queryPartie = `SELECT *
             FROM VIEW_PARTIE
             WHERE ${process.env.DB_ID_FIELD} = :id`;
           const resultPartie = await this.connection.execute(queryPartie, [row[process.env.DB_ID_FIELD]]);
@@ -206,7 +205,7 @@ class JurinetOracle {
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '/' + ago.getFullYear();
 
-      const query = `SELECT * 
+      const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} IS NULL
         AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 0
@@ -252,7 +251,7 @@ class JurinetOracle {
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '/' + ago.getFullYear();
 
-      const query = `SELECT * 
+      const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.DT_CREATION >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
@@ -298,11 +297,11 @@ class JurinetOracle {
       let query;
 
       if (!opt.onlyTreated) {
-        query = `SELECT * 
+        query = `SELECT *
           FROM ${process.env.DB_TABLE}
           ORDER BY ${process.env.DB_ID_FIELD} ${opt.order}`;
       } else {
-        query = `SELECT * 
+        query = `SELECT *
           FROM ${process.env.DB_TABLE}
           WHERE ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 2
           ORDER BY ${process.env.DB_ID_FIELD} ${opt.order}`;
@@ -362,7 +361,7 @@ class JurinetOracle {
       throw new Error('Jurinet.reinject: invalid decision to reinject.');
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the original decision from Jurinet:
-      const readQuery = `SELECT * 
+      const readQuery = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
       const readResult = await this.connection.execute(readQuery, [decision.sourceId]);
@@ -429,7 +428,7 @@ class JurinetOracle {
       throw new Error(`Jurinet.markAsImported: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the original decision from Jurinet:
-      const readQuery = `SELECT * 
+      const readQuery = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id
         AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :none`;
@@ -456,12 +455,12 @@ class JurinetOracle {
    * @returns
    * @throws
    */
-   async markAsErroneous(id) {
+  async markAsErroneous(id) {
     if (!id) {
       throw new Error(`Jurinet.markAsErroneous: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the original decision from Jurinet:
-      const readQuery = `SELECT * 
+      const readQuery = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
       const readResult = await this.connection.execute(readQuery, [id]);
@@ -506,13 +505,13 @@ class JurinetOracle {
       throw new Error(`Jurinet.getDecatt: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
       // 1. Get the decision from Jurinet:
-      const decisionQuery = `SELECT * 
+      const decisionQuery = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
       const decisionResult = await this.connection.execute(decisionQuery, [id]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         // 2. Get the pourvoi related to the decision:
-        const pourvoiQuery = `SELECT * 
+        const pourvoiQuery = `SELECT *
           FROM NUMPOURVOI
           WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
         const pourvoiResult = await this.connection.execute(pourvoiQuery, [id]);
@@ -520,7 +519,7 @@ class JurinetOracle {
           // 3. Get the affaire related to the pourvoi:
           const pourvoi = pourvoiResult.rows[0];
           const codePourvoi = pourvoi['NUMPOURVOICODE'];
-          const affaireQuery = `SELECT * 
+          const affaireQuery = `SELECT *
             FROM GPCIV.AFF
             WHERE GPCIV.AFF.CODE = :code`;
           const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
@@ -528,7 +527,7 @@ class JurinetOracle {
             // 4. Get the contested decision related to the affaire:
             const affaire = affaireResult.rows[0];
             const idAffaire = affaire['ID_AFFAIRE'];
-            const decattQuery = `SELECT * 
+            const decattQuery = `SELECT *
               FROM GPCIV.DECATT
               WHERE GPCIV.DECATT.ID_AFFAIRE = :id`;
             const decattResult = await this.connection.execute(decattQuery, [idAffaire]);
@@ -564,10 +563,9 @@ class JurinetOracle {
     if (!id) {
       throw new Error(`Jurinet.getDecisionByID: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
-      const decisionQuery = `SELECT * 
+      const decisionQuery = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-
       const decisionResult = await this.connection.execute(decisionQuery, [id]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         return await this.buildRawData(decisionResult.rows[0], true);

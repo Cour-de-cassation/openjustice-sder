@@ -47,6 +47,7 @@ async function reinjectJurinet() {
   });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   const jurinetSource = new JurinetOracle();
@@ -61,6 +62,8 @@ async function reinjectJurinet() {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
         await jurinetSource.reinject(decision);
+        const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
+        await rawJurinet.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
         // The labelStatus of the decision goes from 'done' to 'exported'.
         // We don't do this in the 'reinject' method because we may need
         // to reinject some decisions independently of the Label workflow:
@@ -87,6 +90,7 @@ async function reinjectJurica() {
   });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   const juricaSource = new JuricaOracle();
@@ -101,6 +105,8 @@ async function reinjectJurica() {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
         await juricaSource.reinject(decision);
+        const reinjected = await juricaSource.getDecisionByID(decision.sourceId);
+        await rawJurica.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
         // The labelStatus of the decision goes from 'done' to 'exported'.
         // We don't do this in the 'reinject' method because we may need
         // to reinject some decisions independently of the Label workflow:
