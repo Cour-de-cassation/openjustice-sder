@@ -1,20 +1,75 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
+const { JurinetOracle } = require('../jurinet-oracle');
 const { MongoClient } = require('mongodb');
 
 async function main() {
-  let count = 50;
+  let count;
   if (process.argv[2]) {
     count = parseInt(process.argv[2], 10);
-    if (isNaN(count)) {
-      count = 50;
-    }
   }
-  await showLatest(count);
+  if (isNaN(count)) {
+    count = 10;
+  }
+  await showOracleJurinetLatest(count);
+  await showMongoJurinetLatest(count);
 }
 
-async function showLatest(count) {
+async function showOracleJurinetLatest(count) {
+  const jurinetOrder = 'DESC';
+  const jurinetBatch = count;
+  const jurinetSource = new JurinetOracle();
+  const jurinetOffset = 0;
+
+  await jurinetSource.connect();
+  const jurinetResult = await jurinetSource.getBatch({
+    offset: jurinetOffset,
+    limit: jurinetBatch,
+    order: jurinetOrder,
+    onlyTreated: false,
+  });
+  await jurinetSource.close();
+
+  console.log(`Oracle 'Jurinet' - latest ${count} decisions:`);
+  for (let i = 0; i < jurinetResult.length; i++) {
+    let jurinetDoc = jurinetResult[i];
+    try {
+      const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
+      if (jurinetDoc.TYPE_ARRET !== 'CC') {
+        console.log(
+          `${index} - sourceId: ${jurinetDoc._id} [WinciCA], Pourvoi: ${numpourvoi}, Chambre: ${
+            jurinetDoc.ID_CHAMBRE
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+        );
+      } else {
+        console.log(
+          `${index} - sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${
+            jurinetDoc.ID_CHAMBRE
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+        );
+      }
+    } catch (e) {
+      if (jurinetDoc.TYPE_ARRET !== 'CC') {
+        console.log(
+          `${index} - sourceId: ${jurinetDoc._id} [WinciCA], Pourvoi: N/A, Chambre: ${
+            jurinetDoc.ID_CHAMBRE
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+        );
+      } else {
+        console.log(
+          `${index} - sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${
+            jurinetDoc.ID_CHAMBRE
+          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+        );
+      }
+    }
+  }
+
+  return true;
+}
+
+async function showMongoJurinetLatest(count) {
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
@@ -25,6 +80,7 @@ async function showLatest(count) {
 
   let jurinetDoc;
   let index = 0;
+  console.log(`MongoDB 'rawJurinet' - latest ${count} decisions:`);
   const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(count);
   while ((jurinetDoc = await jurinetCursor.next())) {
     index++;
