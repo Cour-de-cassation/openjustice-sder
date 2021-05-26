@@ -56,7 +56,7 @@ async function testLatest() {
   const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(200);
   while ((jurinetDoc = await jurinetCursor.next())) {
     try {
-      const numpourvoi = /numpourvoi[^>]*>([^<]+)<numpourvoi/i.exec(jurinetDoc.XML)[1];
+      const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
           `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
