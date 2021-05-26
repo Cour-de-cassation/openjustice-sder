@@ -53,9 +53,30 @@ async function testLatest() {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
 
   let jurinetDoc;
-  const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(50);
+  const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(200);
   while ((jurinetDoc = await jurinetCursor.next())) {
-    console.log(JSON.stringify(jurinetDoc, null, 2));
+    try {
+      const numpourvoi = /numpourvoi[^>]*>([^<]+)<numpourvoi/i.exec(jurinetDoc.XML)[1];
+      if (jurinetDoc.TYPE_ARRET !== 'CC') {
+        console.log(
+          `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
+        );
+      } else {
+        console.log(
+          `[Jurinet] sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
+        );
+      }
+    } catch (e) {
+      if (jurinetDoc.TYPE_ARRET !== 'CC') {
+        console.log(
+          `[WinciCA] sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
+        );
+      } else {
+        console.log(
+          `[Jurinet] sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${jurinetDoc.ID_CHAMBRE}, Date: ${jurinetDoc.DT_DECISION}`,
+        );
+      }
+    }
   }
 
   await client.close();
