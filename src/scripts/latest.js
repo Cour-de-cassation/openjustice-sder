@@ -31,7 +31,7 @@ async function showOracleJurinetLatest(count) {
   });
   await jurinetSource.close();
 
-  console.log(`\nOracle 'Jurinet' - latest ${count} decisions:`);
+  console.log(`\nOracle 'Jurinet', latest ${count} decisions:`);
   for (let i = 0; i < jurinetResult.length; i++) {
     let jurinetDoc = jurinetResult[i];
     let index = i + 1;
@@ -39,29 +39,29 @@ async function showOracleJurinetLatest(count) {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index} - sourceId: ${jurinetDoc._id} [WinciCA], Pourvoi: ${numpourvoi}, Chambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id} [WinciCA]\tPourvoi: ${numpourvoi}\tChambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+          }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       } else {
         console.log(
-          `${index} - sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id}\tPourvoi: ${numpourvoi}\tChambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+          }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       }
     } catch (e) {
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index} - sourceId: ${jurinetDoc._id} [WinciCA], Pourvoi: N/A, Chambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id} [WinciCA]\tPourvoi: N/A\tChambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+          }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       } else {
         console.log(
-          `${index} - sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id}\tPourvoi: N/A\tChambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+          }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       }
     }
@@ -81,7 +81,7 @@ async function showMongoJurinetLatest(count) {
 
   let jurinetDoc;
   let index = 0;
-  console.log(`\nMongoDB 'rawJurinet' - latest ${count} decisions:`);
+  console.log(`\nMongoDB 'rawJurinet', latest ${count} decisions:`);
   const jurinetCursor = await rawJurinet.find({}, { allowDiskUse: true }).sort({ _id: -1 }).limit(count);
   while ((jurinetDoc = await jurinetCursor.next())) {
     index++;
@@ -89,29 +89,29 @@ async function showMongoJurinetLatest(count) {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index} - sourceId: ${jurinetDoc._id} [WinciCA], Pourvoi: ${numpourvoi}, Chambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id} [WinciCA]\tPourvoi: ${numpourvoi}\tChambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+          }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       } else {
         console.log(
-          `${index} - sourceId: ${jurinetDoc._id}, Pourvoi: ${numpourvoi}, Chambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id}\tPourvoi: ${numpourvoi}\tChambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+          }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       }
     } catch (e) {
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index} - sourceId: ${jurinetDoc._id} [WinciCA], Pourvoi: N/A, Chambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id} [WinciCA]\tPourvoi: N/A\tChambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+          }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       } else {
         console.log(
-          `${index} - sourceId: ${jurinetDoc._id}, Pourvoi: N/A, Chambre: ${
+          `${index}.\tsourceId: ${jurinetDoc._id}\tPourvoi: N/A\tChambre: ${
             jurinetDoc.ID_CHAMBRE
-          }, Date: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
+          }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
       }
     }
