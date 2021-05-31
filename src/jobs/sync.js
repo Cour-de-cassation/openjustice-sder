@@ -123,6 +123,17 @@ async function syncJurinet() {
           '_partie',
           '_decatt',
           '_portalis',
+          'IND_PM',
+          'IND_ADRESSE',
+          'IND_DT_NAISSANCE',
+          'IND_DT_DECE',
+          'IND_DT_MARIAGE',
+          'IND_IMMATRICULATION',
+          'IND_CADASTRE',
+          'IND_CHAINE',
+          'IND_COORDONNEE_ELECTRONIQUE',
+          'IND_PRENOM_PROFESSIONEL',
+          'IND_NOM_PROFESSIONEL',
         ];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {

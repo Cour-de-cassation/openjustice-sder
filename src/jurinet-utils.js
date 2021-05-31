@@ -237,6 +237,10 @@ class JurinetUtils {
       labelStatus: pseudoText ? 'exported' : 'toBeTreated',
       labelTreatments: [],
       zoning: undefined,
+      occultation: {
+        additionalTerms: '',
+        categoriesToOmit: [],
+      },
     };
 
     if (previousVersion) {
@@ -353,6 +357,28 @@ class JurinetUtils {
         }
       } catch (e) {
         normalizedDecision.zoning = undefined;
+      }
+    }
+
+    const occultations = {
+      IND_PM: ['personneMorale', 'etablissement'],
+      IND_ADRESSE: ['adresse', 'localite'],
+      IND_DT_NAISSANCE: ['dateNaissance'],
+      IND_DT_DECE: ['dateDeces'],
+      IND_DT_MARIAGE: ['dateMariage'],
+      IND_IMMATRICULATION: ['plaqueImmatriculation'],
+      IND_CADASTRE: ['cadastre'],
+      IND_CHAINE: ['compteBancaire', 'telephoneFax', 'insee'],
+      IND_COORDONNEE_ELECTRONIQUE: ['email'],
+      IND_PRENOM_PROFESSIONEL: ['professionnelPrenom'],
+      IND_NOM_PROFESSIONEL: ['professionnelNom'],
+    };
+
+    for (let key in occultations) {
+      if (!document[key]) {
+        occultations[key].forEach((item) => {
+          normalizedDecision.occultation.categoriesToOmit.push(item);
+        });
       }
     }
 
