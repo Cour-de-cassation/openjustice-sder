@@ -1,46 +1,54 @@
 
-Oracle 'Jurinet', latest 21 decisions:
-1.	sourceId: 1736955	Pourvoi: J2017867	Chambre: CIV.3	Date: 2021-5-27
-2.	sourceId: 1736954	Pourvoi: U2014633	Chambre: CIV.3	Date: 2021-5-27
-3.	sourceId: 1736945	Pourvoi: A1916636	Chambre: CIV.3	Date: 2021-5-27
-4.	sourceId: 1736925	Pourvoi: A2015053	Chambre: CIV.3	Date: 2021-5-27
-5.	sourceId: 1736924	Pourvoi: N1925939	Chambre: CIV.3	Date: 2021-5-27
-6.	sourceId: 1736923	Pourvoi: P1917982	Chambre: CIV.3	Date: 2021-5-27
-7.	sourceId: 1736858	Pourvoi: H2111636	Chambre: CIV.1	Date: 2021-5-28
-8.	sourceId: 1736847	Pourvoi: N1916716	Chambre: CIV.3	Date: 2021-5-27
-9.	sourceId: 1736817	Pourvoi: T2190007	Chambre: CR	Date: 2021-5-26
-10.	sourceId: 1736816	Pourvoi: N2181515	Chambre: CR	Date: 2021-5-26
-11.	sourceId: 1736814	Pourvoi: N2086732	Chambre: CR	Date: 2021-5-27
-12.	sourceId: 1736798	Pourvoi: A2181320	Chambre: CR	Date: 2021-5-26
-13.	sourceId: 1736795 [CA]	Pourvoi: 21/015221	Chambre: 06	Date: 2021-5-25	[Cour d'appel de Rennes]
-14.	sourceId: 1736794 [CA]	Pourvoi: 19/001167	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-15.	sourceId: 1736793 [CA]	Pourvoi: 20/083477	Chambre: I7	Date: 2021-5-27	[Cour d'appel de Paris]
-16.	sourceId: 1736792 [CA]	Pourvoi: 20/001137	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-17.	sourceId: 1736791 [CA]	Pourvoi: 20/000177	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-18.	sourceId: 1736790 [CA]	Pourvoi: 20/000157	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-19.	sourceId: 1736789 [CA]	Pourvoi: 20/001187	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-20.	sourceId: 1736788 [CA]	Pourvoi: 19/000307	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-21.	sourceId: 1736787 [CA]	Pourvoi: 21/000105	Chambre: 05	Date: 2021-5-27	[Cour d'appel de Nouméa]
+Oracle 'Jurinet', latest 25 decisions:
+1.	ID: 1737388 [CA]	Pourvoi: 17/136477	Pub.: D		Chambre: G1	Date: 2021-5-28	[Cour d'appel de Paris]
+2.	ID: 1737387 [CA]	Pourvoi: 19/141077	Pub.: D		Chambre: G1	Date: 2021-5-28	[Cour d'appel de Paris]
+3.	ID: 1737207		Pourvoi: E2160003	Pub.: D		Chambre: CIV.2	Date: 2021-5-28
+4.	ID: 1737152		Pourvoi: E2112807	Pub.: D		Chambre: CIV.1	Date: 2021-5-28
+5.	ID: 1737115		Pourvoi: B2181873	Pub.: D		Chambre: CR	Date: 2021-5-27
+6.	ID: 1737114		Pourvoi: V2181798	Pub.: D		Chambre: CR	Date: 2021-5-27
+7.	ID: 1737113		Pourvoi: S1986019	Pub.: D		Chambre: CR	Date: 2021-5-27
+8.	ID: 1737112		Pourvoi: J2181558	Pub.: D		Chambre: CR	Date: 2021-5-27
+9.	ID: 1737111		Pourvoi: F2181532	Pub.: D		Chambre: CR	Date: 2021-5-27
+10.	ID: 1737110		Pourvoi: M2181514	Pub.: D		Chambre: CR	Date: 2021-5-27
+11.	ID: 1737109		Pourvoi: S1983949	Pub.: D		Chambre: CR	Date: 2021-5-27
+12.	ID: 1737082		Pourvoi: H2183143	Pub.: N		Chambre: CR	Date: 2021-5-27
+13.	ID: 1737081		Pourvoi: D2183140	Pub.: N		Chambre: CR	Date: 2021-5-27
+14.	ID: 1737080		Pourvoi: B2183138	Pub.: N		Chambre: CR	Date: 2021-5-27
+15.	ID: 1737079		Pourvoi: A2183137	Pub.: N		Chambre: CR	Date: 2021-5-27
+16.	ID: 1737078		Pourvoi: P2086618	Pub.: N		Chambre: CR	Date: 2021-5-27
+17.	ID: 1737077		Pourvoi: R2087080	Pub.: D		Chambre: CR	Date: 2021-5-27
+18.	ID: 1737076		Pourvoi: E2084080	Pub.: D		Chambre: CR	Date: 2021-5-27
+19.	ID: 1737075		Pourvoi: M2181836	Pub.: D		Chambre: CR	Date: 2021-5-27
+20.	ID: 1737074		Pourvoi: K2181743	Pub.: D		Chambre: CR	Date: 2021-5-27
+21.	ID: 1737050		Pourvoi: A2181826	Pub.: P		Chambre: CR	Date: 2021-5-27
+22.	ID: 1736955		Pourvoi: J2017867	Pub.: N		Chambre: CIV.3	Date: 2021-5-27
+23.	ID: 1736954		Pourvoi: U2014633	Pub.: N		Chambre: CIV.3	Date: 2021-5-27
+24.	ID: 1736945		Pourvoi: A1916636	Pub.: N		Chambre: CIV.3	Date: 2021-5-27
+25.	ID: 1736925		Pourvoi: A2015053	Pub.: D		Chambre: CIV.3	Date: 2021-5-27
 
-MongoDB 'rawJurinet', latest 21 decisions:
-1.	sourceId: 1736955	Pourvoi: J2017867	Chambre: CIV.3	Date: 2021-5-27
-2.	sourceId: 1736954	Pourvoi: U2014633	Chambre: CIV.3	Date: 2021-5-27
-3.	sourceId: 1736945	Pourvoi: A1916636	Chambre: CIV.3	Date: 2021-5-27
-4.	sourceId: 1736925	Pourvoi: A2015053	Chambre: CIV.3	Date: 2021-5-27
-5.	sourceId: 1736924	Pourvoi: N1925939	Chambre: CIV.3	Date: 2021-5-27
-6.	sourceId: 1736923	Pourvoi: P1917982	Chambre: CIV.3	Date: 2021-5-27
-7.	sourceId: 1736858	Pourvoi: H2111636	Chambre: CIV.1	Date: 2021-5-28
-8.	sourceId: 1736847	Pourvoi: N1916716	Chambre: CIV.3	Date: 2021-5-27
-9.	sourceId: 1736817	Pourvoi: T2190007	Chambre: CR	Date: 2021-5-26
-10.	sourceId: 1736816	Pourvoi: N2181515	Chambre: CR	Date: 2021-5-26
-11.	sourceId: 1736814	Pourvoi: N2086732	Chambre: CR	Date: 2021-5-27
-12.	sourceId: 1736798	Pourvoi: A2181320	Chambre: CR	Date: 2021-5-26
-13.	sourceId: 1736795 [CA]	Pourvoi: 21/015221	Chambre: 06	Date: 2021-5-25	[Cour d'appel de Rennes]
-14.	sourceId: 1736794 [CA]	Pourvoi: 19/001167	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-15.	sourceId: 1736793 [CA]	Pourvoi: 20/083477	Chambre: I7	Date: 2021-5-27	[Cour d'appel de Paris]
-16.	sourceId: 1736792 [CA]	Pourvoi: 20/001137	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-17.	sourceId: 1736791 [CA]	Pourvoi: 20/000177	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-18.	sourceId: 1736790 [CA]	Pourvoi: 20/000157	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-19.	sourceId: 1736789 [CA]	Pourvoi: 20/001187	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-20.	sourceId: 1736788 [CA]	Pourvoi: 19/000307	Chambre: 02	Date: 2021-5-27	[Cour d'appel de Nouméa]
-21.	sourceId: 1736787 [CA]	Pourvoi: 21/000105	Chambre: 05	Date: 2021-5-27	[Cour d'appel de Nouméa]
+MongoDB 'rawJurinet', latest 25 decisions:
+1.	ID: 1737388 [CA]	Pourvoi: 17/136477	Pub.: D		Chambre: G1	Date: 2021-5-28	[Cour d'appel de Paris]
+2.	ID: 1737387 [CA]	Pourvoi: 19/141077	Pub.: D		Chambre: G1	Date: 2021-5-28	[Cour d'appel de Paris]
+3.	ID: 1737207		Pourvoi: E2160003	Pub.: D		Chambre: CIV.2	Date: 2021-5-28
+4.	ID: 1737152		Pourvoi: E2112807	Pub.: D		Chambre: CIV.1	Date: 2021-5-28
+5.	ID: 1737115		Pourvoi: B2181873	Pub.: D		Chambre: CR	Date: 2021-5-27
+6.	ID: 1737114		Pourvoi: V2181798	Pub.: D		Chambre: CR	Date: 2021-5-27
+7.	ID: 1737113		Pourvoi: S1986019	Pub.: D		Chambre: CR	Date: 2021-5-27
+8.	ID: 1737112		Pourvoi: J2181558	Pub.: D		Chambre: CR	Date: 2021-5-27
+9.	ID: 1737111		Pourvoi: F2181532	Pub.: D		Chambre: CR	Date: 2021-5-27
+10.	ID: 1737110		Pourvoi: M2181514	Pub.: D		Chambre: CR	Date: 2021-5-27
+11.	ID: 1737109		Pourvoi: S1983949	Pub.: D		Chambre: CR	Date: 2021-5-27
+12.	ID: 1737082		Pourvoi: H2183143	Pub.: N		Chambre: CR	Date: 2021-5-27
+13.	ID: 1737081		Pourvoi: D2183140	Pub.: N		Chambre: CR	Date: 2021-5-27
+14.	ID: 1737080		Pourvoi: B2183138	Pub.: N		Chambre: CR	Date: 2021-5-27
+15.	ID: 1737079		Pourvoi: A2183137	Pub.: N		Chambre: CR	Date: 2021-5-27
+16.	ID: 1737078		Pourvoi: P2086618	Pub.: N		Chambre: CR	Date: 2021-5-27
+17.	ID: 1737077		Pourvoi: R2087080	Pub.: D		Chambre: CR	Date: 2021-5-27
+18.	ID: 1737076		Pourvoi: E2084080	Pub.: D		Chambre: CR	Date: 2021-5-27
+19.	ID: 1737075		Pourvoi: M2181836	Pub.: D		Chambre: CR	Date: 2021-5-27
+20.	ID: 1737074		Pourvoi: K2181743	Pub.: D		Chambre: CR	Date: 2021-5-27
+21.	ID: 1737050		Pourvoi: A2181826	Pub.: P		Chambre: CR	Date: 2021-5-27
+22.	ID: 1736955		Pourvoi: J2017867	Pub.: N		Chambre: CIV.3	Date: 2021-5-27
+23.	ID: 1736954		Pourvoi: U2014633	Pub.: N		Chambre: CIV.3	Date: 2021-5-27
+24.	ID: 1736945		Pourvoi: A1916636	Pub.: N		Chambre: CIV.3	Date: 2021-5-27
+25.	ID: 1736925		Pourvoi: A2015053	Pub.: D		Chambre: CIV.3	Date: 2021-5-27

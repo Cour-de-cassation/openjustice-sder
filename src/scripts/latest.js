@@ -39,13 +39,13 @@ async function showOracleJurinetLatest(count) {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index}.\tID: ${jurinetDoc._id} [CA]\tPourvoi: ${numpourvoi}\tPub.: ${jurinetDoc.CAT_PUB}\tChambre: ${
+          `${index}.\tID: ${jurinetDoc._id} [CA]\tPourvoi: ${numpourvoi}\tPub.: ${jurinetDoc.CAT_PUB}\t\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}\t[${jurinetDoc.JURIDICTION}]`,
         );
       } else {
         console.log(
-          `${index}.\tID: ${jurinetDoc._id}\tPourvoi: ${numpourvoi}\tPub.: ${jurinetDoc.CAT_PUB}\tChambre: ${
+          `${index}.\tID: ${jurinetDoc._id}\t\tPourvoi: ${numpourvoi}\tPub.: ${jurinetDoc.CAT_PUB}\t\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
@@ -53,13 +53,13 @@ async function showOracleJurinetLatest(count) {
     } catch (e) {
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index}.\tID: ${jurinetDoc._id} [CA]\tPourvoi: N/A\tPub.: ${jurinetDoc.CAT_PUB}\tChambre: ${
+          `${index}.\tID: ${jurinetDoc._id} [CA]\tPourvoi: N/A\tPub.: ${jurinetDoc.CAT_PUB}\t\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}\t[${jurinetDoc.JURIDICTION}]`,
         );
       } else {
         console.log(
-          `${index}.\tID: ${jurinetDoc._id}\tPourvoi: N/A\tPub.: ${jurinetDoc.CAT_PUB}\tChambre: ${
+          `${index}.\tID: ${jurinetDoc._id}\t\tPourvoi: N/A\tPub.: ${jurinetDoc.CAT_PUB}\t\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
@@ -89,13 +89,13 @@ async function showMongoJurinetLatest(count) {
       const numpourvoi = /numpourvoi[^>]*>([^<]+)<\/numpourvoi/i.exec(jurinetDoc.XML)[1];
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index}.\tID: ${jurinetDoc._id} [CA]\tPourvoi: ${numpourvoi}\tPub.: ${jurinetDoc.CAT_PUB}\tChambre: ${
+          `${index}.\tID: ${jurinetDoc._id} [CA]\tPourvoi: ${numpourvoi}\tPub.: ${jurinetDoc.CAT_PUB}\t\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}\t[${jurinetDoc.JURIDICTION}]`,
         );
       } else {
         console.log(
-          `${index}.\tID: ${jurinetDoc._id}\tPourvoi: ${numpourvoi}\tPub.: ${jurinetDoc.CAT_PUB}\tChambre: ${
+          `${index}.\tID: ${jurinetDoc._id}\t\tPourvoi: ${numpourvoi}\tPub.: ${jurinetDoc.CAT_PUB}\t\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
@@ -103,13 +103,13 @@ async function showMongoJurinetLatest(count) {
     } catch (e) {
       if (jurinetDoc.TYPE_ARRET !== 'CC') {
         console.log(
-          `${index}.\tID: ${jurinetDoc._id} [CA]\tPourvoi: N/A\tPub.: ${jurinetDoc.CAT_PUB}\tChambre: ${
+          `${index}.\tID: ${jurinetDoc._id} [CA]\tPourvoi: N/A\tPub.: ${jurinetDoc.CAT_PUB}\t\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}\t[${jurinetDoc.JURIDICTION}]`,
         );
       } else {
         console.log(
-          `${index}.\tID: ${jurinetDoc._id}\tPourvoi: N/A\tPub.: ${jurinetDoc.CAT_PUB}\tChambre: ${
+          `${index}.\tID: ${jurinetDoc._id}\t\tPourvoi: N/A\tPub.: ${jurinetDoc.CAT_PUB}\t\tChambre: ${
             jurinetDoc.ID_CHAMBRE
           }\tDate: ${jurinetDoc.DT_DECISION.toLocaleDateString()}`,
         );
