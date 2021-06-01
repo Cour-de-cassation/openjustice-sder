@@ -8,7 +8,7 @@ console.log('Setup...');
 
 /* MAIN */
 async function main() {
-  fs.writeFileSync('export.txt', '');
+  // fs.writeFileSync('export.txt', '');
   // fs.writeFileSync('export_ca.txt', '')
 
   // TEST MONGO
@@ -29,7 +29,7 @@ async function main() {
       .find({ sourceName: 'jurinet' }, { allowDiskUse: true })
       .skip(skip)
       .sort({ sourceId: -1 })
-      .limit(1000);
+      .limit(100);
     // const cursor = await decisions.find({ sourceName: 'jurica' }, { allowDiskUse: true }).skip(skip).sort({ sourceId: -1 }).limit(1000)
     while (cont && (document = await cursor.next())) {
       const source = await rawJurinet.findOne({ _id: document.sourceId });
@@ -39,19 +39,24 @@ async function main() {
         document.jurisdictionCode === 'CC' &&
         document.pseudoText &&
         document.zoning &&
-        document.zoning.zones &&
-        document._version === decisionsVersion
+        document.zoning.zones
+        // && document._version === decisionsVersion
       ) {
         count++;
         console.log(count, document._id, document.sourceId);
+        const response = await needle(
+          'post',
+          'http://dev.opj.intranet.justice.gouv.fr/index',
+          { index: 'openjustice_0', document: document },
+          {
+            json: true,
+          },
+        );
+        console.log(response.body);
         /*
-        const response = await needle('post', 'http://dev.opj.intranet.justice.gouv.fr/index', { index: 'openjustice_0', document: document }, {
-          json: true
-        })
-        console.log(response.body)
-        */
         fs.appendFileSync('export.txt', JSON.stringify(document) + '\n');
-        if (count >= 50000) {
+        */
+        if (count >= 200 /*50000*/) {
           cont = false;
         }
       }
@@ -68,17 +73,21 @@ async function main() {
       }
       */
     }
-    skip += 1000;
+    skip += 100;
   }
 
   await client.close();
 
-  /*
-  const response = await needle('post', 'http://dev.opj.intranet.justice.gouv.fr/refresh', { index: 'openjustice_0' }, {
-    json: true
-  })
-  console.log(response.body)
-  */
+  const response = await needle(
+    'post',
+    'http://dev.opj.intranet.justice.gouv.fr/refresh',
+    { index: 'openjustice_0' },
+    {
+      json: true,
+    },
+  );
+  console.log(response.body);
+
   console.log('Teardown...');
 
   console.log('Exit.');
