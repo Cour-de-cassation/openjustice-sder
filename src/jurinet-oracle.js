@@ -208,7 +208,7 @@ class JurinetOracle {
       const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} IS NULL
-        AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 0
+        AND (${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 0 OR ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 4)
         AND ${process.env.DB_TABLE}.DT_CREATION >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
 
