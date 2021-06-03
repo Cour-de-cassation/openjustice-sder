@@ -328,9 +328,8 @@ class JuricaOracle {
       // 1. Get the original decision from Jurica:
       const readQuery = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
-        WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id
-        AND  ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = :none`;
-      const readResult = await this.connection.execute(readQuery, [id, 0]);
+        WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
+      const readResult = await this.connection.execute(readQuery, [id]);
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}

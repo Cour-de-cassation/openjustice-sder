@@ -430,9 +430,8 @@ class JurinetOracle {
       // 1. Get the original decision from Jurinet:
       const readQuery = `SELECT *
         FROM ${process.env.DB_TABLE}
-        WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id
-        AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = :none`;
-      const readResult = await this.connection.execute(readQuery, [id, 0]);
+        WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+      const readResult = await this.connection.execute(readQuery, [id]);
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE}
