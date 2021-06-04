@@ -135,7 +135,8 @@ class JuricaOracle {
 
       const query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
-        WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
+        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+        AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
         AND (${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 0 OR ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 4)
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
@@ -181,7 +182,8 @@ class JuricaOracle {
 
       const query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
-        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
+        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
 
       const result = await this.connection.execute(query, [], {
@@ -227,11 +229,13 @@ class JuricaOracle {
       if (!opt.onlyTreated) {
         query = `SELECT *
           FROM ${process.env.DB_TABLE_JURICA}
+          WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
           ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
       } else {
         query = `SELECT *
           FROM ${process.env.DB_TABLE_JURICA}
-          WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 2
+          WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+          AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 2
           ORDER BY ${process.env.DB_ID_FIELD_JURICA} ${opt.order}`;
       }
 
