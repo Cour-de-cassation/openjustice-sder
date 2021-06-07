@@ -45,9 +45,22 @@ async function test() {
 
   const rs = result.resultSet;
   let resultRow;
+  let plan = {};
+  let countAll = 0;
+  let countActual = 0;
   while ((resultRow = await rs.getRow())) {
-    console.log(resultRow);
+    let key = resultRow['ID_MATIERE']
+    key = key.trim()
+    if (key && plan[key] === undefined) {	
+	plan[key] = resultRow['LIB'].trim();
+	countActual++;
+    }
+    countAll++;
   }
+
+  console.log(`${countActual}/${countAll}`);
+
+  fs.writeFileSync('plan.json', JSON.stringify(plan, null, 2));
 
   await rs.close();
   await jurinetSource.close();
