@@ -163,25 +163,39 @@ class JurinetUtils {
     let pseudoText = undefined;
     let pseudoStatus = document.IND_ANO;
 
-    try {
-      cleanedXml = JurinetUtils.CleanXML(document.XML);
-      cleanedXml = JurinetUtils.XMLToJSON(cleanedXml, {
-        filter: false,
-        htmlDecode: true,
-        toLowerCase: true,
-      });
-      originalText = cleanedXml.texte_arret;
-    } catch (ignore) {}
+    if (document.XML) {
+      try {
+        cleanedXml = JurinetUtils.CleanXML(document.XML);
+        cleanedXml = JurinetUtils.XMLToJSON(cleanedXml, {
+          filter: false,
+          htmlDecode: true,
+          toLowerCase: true,
+        });
+        originalText = cleanedXml.texte_arret;
+      } catch (e) {
+        console.warn(
+          `JurinetUtils.Normalize: Could not properly clean the original text of document '${document._id}'.`,
+        );
+        console.warn(e);
+      }
+    }
 
-    try {
-      cleanedXmla = JurinetUtils.CleanXML(document.XMLA);
-      cleanedXmla = JurinetUtils.XMLToJSON(cleanedXmla, {
-        filter: false,
-        htmlDecode: true,
-        toLowerCase: true,
-      });
-      pseudoText = cleanedXmla.texte_arret;
-    } catch (ignore) {}
+    if (document.XMLA) {
+      try {
+        cleanedXmla = JurinetUtils.CleanXML(document.XMLA);
+        cleanedXmla = JurinetUtils.XMLToJSON(cleanedXmla, {
+          filter: false,
+          htmlDecode: true,
+          toLowerCase: true,
+        });
+        pseudoText = cleanedXmla.texte_arret;
+      } catch (e) {
+        console.warn(
+          `JurinetUtils.Normalize: Could not properly clean the pseudonymized text of document '${document._id}'.`,
+        );
+        console.warn(e);
+      }
+    }
 
     if (previousVersion && !ignorePreviousContent) {
       if (previousVersion.pseudoText) {
@@ -241,6 +255,8 @@ class JurinetUtils {
         additionalTerms: '',
         categoriesToOmit: [],
       },
+      publication: [],
+      formation: null,
     };
 
     if (previousVersion) {
@@ -380,6 +396,23 @@ class JurinetUtils {
           normalizedDecision.occultation.categoriesToOmit.push(item);
         });
       }
+    }
+
+    if (document.IND_BULLETIN === 1) {
+      normalizedDecision.publication.push('B');
+    }
+    if (document.IND_RAPPORT === 1) {
+      normalizedDecision.publication.push('R');
+    }
+    if (document.IND_LETTRE === 1) {
+      normalizedDecision.publication.push('L');
+    }
+    if (document.IND_COMMUNIQUE === 1) {
+      normalizedDecision.publication.push('C');
+    }
+
+    if (document.ID_FORMATION) {
+      normalizedDecision.formation = document.ID_FORMATION;
     }
 
     if (!normalizedDecision.originalText) {

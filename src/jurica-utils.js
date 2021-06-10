@@ -25,19 +25,26 @@ class JuricaUtils {
     let pseudoText = undefined;
     let pseudoStatus = document.IND_ANO;
 
-    try {
-      originalText = JuricaUtils.CleanHTML(document.JDEC_HTML_SOURCE);
-    } catch (e) {
-      console.warn(`JuricaUtils.Normalize: Could not properly clean the original text of document '${document._id}'.`);
-      console.warn(e);
+    if (document.JDEC_HTML_SOURCE) {
+      try {
+        originalText = JuricaUtils.CleanHTML(document.JDEC_HTML_SOURCE);
+      } catch (e) {
+        console.warn(
+          `JuricaUtils.Normalize: Could not properly clean the original text of document '${document._id}'.`,
+        );
+        console.warn(e);
+      }
     }
-    try {
-      pseudoText = JuricaUtils.CleanHTML(document.HTMLA);
-    } catch (e) {
-      console.warn(
-        `JuricaUtils.Normalize: Could not properly clean the pseudonymized text of document '${document._id}'.`,
-      );
-      console.warn(e);
+
+    if (document.HTMLA) {
+      try {
+        pseudoText = JuricaUtils.CleanHTML(document.HTMLA);
+      } catch (e) {
+        console.warn(
+          `JuricaUtils.Normalize: Could not properly clean the pseudonymized text of document '${document._id}'.`,
+        );
+        console.warn(e);
+      }
     }
 
     if (previousVersion && !ignorePreviousContent) {
@@ -135,6 +142,12 @@ class JuricaUtils {
       labelStatus: pseudoText ? 'exported' : 'toBeTreated',
       labelTreatments: [],
       zoning: undefined,
+      occultation: {
+        additionalTerms: '',
+        categoriesToOmit: [],
+      },
+      publication: [],
+      formation: null,
     };
 
     if (previousVersion) {

@@ -134,6 +134,11 @@ async function syncJurinet() {
           'IND_COORDONNEE_ELECTRONIQUE',
           'IND_PRENOM_PROFESSIONEL',
           'IND_NOM_PROFESSIONEL',
+          'IND_BULLETIN',
+          'IND_RAPPORT',
+          'IND_LETTRE',
+          'IND_COMMUNIQUE',
+          'ID_FORMATION',
         ];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
