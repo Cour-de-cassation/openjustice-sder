@@ -398,6 +398,10 @@ class JurinetUtils {
       }
     }
 
+    if(!!document.OCCULTATION_SUPPLEMENTAIRE) {
+      normalizedDecision.occultation.additionalTerms = document.OCCULTATION_SUPPLEMENTAIRE;
+    }
+
     if (document.IND_BULLETIN === 1) {
       normalizedDecision.publication.push('B');
     }
