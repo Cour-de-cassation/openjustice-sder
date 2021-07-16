@@ -163,7 +163,7 @@ class JuricaUtils {
     }
 
     if (!normalizedDecision.originalText) {
-      throw new Error(`JuricaUtils.Normalize: Document '${normalizedDecision.sourceId}' has not text.`);
+      throw new Error(`JuricaUtils.Normalize: Document '${normalizedDecision.sourceId}' has no text.`);
     }
 
     return normalizedDecision;

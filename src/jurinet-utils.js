@@ -398,7 +398,7 @@ class JurinetUtils {
       }
     }
 
-    if(!!document.OCCULTATION_SUPPLEMENTAIRE) {
+    if (!!document.OCCULTATION_SUPPLEMENTAIRE) {
       normalizedDecision.occultation.additionalTerms = document.OCCULTATION_SUPPLEMENTAIRE;
     }
 
@@ -420,7 +420,7 @@ class JurinetUtils {
     }
 
     if (!normalizedDecision.originalText) {
-      throw new Error(`JurinetUtils.Normalize: Document '${normalizedDecision.sourceId}' has not text.`);
+      throw new Error(`JurinetUtils.Normalize: Document '${normalizedDecision.sourceId}' has no text.`);
     }
 
     return normalizedDecision;
