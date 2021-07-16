@@ -116,6 +116,7 @@ async function syncJurinet() {
           'IND_ANO',
           'AUT_ANO',
           'DT_ANO',
+          'DT_MODIF',
           'DT_MODIF_ANO',
           'DT_ENVOI_DILA',
           '_titrage',

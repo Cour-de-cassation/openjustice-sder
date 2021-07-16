@@ -398,12 +398,13 @@ class JurinetOracle {
             ${process.env.DB_STATE_FIELD}=:ok,
             AUT_ANO=:label,
             DT_ANO=:datea,
-            DT_MODIF_ANO=:dateb,
+            DT_MODIF=:dateb,
+            DT_MODIF_ANO=:datec,
             DT_ENVOI_DILA=NULL
             WHERE ${process.env.DB_ID_FIELD}=:id`;
           await this.connection.execute(
             updateQuery,
-            [xmla.toString('binary'), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, decision.sourceId],
+            [xmla.toString('binary'), parseInt(process.env.DB_STATE_OK), 'LABEL', now, now, now, decision.sourceId],
             { autoCommit: true },
           );
           return true;
