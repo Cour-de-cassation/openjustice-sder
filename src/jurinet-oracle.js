@@ -47,6 +47,23 @@ class JurinetOracle {
     }
   }
 
+  filter(row) {
+    /* @TODO
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(chambre du conseil)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(hors la présence du public)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(assistance éducative)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(affaires familiales)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(juge des enfants)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(chambre des mineurs)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(juge d''instruction)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(application des peines)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(chambre de l''instruction)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(tribunal correctionnel)') > 0 ) )
+    AND NOT ( ( CONTAINS(DOCUMENT.XML, '(chambre correctionnelle)') > 0 ) )
+    */
+    return true;
+  }
+
   async buildRawData(row, withExtraneous) {
     if (this.connected === true && this.connection !== null) {
       let data = {};
@@ -222,8 +239,9 @@ class JurinetOracle {
       let resultRow;
 
       while ((resultRow = await rs.getRow())) {
-        const data = await this.buildRawData(resultRow, true);
-        rows.push(data);
+        if (this.filter(resultRow)) {
+          rows.push(await this.buildRawData(resultRow, true));
+        }
       }
 
       await rs.close();
@@ -267,8 +285,9 @@ class JurinetOracle {
       let resultRow;
 
       while ((resultRow = await rs.getRow())) {
-        const data = await this.buildRawData(resultRow, true);
-        rows.push(data);
+        if (this.filter(resultRow)) {
+          rows.push(await this.buildRawData(resultRow, true));
+        }
       }
 
       await rs.close();
@@ -332,8 +351,9 @@ class JurinetOracle {
       let resultRow;
 
       while ((resultRow = await rs.getRow())) {
-        const data = await this.buildRawData(resultRow, true);
-        rows.push(data);
+        if (this.filter(resultRow)) {
+          rows.push(await this.buildRawData(resultRow, true));
+        }
       }
 
       await rs.close();
@@ -572,7 +592,11 @@ class JurinetOracle {
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
       const decisionResult = await this.connection.execute(decisionQuery, [id]);
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
-        return await this.buildRawData(decisionResult.rows[0], true);
+        if (this.filter(decisionResult.rows[0])) {
+          return await this.buildRawData(decisionResult.rows[0], true);
+        } else {
+          throw new Error(`Jurinet.getDecisionByID: decision with ID '${id}' cannot be published.`);
+        }
       } else {
         throw new Error(`Jurinet.getDecisionByID: decision with ID '${id}' not found.`);
       }
