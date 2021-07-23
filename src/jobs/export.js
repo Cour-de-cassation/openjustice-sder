@@ -99,7 +99,7 @@ async function getZones(id, source, text) {
     source: source,
     text: text,
   });
-  const response = await needle('post', 'http://127.0.0.1:8090/zonage', zoneData, {
+  const response = await needle('post', process.env.API_ZONAGE_URI, zoneData, {
     json: true,
   });
   delete response.body.arret_id;
