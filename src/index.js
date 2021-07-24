@@ -17,7 +17,7 @@ const bree = new Bree({
     /*{
       name: 'reinject',
       interval: 'at 12:00 am',
-    }*/,
+    },*/
     {
       name: 'sync',
       interval: 'every 17 minutes after 8:30am and before 11:30pm',

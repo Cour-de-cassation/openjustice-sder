@@ -24,7 +24,7 @@ function kill(code) {
 
 async function main() {
   console.log('OpenJustice - Start "cleanup" job:', new Date().toLocaleString());
-  glob('/root/core.*', function (err, files) {
+  glob('/data/core.*', function (err, files) {
     if (err) {
       console.error('Cleanup error (1)', err);
     } else {
