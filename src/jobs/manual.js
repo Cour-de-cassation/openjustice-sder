@@ -59,11 +59,25 @@ async function processJurinet() {
     while (cont && (document = await cursor.next())) {
       hasData = true;
       const raw = await rawJurinet.findOne({ _id: document.sourceId });
-      const reNormalized = await JurinetUtils.Normalize(raw, document);
-      if (JSON.stringify(document['occultation']) !== JSON.stringify(reNormalized['occultation'])) {
-        await decisions.replaceOne({ _id: document._id }, reNormalized, {
+      const reNormalized = await JurinetUtils.Normalize(raw, document, true);
+      if (
+        JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation) ||
+        document.originalText !== reNormalized.originalText
+      ) {
+        document._rev = reNormalized._rev;
+        if (JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation)) {
+          document.occultation = reNormalized.occultation;
+        }
+        if (document.originalText !== reNormalized.originalText) {
+          document.originalText = reNormalized.originalText;
+          console.log('BEFORE:', document.originalText);
+          console.log('AFTER:', reNormalized.originalText);
+        }
+        /*
+        await decisions.replaceOne({ _id: document._id }, document, {
           bypassDocumentValidation: true,
         });
+        */
       }
     }
     cont = hasData;
