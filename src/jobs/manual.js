@@ -70,14 +70,10 @@ async function processJurinet() {
         }
         if (document.originalText !== reNormalized.originalText) {
           document.originalText = reNormalized.originalText;
-          console.log('BEFORE:', document.originalText);
-          console.log('AFTER:', reNormalized.originalText);
         }
-        /*
         await decisions.replaceOne({ _id: document._id }, document, {
           bypassDocumentValidation: true,
         });
-        */
       }
     }
     cont = hasData;
