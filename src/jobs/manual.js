@@ -84,18 +84,14 @@ async function processJurinet() {
           document.occultation = reNormalized.occultation;
         }
         if (document.originalText.length > reNormalized.originalText.length) {
-          console.log('**TEXT**', document.originalText.length, reNormalized.originalText.length);
           document.originalText = reNormalized.originalText;
         }
         if (JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)) {
-          console.log('**DECATT**', document.decatt, newDecatt);
           document.decatt = newDecatt;
         }
-        /*
         await decisions.replaceOne({ _id: document._id }, document, {
           bypassDocumentValidation: true,
         });
-        */
       }
     }
     cont = hasData;
