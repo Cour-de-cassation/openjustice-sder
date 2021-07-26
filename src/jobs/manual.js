@@ -63,7 +63,7 @@ async function processJurinet() {
       const before = JSON.stringify(document.occultation);
       const after = JSON.stringify(reNormalized.occultation);
       if (before !== after) {
-        console.log('*****');
+        console.log('id:', document.sourceId);
         console.log(before);
         console.log(after);
       }
