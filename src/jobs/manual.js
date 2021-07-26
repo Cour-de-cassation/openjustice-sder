@@ -31,15 +31,22 @@ function kill(code) {
 async function main() {
   console.log('OpenJustice - Start "manual" job:', new Date().toLocaleString());
   try {
-    await processJurinet();
+    await processJurinet('loaded');
   } catch (e) {
-    console.error('processJurinet error', e);
+    console.error('processJurinet(loaded) error', e);
+  }
+  try {
+    await processJurinet('toBeTreated');
+  } catch (e) {
+    console.error('processJurinet(toBeTreated) error', e);
   }
   console.log('OpenJustice - End "manual" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
 }
 
-async function processJurinet() {
+async function processJurinet(status) {
+  console.log(`Process Jurinet / ${status}...`);
+
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
   const jurinetSource = new JurinetOracle();
@@ -55,10 +62,11 @@ async function processJurinet() {
   let cont = true;
   let skip = 0;
   let document;
+  let updated = 0;
+  let skipped = 0;
   while (cont === true) {
     const cursor = await decisions
-      //    .find({ sourceName: 'jurinet', labelStatus: 'loaded' }, { allowDiskUse: true })
-      .find({ sourceName: 'jurinet', labelStatus: 'toBeTreated' }, { allowDiskUse: true })
+      .find({ sourceName: 'jurinet', labelStatus: status }, { allowDiskUse: true })
       .skip(skip)
       .sort({ sourceId: -1 })
       .limit(100);
@@ -93,6 +101,9 @@ async function processJurinet() {
         await decisions.replaceOne({ _id: document._id }, document, {
           bypassDocumentValidation: true,
         });
+        updated++;
+      } else {
+        skipped++;
       }
     }
     cont = hasData;
@@ -101,6 +112,7 @@ async function processJurinet() {
   await juricaSource.close();
   await jurinetSource.close();
   await client.close();
+  console.log(`Jurinet / ${status} done - updated: ${updated}, skipped: ${skipped}`);
   return true;
 }
 
