@@ -3,6 +3,8 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const { parentPort } = require('worker_threads');
 const { JurinetUtils } = require('../jurinet-utils');
+const { JurinetOracle } = require('../jurinet-oracle');
+const { JuricaOracle } = require('../jurica-oracle');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -38,6 +40,10 @@ async function main() {
 }
 
 async function processJurinet() {
+  const juricaSource = new JuricaOracle();
+  await juricaSource.connect();
+  const jurinetSource = new JurinetOracle();
+  await jurinetSource.connect();
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
@@ -59,27 +65,44 @@ async function processJurinet() {
     while (cont && (document = await cursor.next())) {
       hasData = true;
       const raw = await rawJurinet.findOne({ _id: document.sourceId });
+      let newDecatt;
+      try {
+        const decattInfo = await jurinetSource.getDecatt(document.sourceId);
+        const decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
+        newDecatt = decatt;
+      } catch (e) {
+        newDecatt = null;
+      }
       const reNormalized = await JurinetUtils.Normalize(raw, document, true);
       if (
         JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation) ||
-        document.originalText !== reNormalized.originalText
+        document.originalText.length > reNormalized.originalText.length ||
+        JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)
       ) {
         document._rev = reNormalized._rev;
         if (JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation)) {
           document.occultation = reNormalized.occultation;
         }
-        if (document.originalText !== reNormalized.originalText) {
+        if (document.originalText.length > reNormalized.originalText.length) {
           document.originalText = reNormalized.originalText;
+          console.log('**TEXT**', document.originalText.length, reNormalized.originalText.length);
         }
+        if (JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)) {
+          document.decatt = newDecatt;
+          console.log('**DECATT**', document.decatt, newDecatt);
+        }
+        /*
         await decisions.replaceOne({ _id: document._id }, document, {
           bypassDocumentValidation: true,
         });
+        */
       }
     }
     cont = hasData;
     skip += 100;
   }
-
+  await juricaSource.close();
+  await jurinetSource.close();
   await client.close();
   return true;
 }
