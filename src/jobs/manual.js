@@ -55,17 +55,20 @@ async function processJurinet() {
       .skip(skip)
       .sort({ sourceId: -1 })
       .limit(100);
+    let hasData = false;
     while (cont && (document = await cursor.next())) {
+      hasData = true;
       const raw = await rawJurinet.findOne({ _id: document.sourceId });
       const reNormalized = JurinetUtils.Normalize(raw, document);
-      const before = JSON.stringify(document.occultation);
-      const after = JSON.stringify(reNormalized.occultation);
+      const before = JSON.stringify(document);
+      const after = JSON.stringify(reNormalized);
       if (before !== after) {
         console.log('*****');
         console.log(before);
         console.log(after);
       }
     }
+    cont = hasData;
     skip += 100;
   }
 
