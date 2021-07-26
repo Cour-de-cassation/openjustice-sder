@@ -82,27 +82,31 @@ async function processJurinet(status) {
       } catch (e) {
         newDecatt = null;
       }
-      const reNormalized = await JurinetUtils.Normalize(raw, document, true);
-      if (
-        JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation) ||
-        document.originalText.length > reNormalized.originalText.length ||
-        JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)
-      ) {
-        document._rev = reNormalized._rev;
-        if (JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation)) {
-          document.occultation = reNormalized.occultation;
+      try {
+        const reNormalized = await JurinetUtils.Normalize(raw, document, true);
+        if (
+          JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation) ||
+          document.originalText.length > reNormalized.originalText.length ||
+          JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)
+        ) {
+          document._rev = reNormalized._rev;
+          if (JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation)) {
+            document.occultation = reNormalized.occultation;
+          }
+          if (document.originalText.length > reNormalized.originalText.length) {
+            document.originalText = reNormalized.originalText;
+          }
+          if (JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)) {
+            document.decatt = newDecatt;
+          }
+          await decisions.replaceOne({ _id: document._id }, document, {
+            bypassDocumentValidation: true,
+          });
+          updated++;
+        } else {
+          skipped++;
         }
-        if (document.originalText.length > reNormalized.originalText.length) {
-          document.originalText = reNormalized.originalText;
-        }
-        if (JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)) {
-          document.decatt = newDecatt;
-        }
-        await decisions.replaceOne({ _id: document._id }, document, {
-          bypassDocumentValidation: true,
-        });
-        updated++;
-      } else {
+      } catch (e) {
         skipped++;
       }
     }
