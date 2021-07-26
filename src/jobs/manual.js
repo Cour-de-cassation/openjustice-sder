@@ -60,13 +60,11 @@ async function processJurinet() {
       hasData = true;
       const raw = await rawJurinet.findOne({ _id: document.sourceId });
       const reNormalized = await JurinetUtils.Normalize(raw, document);
-      const before = JSON.stringify(document, null, 2);
-      const after = JSON.stringify(reNormalized, null, 2);
-      for (let key in after) {
-        if (before[key] !== after[key]) {
+      for (let key in reNormalized) {
+        if (document[key] !== reNormalized[key]) {
           console.log('id:', document.sourceId, 'key:', key);
-          console.log(before[key]);
-          console.log(after[key]);
+          console.log(document[key]);
+          console.log(reNormalized[key]);
         }
       }
     }
