@@ -75,21 +75,31 @@ async function processJurinet() {
       }
       const reNormalized = await JurinetUtils.Normalize(raw, document, true);
       if (
-        JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation) ||
+        JSON.stringify(document.occultation) != JSON.stringify(reNormalized.occultation) ||
         document.originalText.length > reNormalized.originalText.length ||
-        JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)
+        JSON.stringify(document.decatt) != JSON.stringify(newDecatt)
       ) {
         document._rev = reNormalized._rev;
-        if (JSON.stringify(document.occultation) !== JSON.stringify(reNormalized.occultation)) {
+        if (JSON.stringify(document.occultation) != JSON.stringify(reNormalized.occultation)) {
           document.occultation = reNormalized.occultation;
         }
         if (document.originalText.length > reNormalized.originalText.length) {
           document.originalText = reNormalized.originalText;
-          console.log('**TEXT**', document.originalText.length, reNormalized.originalText.length);
+          console.log(
+            '**TEXT**',
+            document.originalText.length,
+            reNormalized.originalText.length,
+            document.originalText.length > reNormalized.originalText.length,
+          );
         }
-        if (JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)) {
+        if (JSON.stringify(document.decatt) != JSON.stringify(newDecatt)) {
           document.decatt = newDecatt;
-          console.log('**DECATT**', document.decatt, newDecatt);
+          console.log(
+            '**DECATT**',
+            document.decatt,
+            newDecatt,
+            JSON.stringify(document.decatt) != JSON.stringify(newDecatt),
+          );
         }
         /*
         await decisions.replaceOne({ _id: document._id }, document, {
