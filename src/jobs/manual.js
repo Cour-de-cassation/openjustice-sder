@@ -59,9 +59,9 @@ async function processJurinet() {
     while (cont && (document = await cursor.next())) {
       hasData = true;
       const raw = await rawJurinet.findOne({ _id: document.sourceId });
-      const reNormalized = JurinetUtils.Normalize(raw, document);
-      const before = JSON.stringify(document);
-      const after = JSON.stringify(reNormalized);
+      const reNormalized = await JurinetUtils.Normalize(raw, document);
+      const before = JSON.stringify(document.occultation);
+      const after = JSON.stringify(reNormalized.occultation);
       if (before !== after) {
         console.log('*****');
         console.log(before);
