@@ -391,7 +391,7 @@ class JurinetUtils {
     };
 
     for (let key in occultations) {
-      if (!document[key] && document[key] !== null) {
+      if (!document[key] && document[key] !== null && document[key] !== undefined) {
         occultations[key].forEach((item) => {
           normalizedDecision.occultation.categoriesToOmit.push(item);
         });
