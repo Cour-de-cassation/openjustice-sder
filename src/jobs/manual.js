@@ -10,7 +10,7 @@ const ms = require('ms');
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
-let selfKill = setTimeout(cancel, ms('4h'));
+let selfKill = setTimeout(cancel, ms('5h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -66,7 +66,7 @@ async function processJurinet(status) {
   let skipped = 0;
   while (cont === true) {
     const cursor = await decisions
-      .find({ sourceName: 'jurinet', labelStatus: status }, { allowDiskUse: true })
+      .find({ sourceName: 'jurinet', labelStatus: status, sourceId: { $lt: 1692158 } }, { allowDiskUse: true })
       .skip(skip)
       .sort({ sourceId: -1 })
       .limit(100);
