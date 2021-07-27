@@ -66,7 +66,7 @@ async function processJurinet(status) {
   let skipped = 0;
   while (cont === true) {
     const cursor = await decisions
-      .find({ sourceName: 'jurinet', labelStatus: status, sourceId: { $lt: 1692158 } }, { allowDiskUse: true })
+      .find({ sourceName: 'jurinet', labelStatus: status }, { allowDiskUse: true })
       .skip(skip)
       .sort({ sourceId: -1 })
       .limit(100);
