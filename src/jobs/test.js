@@ -49,7 +49,7 @@ async function test() {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   // const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const doc = rawJurinet.findOne({ _id: 1722740 });
+  const doc = await rawJurinet.findOne({ _id: 1722740 });
 
   try {
     let cleanedXml = JurinetUtils.CleanXML(doc.XMLA);
