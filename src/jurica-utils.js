@@ -23,6 +23,7 @@ class JuricaUtils {
     html = html.replace(/\x91/gm, '‘');
     html = html.replace(/\x92/gm, '’');
     html = html.replace(/\x80/gm, '€');
+    html = html.replace(/\x96/gm, '–');
 
     // Decode HTML entities:
     return he.decode(html);

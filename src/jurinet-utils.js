@@ -77,6 +77,7 @@ class JurinetUtils {
       fragments[j] = fragments[j].replace(/\x91/gm, '‘');
       fragments[j] = fragments[j].replace(/\x92/gm, '’');
       fragments[j] = fragments[j].replace(/\x80/gm, '€');
+      fragments[j] = fragments[j].replace(/\x96/gm, '–');
 
       // Minimal set of entities for XML validation:
       fragments[j] = fragments[j]
