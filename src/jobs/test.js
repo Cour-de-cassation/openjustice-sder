@@ -59,6 +59,7 @@ async function test() {
       toLowerCase: true,
     });
     require('fs').writeFileSync('test.log', cleanedXml.texte_arret);
+    console.log(/\x92/gm.test(cleanedXml.texte_arret));
   } catch (e) {
     console.error(e);
   }
