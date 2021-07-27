@@ -7,15 +7,23 @@ class JuricaUtils {
   static CleanHTML(html) {
     // Remove HTML tags:
     html = html.replace(/<\/?[^>]+(>|$)/gm, '');
+
     // Handling newlines and carriage returns:
     html = html.replace(/\r\n/gim, '\n');
     html = html.replace(/\r/gim, '\n');
+
     // Remove extra spaces:
     html = html.replace(/\t/gim, '');
     html = html.replace(/\\t/gim, ''); // That could happen...
     html = html.replace(/\f/gim, '');
     html = html.replace(/\\f/gim, ''); // That could happen too...
     html = html.replace(/  +/gm, ' ').trim();
+
+    // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):
+    html = html.replace(/\x91/gm, '‘');
+    html = html.replace(/\x92/gm, '’');
+    html = html.replace(/\x80/gm, '€');
+
     // Decode HTML entities:
     return he.decode(html);
   }
