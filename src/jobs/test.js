@@ -58,8 +58,9 @@ async function test() {
       htmlDecode: true,
       toLowerCase: true,
     });
+    cleanedXml.texte_arret = cleanedXml.texte_arret.replace(/\x92/gm, "'");
+    cleanedXml.texte_arret = cleanedXml.texte_arret.replace(/\x80/gm, '€');
     require('fs').writeFileSync('test.log', cleanedXml.texte_arret);
-    console.log(/\x92/gm.test(cleanedXml.texte_arret));
   } catch (e) {
     console.error(e);
   }

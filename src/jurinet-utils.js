@@ -73,6 +73,10 @@ class JurinetUtils {
       fragments[j] = fragments[j].replace(/\\f/gim, ''); // That could happen too...
       fragments[j] = fragments[j].replace(/  +/gm, ' ').trim();
 
+      // Mysterious chars:
+      // fragments[j] = fragments[j].replace(/\x92/gm, "'");
+      // fragments[j] = fragments[j].replace(/\x80/gm, '€');
+
       // Minimal set of entities for XML validation:
       fragments[j] = fragments[j]
         .replace(/&/g, '&amp;')
