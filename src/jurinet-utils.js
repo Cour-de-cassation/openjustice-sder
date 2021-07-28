@@ -71,13 +71,10 @@ class JurinetUtils {
       fragments[j] = fragments[j].replace(/\\t/gim, ''); // That could happen...
       fragments[j] = fragments[j].replace(/\f/gim, '');
       fragments[j] = fragments[j].replace(/\\f/gim, ''); // That could happen too...
-      fragments[j] = fragments[j].replace(/  +/gm, ' ').trim();
+      fragments[j] = JurinetUtils.removeMultipleSpace(fragments[j]);
 
       // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):
-      fragments[j] = fragments[j].replace(/\x91/gm, '‘');
-      fragments[j] = fragments[j].replace(/\x92/gm, '’');
-      fragments[j] = fragments[j].replace(/\x80/gm, '€');
-      fragments[j] = fragments[j].replace(/\x96/gm, '–');
+      fragments[j] = JurinetUtils.replaceErroneousChars(fragments[j]);
 
       // Minimal set of entities for XML validation:
       fragments[j] = fragments[j]
@@ -124,6 +121,14 @@ class JurinetUtils {
     }
 
     return xml;
+  }
+
+  static removeMultipleSpace(str) {
+    return str.replace(/  +/gm, ' ').trim();
+  }
+
+  static replaceErroneousChars(str) {
+    return str.replace(/\x91/gm, '‘').replace(/\x92/gm, '’').replace(/\x80/gm, '€').replace(/\x96/gm, '–');
   }
 
   static XMLToJSON(xml, opt) {

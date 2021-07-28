@@ -17,16 +17,21 @@ class JuricaUtils {
     html = html.replace(/\\t/gim, ''); // That could happen...
     html = html.replace(/\f/gim, '');
     html = html.replace(/\\f/gim, ''); // That could happen too...
-    html = html.replace(/  +/gm, ' ').trim();
+    html = JuricaUtils.removeMultipleSpace(html);
 
     // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):
-    html = html.replace(/\x91/gm, '‘');
-    html = html.replace(/\x92/gm, '’');
-    html = html.replace(/\x80/gm, '€');
-    html = html.replace(/\x96/gm, '–');
+    html = JuricaUtils.replaceErroneousChars(html);
 
     // Decode HTML entities:
     return he.decode(html);
+  }
+
+  static removeMultipleSpace(str) {
+    return str.replace(/  +/gm, ' ').trim();
+  }
+
+  static replaceErroneousChars(str) {
+    return str.replace(/\x91/gm, '‘').replace(/\x92/gm, '’').replace(/\x80/gm, '€').replace(/\x96/gm, '–');
   }
 
   static async Normalize(document, previousVersion, ignorePreviousContent) {

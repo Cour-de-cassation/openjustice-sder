@@ -99,6 +99,8 @@ async function processJurinet(status) {
           if (JSON.stringify(document.decatt) !== JSON.stringify(newDecatt)) {
             document.decatt = newDecatt;
           }
+          document.originalText = JurinetUtils.removeMultipleSpace(document.originalText);
+          document.originalText = JurinetUtils.replaceErroneousChars(document.originalText);
           await decisions.replaceOne({ _id: document._id }, document, {
             bypassDocumentValidation: true,
           });
