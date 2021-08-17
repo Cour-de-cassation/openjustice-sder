@@ -161,8 +161,8 @@ class JuricaUtils {
         categoriesToOmit: [],
       },
       publication: [],
-      formation: null,
-      blocOccultation: null,
+      formation: undefined,
+      blocOccultation: undefined,
     };
 
     if (previousVersion) {
