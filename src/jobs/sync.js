@@ -124,6 +124,7 @@ async function syncJurinet() {
           '_partie',
           '_decatt',
           '_portalis',
+          '_bloc_occultation',
           'IND_PM',
           'IND_ADRESSE',
           'IND_DT_NAISSANCE',

@@ -195,7 +195,39 @@ class JurinetOracle {
         } catch (e) {
           data['_decatt'] = null;
         }
+
+        try {
+          // Inject "bloc_occultation" data (if any) into the document:
+          let blocId = null;
+          const pourvoiQuery = `SELECT *
+            FROM NUMPOURVOI
+            WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
+          const pourvoiResult = await this.connection.execute(pourvoiQuery, [row[process.env.DB_ID_FIELD]]);
+          if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
+            const pourvoi = pourvoiResult.rows[0];
+            const codePourvoi = pourvoi['NUMPOURVOICODE'];
+            const affaireQuery = `SELECT *
+              FROM GPCIV.AFF
+              WHERE GPCIV.AFF.CODE = :code`;
+            const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
+            if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
+              const affaire = affaireResult.rows[0];
+              const matiere = affaire['ID_MATIERE'];
+              const matiereQuery = `SELECT *
+                FROM GPCIV.MATIERE
+                WHERE GPCIV.MATIERE.ID_MATIERE = :code`;
+              const matiereResult = await this.connection.execute(matiereQuery, [matiere]);
+              if (matiereResult && matiereResult.rows && matiereResult.rows.length > 0) {
+                blocId = matiereResult.rows[0]['ID_BLOC'];
+              }
+            }
+          }
+          data['_bloc_occultation'] = blocId;
+        } catch (e) {
+          data['_bloc_occultation'] = null;
+        }
       }
+
       return data;
     } else {
       throw new Error('Jurinet.buildRawData: not connected.');

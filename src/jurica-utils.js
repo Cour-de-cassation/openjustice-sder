@@ -162,6 +162,7 @@ class JuricaUtils {
       },
       publication: [],
       formation: null,
+      blocOccultation: null,
     };
 
     if (previousVersion) {
