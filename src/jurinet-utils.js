@@ -124,11 +124,17 @@ class JurinetUtils {
   }
 
   static removeMultipleSpace(str) {
-    return str.replace(/  +/gm, ' ').trim();
+    if (typeof str === 'string') {
+      return str.replace(/  +/gm, ' ').trim();
+    }
+    return str;
   }
 
   static replaceErroneousChars(str) {
-    return str.replace(/\x91/gm, '‘').replace(/\x92/gm, '’').replace(/\x80/gm, '€').replace(/\x96/gm, '–');
+    if (typeof str === 'string') {
+      return str.replace(/\x91/gm, '‘').replace(/\x92/gm, '’').replace(/\x80/gm, '€').replace(/\x96/gm, '–');
+    }
+    return str;
   }
 
   static XMLToJSON(xml, opt) {
