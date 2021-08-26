@@ -7,6 +7,8 @@ const ms = require('ms');
 
 let selfKill = setTimeout(cancel, ms('2h'));
 
+const SRC_DIR = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\';
+
 function end() {
   clearTimeout(selfKill);
   if (parentPort) parentPort.postMessage('done');
@@ -23,7 +25,7 @@ function kill(code) {
   process.exit(code);
 }
 
-async function store() {
+async function store(source) {
   // const { MongoClient } = require('mongodb');
   const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
   const readline = require('readline');
@@ -45,8 +47,12 @@ async function store() {
   let skipCount = 0;
   let normalizeCount = 0;
 
-  const stockFilePath = path.join(__dirname, 'data', 'dila_import.json');
-  console.log(`Get decisions from DILA stock (${stockFilePath})...`);
+  if (!fs.existsSync(path.join(__dirname, 'data', `DILA_${source}`))) {
+    fs.mkdirSync(path.join(__dirname, 'data', `DILA_${source}`));
+  }
+
+  const stockFilePath = path.join(__dirname, 'data', `dila_import_${source}.json`);
+  console.log(`Get decisions from DILA stock (${source} : ${stockFilePath})...`);
 
   const fileStream = fs.createReadStream(stockFilePath);
   const rl = readline.createInterface({
@@ -254,10 +260,13 @@ async function store() {
           });
         }
       }
-      console.log(decisionToStore, await DilaUtils.Normalize(decisionToStore));
       fs.writeFileSync(
-        path.join(__dirname, 'data', 'DILA2', decisionToStore._id + '.json'),
+        path.join(__dirname, 'data', `DILA_${source}`, decisionToStore._id + '.json'),
         JSON.stringify(decisionToStore, null, 2),
+      );
+      fs.writeFileSync(
+        path.join(__dirname, 'data', `DILA_${source}`, decisionToStore._id + '_normalized.json'),
+        JSON.stringify(await DilaUtils.Normalize(decisionToStore), null, 2),
       );
       /*
       let raw = await rawDila.findOne({ _id: decisionToStore._id });
@@ -305,15 +314,20 @@ async function store() {
   }
 
   console.log(`Teardown...`);
-  console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
+  console.log(
+    `Done (${source} - new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`,
+  );
 
   await client.close();
   process.exit(0);
 }
 
-function untar() {
-  const basePath = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\INCA';
+function untar(source) {
+  const basePath = `${SRC_DIR}${source}`;
   const files = fs.readdirSync(basePath);
+  if (!fs.existsSync(path.join(basePath, 'extract'))) {
+    fs.mkdirSync(path.join(basePath, 'extract'));
+  }
   const exec = require('child_process').exec;
   const async = require('async');
   async.eachSeries(
@@ -380,44 +394,47 @@ function flatten(src, dest) {
   });
 }
 
-function processUntar() {
+function processUntar(source) {
   const schema = {};
   const walk = require('walkdir');
   const { DilaUtils } = require('../dila-utils');
-  const basePath = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\INCA\\extract';
-  fs.writeFileSync(path.join(__dirname, 'data', 'dila_import.json'), '');
+  const basePath = `${SRC_DIR}${source}\\extract`;
+  fs.writeFileSync(path.join(__dirname, 'data', `dila_import_${source}.json`), '');
   let successCount = 0;
   let errorCount = 0;
   const emitter = walk(basePath);
 
   emitter.on('file', function (filename) {
     try {
-      console.log(`Processing file: ${filename}...`);
+      console.log(`Processing file (${source}): ${filename}...`);
       let xmlDocument = DilaUtils.CleanXML(fs.readFileSync(filename).toString());
       let jsonDocument = DilaUtils.XMLToJSON(xmlDocument, {
         filter: false,
       });
       flatten(jsonDocument, schema);
-      fs.appendFileSync(path.join(__dirname, 'data', 'dila_import.json'), JSON.stringify(jsonDocument) + '\r\n');
+      fs.appendFileSync(
+        path.join(__dirname, 'data', `dila_import_${source}.json`),
+        JSON.stringify(jsonDocument) + '\r\n',
+      );
       successCount++;
     } catch (e) {
-      console.log(`Erroneous file: ${filename}.`, e);
+      console.log(`Erroneous file (${source}): ${filename}.`, e);
       errorCount++;
     }
   });
 
   emitter.on('end', function () {
-    console.log(`Success count: ${successCount}.`);
-    console.log(`Error count: ${errorCount}.`);
-    console.log('Exit Import.');
-    fs.writeFileSync(path.join(__dirname, 'data', 'dila_schema.json'), JSON.stringify(schema, null, 2));
+    console.log(`Success count (${source}): ${successCount}.`);
+    console.log(`Error count (${source}): ${errorCount}.`);
+    console.log(`Exit Import (${source}).`);
+    fs.writeFileSync(path.join(__dirname, 'data', `dila_schema_${source}.json`), JSON.stringify(schema, null, 2));
     setTimeout(end, ms('1s'));
   });
 }
 
 /* 1. Untar XML files [MANUAL]
 try {
-  untar();
+  untar('INCA');
 } catch (e) {
   console.error('DILA untar error', e);
 }
@@ -425,10 +442,16 @@ try {
 
 /* 2. Process XML files [MANUAL]
 try {
-  processUntar();
+  processUntar('INCA');
 } catch (e) {
   console.error('DILA processUntar error', e);
 }
 */
 
-store();
+/* 3. Store in 'rawDila' and 'decisions' [MANUAL]
+try {
+  store('INCA');
+} catch (e) {
+  console.error('DILA store error', e);
+}
+*/
