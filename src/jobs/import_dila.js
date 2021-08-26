@@ -2,53 +2,34 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
-// const walk = require('walkdir');
-const { DilaUtils } = require('../dila-utils');
-const { MongoClient } = require('mongodb');
-// const needle = require('needle');
-const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
-const readline = require('readline');
+const { parentPort } = require('worker_threads');
+const ms = require('ms');
 
-// const schema = {};
-// const juri = [];
+let selfKill = setTimeout(cancel, ms('2h'));
 
-/*
-function parseError(e) {
-  if (e) {
-    let error = {};
-
-    try {
-      Object.getOwnPropertyNames(e).forEach(function (key) {
-        error[key] = e[key];
-      });
-    } catch (ignore) {}
-
-    return error;
-  } else {
-    return 'unknown';
-  }
+function end() {
+  clearTimeout(selfKill);
+  if (parentPort) parentPort.postMessage('done');
+  kill(0);
 }
 
-function flatten(src, dest) {
-  Object.keys(src).forEach((key) => {
-    if (typeof src[key] === 'object' && src[key] !== null) {
-      if (dest[key] === undefined || typeof dest[key] !== 'object') {
-        dest[key] = {};
-      }
-      flatten(src[key], dest[key]);
-    } else {
-      if (dest[key] === undefined) {
-        dest[key] = 0;
-      } else {
-        dest[key]++;
-      }
-    }
-  });
+function cancel() {
+  clearTimeout(selfKill);
+  if (parentPort) parentPort.postMessage('cancelled');
+  kill(1);
 }
-*/
 
-/* MAIN LOOP */
-async function main() {
+function kill(code) {
+  process.exit(code);
+}
+
+async function store() {
+  // const { MongoClient } = require('mongodb');
+  const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
+  const readline = require('readline');
+  const { DilaUtils } = require('../dila-utils');
+
+  /*
   console.log('Setup DB Clients...');
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
@@ -57,6 +38,7 @@ async function main() {
   const database = client.db(process.env.MONGO_DBNAME);
   const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+  */
 
   let newCount = 0;
   let errorCount = 0;
@@ -272,6 +254,12 @@ async function main() {
           });
         }
       }
+      console.log(decisionToStore, await DilaUtils.Normalize(decisionToStore));
+      fs.writeFileSync(
+        path.join(__dirname, 'data', 'DILA2', decisionToStore._id + '.json'),
+        JSON.stringify(decisionToStore, null, 2),
+      );
+      /*
       let raw = await rawDila.findOne({ _id: decisionToStore._id });
       if (raw === null) {
         try {
@@ -309,6 +297,7 @@ async function main() {
           }
         }
       }
+      */
     } catch (e) {
       console.error(e);
       errorCount++;
@@ -322,22 +311,94 @@ async function main() {
   process.exit(0);
 }
 
-/*
-async function main() {
-  console.log('Start Import.');
-  fs.writeFileSync(path.join(__dirname, 'dila_import.json'), '');
+function untar() {
+  const basePath = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\INCA';
+  const files = fs.readdirSync(basePath);
+  const exec = require('child_process').exec;
+  const async = require('async');
+  async.eachSeries(
+    files,
+    function (file, cb) {
+      if (/^\./i.test(file) === false && /\.tar\.gz$/i.test(file) === true && /free/i.test(file) === false) {
+        let cmd = 'tar -xzkf ' + path.join(basePath, file) + ' --strip-components=1';
+        exec(
+          cmd,
+          {
+            cwd: path.join(basePath, 'extract'),
+          },
+          function () {
+            cb(null);
+          },
+        );
+      } else {
+        cb(null);
+      }
+    },
+    function () {
+      console.log('Main done');
+      async.eachSeries(
+        files,
+        function (file, cb) {
+          if (/^\./i.test(file) === false && /\.tar\.gz$/i.test(file) === true && /free/i.test(file) === true) {
+            let cmd = 'tar -xzkf ' + path.join(basePath, file) + ' --strip-components=1';
+            exec(
+              cmd,
+              {
+                cwd: path.join(basePath, 'extract'),
+              },
+              function () {
+                cb(null);
+              },
+            );
+          } else {
+            cb(null);
+          }
+        },
+        function () {
+          console.log('Freemium done');
+          setTimeout(end, ms('1s'));
+        },
+      );
+    },
+  );
+}
+
+function flatten(src, dest) {
+  Object.keys(src).forEach((key) => {
+    if (typeof src[key] === 'object' && src[key] !== null) {
+      if (dest[key] === undefined || typeof dest[key] !== 'object') {
+        dest[key] = {};
+      }
+      flatten(src[key], dest[key]);
+    } else {
+      if (dest[key] === undefined) {
+        dest[key] = 0;
+      } else {
+        dest[key]++;
+      }
+    }
+  });
+}
+
+function processUntar() {
+  const schema = {};
+  const walk = require('walkdir');
+  const { DilaUtils } = require('../dila-utils');
+  const basePath = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\INCA\\extract';
+  fs.writeFileSync(path.join(__dirname, 'data', 'dila_import.json'), '');
   let successCount = 0;
   let errorCount = 0;
-  const emitter = walk(process.env.DILA_DIR);
+  const emitter = walk(basePath);
 
   emitter.on('file', function (filename) {
     try {
+      console.log(`Processing file: ${filename}...`);
       let xmlDocument = DilaUtils.CleanXML(fs.readFileSync(filename).toString());
       let jsonDocument = DilaUtils.XMLToJSON(xmlDocument, {
         filter: false,
       });
       flatten(jsonDocument, schema);
-      fs.appendFileSync(path.join(__dirname, 'dila_import.json'), JSON.stringify(jsonDocument) + '\r\n');
+      fs.appendFileSync(path.join(__dirname, 'data', 'dila_import.json'), JSON.stringify(jsonDocument) + '\r\n');
       successCount++;
     } catch (e) {
       console.log(`Erroneous file: ${filename}.`, e);
@@ -349,75 +410,25 @@ async function main() {
     console.log(`Success count: ${successCount}.`);
     console.log(`Error count: ${errorCount}.`);
     console.log('Exit Import.');
-    fs.writeFileSync(path.join(__dirname, 'dila_schema.json'), JSON.stringify(schema, null, '  '));
+    fs.writeFileSync(path.join(__dirname, 'data', 'dila_schema.json'), JSON.stringify(schema, null, 2));
+    setTimeout(end, ms('1s'));
   });
+}
+
+/* 1. Untar XML files [MANUAL]
+try {
+  untar();
+} catch (e) {
+  console.error('DILA untar error', e);
 }
 */
 
-/*
-async function getZones(id, source, text) {
-  const zoneData = JSON.stringify({
-    arret_id: id,
-    source: source,
-    text: text,
-  });
-  const response = await needle('post', 'http://10.16.64.7:8090/zonage', zoneData, {
-    json: true,
-  });
-  delete response.body.arret_id;
-  return response.body;
+/* 2. Process XML files [MANUAL]
+try {
+  processUntar();
+} catch (e) {
+  console.error('DILA processUntar error', e);
 }
 */
 
-main();
-
-/*
-const basePath = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\DILA';
-const files = fs.readdirSync(basePath);
-const exec = require('child_process').exec;
-const async = require('async');
-async.eachSeries(
-  files,
-  function (file, cb) {
-    if (/^\./i.test(file) === false && /\.tar\.gz$/i.test(file) === true && /free/i.test(file) === false) {
-      let cmd = 'tar -xzkf ' + path.join(basePath, file) + ' --strip-components=1';
-      exec(
-        cmd,
-        {
-          cwd: path.join(basePath, 'extract'),
-        },
-        function (error, stdout, stderr) {
-          cb(null);
-        },
-      );
-    } else {
-      cb(null);
-    }
-  },
-  function (err) {
-    console.log('Main done');
-    async.eachSeries(
-      files,
-      function (file, cb) {
-        if (/^\./i.test(file) === false && /\.tar\.gz$/i.test(file) === true && /free/i.test(file) === true) {
-          let cmd = 'tar -xzkf ' + path.join(basePath, file) + ' --strip-components=1';
-          exec(
-            cmd,
-            {
-              cwd: path.join(basePath, 'extract'),
-            },
-            function (error, stdout, stderr) {
-              cb(null);
-            },
-          );
-        } else {
-          cb(null);
-        }
-      },
-      function (err) {
-        console.log('Freemium done');
-      },
-    );
-  },
-);
-*/
+store();
