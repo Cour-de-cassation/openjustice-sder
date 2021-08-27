@@ -453,38 +453,89 @@ function processUntar(source, then) {
   });
 }
 
-async.eachSeries(
-  SRC_ENTRIES,
-  function (source, cb) {
-    // 1. Untar XML files:
-    try {
-      untar(source, function () {
-        // 2. Process XML files:
-        try {
-          processUntar(source, function () {
-            // 3. Store in 'rawDila' and 'decisions' [MANUAL]
-            try {
-              store(source, function () {
-                console.log(`source ${source} done.`);
-                cb(null);
-              });
-            } catch (e) {
-              console.error(`store error (${source}).`, e);
-              cb(null);
-            }
-          });
-        } catch (e) {
-          console.error(`processUntar error (${source}).`, e);
-          cb(null);
+function dico(source, then) {
+  const dict = {
+    ORIGINE: [],
+    NATURE: [],
+    JURIDICTION: [],
+    SOLUTION: [],
+    PUB: [],
+    BULLETIN: [],
+    FORMATION: [],
+    FORM_DEC_ATT: [],
+  };
+  const baseDir = path.join(__dirname, 'data', `DILA_${source}`);
+  const files = fs.readdirSync(baseDir);
+  for (let i = 0; i < files.length; i++) {
+    if (/\.json$/.test(files[i]) === true && /normalized/.test(files[i]) === false) {
+      const data = JSON.parse(fs.readFileSync(path.join(baseDir, files[i])).toString());
+      for (let key in dict) {
+        if (data[key] && dict[key].indexOf(data[key]) === -1) {
+          dict[key].push(data[key]);
         }
-      });
-    } catch (e) {
-      console.error(`untar error (${source}).`, e);
-      cb(null);
+      }
     }
-  },
-  function () {
-    console.log(`All done.`);
+  }
+  fs.writeFileSync(path.join(__dirname, 'data', `dila_dico_${source}.json`), JSON.stringify(dict, null, 2));
+  if (typeof then === 'function') {
+    then();
+  } else {
     setTimeout(end, ms('1s'));
-  },
-);
+  }
+}
+
+function importDila() {
+  async.eachSeries(
+    SRC_ENTRIES,
+    function (source, cb) {
+      // 1. Untar XML files:
+      try {
+        untar(source, function () {
+          // 2. Process XML files:
+          try {
+            processUntar(source, function () {
+              // 3. Store in 'rawDila' and 'decisions' [MANUAL]
+              try {
+                store(source, function () {
+                  console.log(`source ${source} done.`);
+                  cb(null);
+                });
+              } catch (e) {
+                console.error(`store error (${source}).`, e);
+                cb(null);
+              }
+            });
+          } catch (e) {
+            console.error(`processUntar error (${source}).`, e);
+            cb(null);
+          }
+        });
+      } catch (e) {
+        console.error(`untar error (${source}).`, e);
+        cb(null);
+      }
+    },
+    function () {
+      console.log(`All done.`);
+      setTimeout(end, ms('1s'));
+    },
+  );
+}
+
+function buildDico() {
+  async.eachSeries(
+    SRC_ENTRIES,
+    function (source, cb) {
+      dico(source, function () {
+        cb(null);
+      });
+    },
+    function () {
+      console.log(`All done.`);
+      setTimeout(end, ms('1s'));
+    },
+  );
+}
+
+// importDila();
+buildDico();
