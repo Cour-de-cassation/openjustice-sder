@@ -1,13 +1,22 @@
+// DILA entries:
+const SRC_ENTRIES = ['CASS', 'INCA']; // , 'CAPP'];
+// CASS: https://echanges.dila.gouv.fr/OPENDATA/CASS/
+// INCA: https://echanges.dila.gouv.fr/OPENDATA/INCA/
+// CAPP: https://echanges.dila.gouv.fr/OPENDATA/CAPP/
+// (ignore CAPP for now...)
+
+// Path where all the .tar.gz files of every DILA entry
+// have been downloaded, in their respective folder (CASS, INCA, CAPP):
+const SRC_DIR = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\';
+
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
-
+const async = require('async');
 const { parentPort } = require('worker_threads');
 const ms = require('ms');
 
-let selfKill = setTimeout(cancel, ms('2h'));
-
-const SRC_DIR = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\';
+let selfKill = setTimeout(cancel, ms('24h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -25,7 +34,7 @@ function kill(code) {
   process.exit(code);
 }
 
-async function store(source) {
+async function store(source, then) {
   // const { MongoClient } = require('mongodb');
   const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
   const readline = require('readline');
@@ -313,23 +322,26 @@ async function store(source) {
     }
   }
 
-  console.log(`Teardown...`);
+  // await client.close();
+
   console.log(
-    `Done (${source} - new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`,
+    `Store done (${source} - new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`,
   );
 
-  await client.close();
-  process.exit(0);
+  if (typeof then === 'function') {
+    then();
+  } else {
+    setTimeout(end, ms('1s'));
+  }
 }
 
-function untar(source) {
+function untar(source, then) {
   const basePath = `${SRC_DIR}${source}`;
   const files = fs.readdirSync(basePath);
   if (!fs.existsSync(path.join(basePath, 'extract'))) {
     fs.mkdirSync(path.join(basePath, 'extract'));
   }
   const exec = require('child_process').exec;
-  const async = require('async');
   async.eachSeries(
     files,
     function (file, cb) {
@@ -349,7 +361,7 @@ function untar(source) {
       }
     },
     function () {
-      console.log('Main done');
+      console.log(`Main done (${source}).`);
       async.eachSeries(
         files,
         function (file, cb) {
@@ -369,8 +381,13 @@ function untar(source) {
           }
         },
         function () {
-          console.log('Freemium done');
-          setTimeout(end, ms('1s'));
+          console.log(`Freemium done (${source}).`);
+          console.log(`Exit untar (${source}).`);
+          if (typeof then === 'function') {
+            then();
+          } else {
+            setTimeout(end, ms('1s'));
+          }
         },
       );
     },
@@ -426,32 +443,48 @@ function processUntar(source) {
   emitter.on('end', function () {
     console.log(`Success count (${source}): ${successCount}.`);
     console.log(`Error count (${source}): ${errorCount}.`);
-    console.log(`Exit Import (${source}).`);
+    console.log(`Exit processUntar (${source}).`);
     fs.writeFileSync(path.join(__dirname, 'data', `dila_schema_${source}.json`), JSON.stringify(schema, null, 2));
-    setTimeout(end, ms('1s'));
+    if (typeof then === 'function') {
+      then();
+    } else {
+      setTimeout(end, ms('1s'));
+    }
   });
 }
 
-/* 1. Untar XML files [MANUAL]
-try {
-  untar('INCA');
-} catch (e) {
-  console.error('DILA untar error', e);
-}
-*/
-
-/* 2. Process XML files [MANUAL]
-try {
-  processUntar('INCA');
-} catch (e) {
-  console.error('DILA processUntar error', e);
-}
-*/
-
-/* 3. Store in 'rawDila' and 'decisions' [MANUAL]
-try {
-  store('INCA');
-} catch (e) {
-  console.error('DILA store error', e);
-}
-*/
+async.eachSeries(
+  SRC_ENTRIES,
+  function (source, cb) {
+    // 1. Untar XML files:
+    try {
+      untar(source, function () {
+        // 2. Process XML files:
+        try {
+          processUntar(source, function () {
+            // 3. Store in 'rawDila' and 'decisions' [MANUAL]
+            try {
+              store(source, function () {
+                console.log(`source ${source} done.`);
+                cb(null);
+              });
+            } catch (e) {
+              console.error(`store error (${source}).`, e);
+              cb(null);
+            }
+          });
+        } catch (e) {
+          console.error(`processUntar error (${source}).`, e);
+          cb(null);
+        }
+      });
+    } catch (e) {
+      console.error(`untar error (${source}).`, e);
+      cb(null);
+    }
+  },
+  function () {
+    console.log(`All done.`);
+    setTimeout(end, ms('1s'));
+  },
+);
