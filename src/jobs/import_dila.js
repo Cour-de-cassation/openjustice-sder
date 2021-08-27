@@ -411,7 +411,7 @@ function flatten(src, dest) {
   });
 }
 
-function processUntar(source) {
+function processUntar(source, then) {
   const schema = {};
   const walk = require('walkdir');
   const { DilaUtils } = require('../dila-utils');
