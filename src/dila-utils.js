@@ -163,6 +163,35 @@ class DilaUtils {
     }
   }
 
+  static getJuridictionCode(jurisdictionName) {
+    let code;
+    /*
+    "JURIDICTION": [
+      "Cour de cassation",
+      "Tribunal de grande instance de Paris",
+      "Tribunal d'instance d'Illkirch-Graffenstaden",
+      "Tribunal d'instance d'Auch",
+      "Tribunal de grande instance d'Auch",
+      "Tribunal de commerce de Douai",
+      "Tribunal d'instance de Condom"
+    ],
+    */
+    switch (jurisdictionName.toLowerCase()) {
+      case 'cour de cassation':
+        code = 'CC';
+        break;
+      case 'tribunal des conflits':
+        code = 'TC';
+        break;
+      case 'tribunal de grande instance de paris':
+        code = 'TGI';
+        break;
+      default:
+        code = 'OTHER';
+    }
+    return code;
+  }
+
   static async Normalize(document, previousVersion) {
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
@@ -170,7 +199,7 @@ class DilaUtils {
       sourceId: document._id,
       sourceName: 'dila',
       jurisdictionId: undefined,
-      jurisdictionCode: 'CC',
+      jurisdictionCode: DilaUtils.getJuridictionCode(document.JURIDICTION),
       jurisdictionName: document.JURIDICTION,
       chamberId: document.FORMATION,
       chamberName: undefined,
@@ -184,6 +213,8 @@ class DilaUtils {
       pseudoStatus: 2,
       appeals: document.NUMERO_AFFAIRE,
       analysis: {
+        // "NATURE": ["ARRET", "AVIS", "ORDONNANCE", "AUTRES_DECISIONS"],
+        nature: document.NATURE,
         target:
           document.FORM_DEC_ATT && document.DATE_DEC_ATT
             ? document.FORM_DEC_ATT + ', ' + document.DATE_DEC_ATT

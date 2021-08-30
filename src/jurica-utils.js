@@ -147,6 +147,7 @@ class JuricaUtils {
       pseudoStatus: pseudoStatus,
       appeals: [],
       analysis: {
+        nature: undefined,
         target: undefined,
         link: undefined,
         source: undefined,

@@ -253,6 +253,7 @@ class JurinetUtils {
       pseudoStatus: pseudoStatus,
       appeals: [],
       analysis: {
+        nature: undefined,
         target: document.TEXTE_VISE,
         link: document.RAPROCHEMENT,
         source: document.SOURCE,
