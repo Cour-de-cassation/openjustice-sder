@@ -34,27 +34,12 @@ function kill(code) {
   process.exit(code);
 }
 
-async function store(source, then) {
-  // const { MongoClient } = require('mongodb');
-  const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
+async function prepare(source, then) {
   const readline = require('readline');
   const { DilaUtils } = require('../dila-utils');
 
-  /*
-  console.log('Setup DB Clients...');
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
-  await client.connect();
-  const database = client.db(process.env.MONGO_DBNAME);
-  const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
-  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
-  */
-
   let newCount = 0;
   let errorCount = 0;
-  let skipCount = 0;
-  let normalizeCount = 0;
 
   if (!fs.existsSync(path.join(__dirname, 'data', `DILA_${source}`))) {
     fs.mkdirSync(path.join(__dirname, 'data', `DILA_${source}`));
@@ -277,56 +262,14 @@ async function store(source, then) {
         path.join(__dirname, 'data', `DILA_${source}`, decisionToStore._id + '_normalized.json'),
         JSON.stringify(await DilaUtils.Normalize(decisionToStore), null, 2),
       );
-      /*
-      let raw = await rawDila.findOne({ _id: decisionToStore._id });
-      if (raw === null) {
-        try {
-          await rawDila.insertOne(decisionToStore, { bypassDocumentValidation: true });
-          newCount++;
-        } catch (e) {
-          console.error(e);
-          errorCount++;
-        }
-      } else {
-        skipCount++;
-      }
-      let normalized = await decisions.findOne({ sourceId: decisionToStore._id, sourceName: 'dila' });
-      let normalizeDoc = null;
-      if (normalized === null) {
-        if (decisionToStore.NUMERO) {
-          let alreadyFromJurinet = await decisions.findOne({
-            registerNumber: decisionToStore.NUMERO,
-            sourceName: 'jurinet',
-          });
-          if (alreadyFromJurinet === null) {
-            normalizeDoc = await DilaUtils.Normalize(decisionToStore);
-          }
-        } else {
-          normalizeDoc = await DilaUtils.Normalize(decisionToStore);
-        }
-        if (normalizeDoc !== null) {
-          normalizeDoc._version = decisionsVersion;
-          try {
-            await decisions.insertOne(normalizeDoc, { bypassDocumentValidation: true });
-            normalizeCount++;
-          } catch (e) {
-            console.error(e);
-            errorCount++;
-          }
-        }
-      }
-      */
+      newCount++;
     } catch (e) {
       console.error(e);
       errorCount++;
     }
   }
 
-  // await client.close();
-
-  console.log(
-    `Store done (${source} - new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`,
-  );
+  console.log(`Prepare done (${source} - new: ${newCount}, error: ${errorCount}).`);
 
   if (typeof then === 'function') {
     then();
@@ -484,6 +427,114 @@ function dico(source, then) {
   }
 }
 
+async function store(source) {
+  const { MongoClient } = require('mongodb');
+  const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
+
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+  let newCount = 0;
+  let updateCount = 0;
+  let errorCount = 0;
+  let skipCount = 0;
+  let normalizeCount = 0;
+
+  const basePath = path.join(__dirname, 'data', `DILA_${source}`);
+  const files = fs.readdirSync(basePath);
+
+  for (let i = 0; i < files.length; i++) {
+    if (/\.json$/.test(files[i]) === true && /normalized/.test(files[i]) === false) {
+      try {
+        const decisionToStore = JSON.parse(fs.readFileSync(path.join(basePath, files[i])).toString());
+        const normalizeDoc = JSON.parse(
+          fs.readFileSync(path.join(basePath, files[i].replace('.json', '_normalized.json')).toString()),
+        );
+
+        let insertOrUpdate = false;
+        if (decisionToStore.NUMERO) {
+          let alreadyFromJurinet = await decisions.findOne({
+            registerNumber: decisionToStore.NUMERO,
+            sourceName: 'jurinet',
+          });
+          if (alreadyFromJurinet === null) {
+            console.log(
+              `Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) already in Jurinet as ${alreadyFromJurinet.sourceId}: skip.`,
+            );
+            skipCount++;
+          } else {
+            console.log(`Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) not found in Jurinet: add.`);
+            insertOrUpdate = true;
+          }
+        } else {
+          console.log(`Decision ${decisionToStore._id} has no number: add anyway.`);
+          insertOrUpdate = true;
+        }
+
+        if (insertOrUpdate) {
+          let raw = await rawDila.findOne({ _id: decisionToStore._id });
+          if (raw === null) {
+            try {
+              await rawDila.insertOne(decisionToStore, { bypassDocumentValidation: true });
+              newCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          } else {
+            try {
+              await rawDila.replaceOne({ _id: decisionToStore._id }, decisionToStore, {
+                bypassDocumentValidation: true,
+              });
+              updateCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          }
+
+          normalizeDoc._version = decisionsVersion;
+          let normalized = await decisions.findOne({ sourceId: decisionToStore._id, sourceName: 'dila' });
+          if (normalized === null) {
+            try {
+              await decisions.insertOne(normalizeDoc, { bypassDocumentValidation: true });
+              normalizeCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          } else {
+            try {
+              await decisions.replaceOne({ _id: normalizeDoc._id }, normalizeDoc, {
+                bypassDocumentValidation: true,
+              });
+              normalizeCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        errorCount++;
+      }
+    }
+  }
+
+  await client.close();
+
+  console.log(
+    `Store done (${source} - new: ${newCount}, update: ${updateCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`,
+  );
+}
+
 function importDila() {
   async.eachSeries(
     SRC_ENTRIES,
@@ -494,14 +545,14 @@ function importDila() {
           // 2. Process XML files:
           try {
             processUntar(source, function () {
-              // 3. Store in 'rawDila' and 'decisions' [MANUAL]
+              // 3. Prepare decisions to store in DB:
               try {
-                store(source, function () {
+                prepare(source, function () {
                   console.log(`source ${source} done.`);
                   cb(null);
                 });
               } catch (e) {
-                console.error(`store error (${source}).`, e);
+                console.error(`prepare error (${source}).`, e);
                 cb(null);
               }
             });
@@ -537,5 +588,19 @@ function buildDico() {
   );
 }
 
+async function storeDila() {
+  for (let i = 0; i < SRC_ENTRIES.length; i++) {
+    const source = SRC_ENTRIES[i];
+    try {
+      await store(source);
+    } catch (e) {
+      console.error(source, e);
+    }
+  }
+  console.log(`All done.`);
+  setTimeout(end, ms('1s'));
+}
+
 // importDila();
-buildDico();
+// buildDico();
+storeDila();

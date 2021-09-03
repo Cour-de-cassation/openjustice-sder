@@ -176,18 +176,22 @@ class DilaUtils {
       "Tribunal d'instance de Condom"
     ],
     */
-    switch (jurisdictionName.toLowerCase()) {
-      case 'cour de cassation':
-        code = 'CC';
-        break;
-      case 'tribunal des conflits':
-        code = 'TC';
-        break;
-      case 'tribunal de grande instance de paris':
-        code = 'TGI';
-        break;
-      default:
-        code = 'OTHER';
+    if (jurisdictionName) {
+      switch (jurisdictionName.toLowerCase()) {
+        case 'cour de cassation':
+          code = 'CC';
+          break;
+        case 'tribunal des conflits':
+          code = 'TC';
+          break;
+        case 'tribunal de grande instance de paris':
+          code = 'TGI';
+          break;
+        default:
+          code = 'OTHER';
+      }
+    } else {
+      code = 'OTHER';
     }
     return code;
   }
