@@ -464,13 +464,13 @@ async function store(source) {
             sourceName: 'jurinet',
           });
           if (alreadyFromJurinet === null) {
+            console.log(`Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) not found in Jurinet: add.`);
+            insertOrUpdate = true;
+          } else {
             console.log(
               `Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) already in Jurinet as ${alreadyFromJurinet.sourceId}: skip.`,
             );
             skipCount++;
-          } else {
-            console.log(`Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) not found in Jurinet: add.`);
-            insertOrUpdate = true;
           }
         } else {
           console.log(`Decision ${decisionToStore._id} has no number: add anyway.`);

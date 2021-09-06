@@ -13,6 +13,7 @@ const bree = new Bree({
     {
       name: 'import',
       interval: 'every 13 minutes after 8:00am and before 12:00pm',
+      // hyperv? interval: 'every 13 minutes after 4:00am and before 9:30pm',
     },
     {
       name: 'reinject',
@@ -21,6 +22,7 @@ const bree = new Bree({
     {
       name: 'sync',
       interval: 'every 17 minutes after 8:30am and before 11:30pm',
+      // hyperv? interval: 'every 17 minutes after 4:30am and before 9:00pm',
     },
     {
       name: 'cleanup',
