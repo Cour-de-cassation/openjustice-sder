@@ -71,7 +71,10 @@ class JurinetUtils {
       fragments[j] = fragments[j].replace(/\\t/gim, ''); // That could happen...
       fragments[j] = fragments[j].replace(/\f/gim, '');
       fragments[j] = fragments[j].replace(/\\f/gim, ''); // That could happen too...
-      fragments[j] = fragments[j].replace(/  +/gm, ' ').trim();
+      fragments[j] = JurinetUtils.removeMultipleSpace(fragments[j]);
+
+      // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):
+      fragments[j] = JurinetUtils.replaceErroneousChars(fragments[j]);
 
       // Minimal set of entities for XML validation:
       fragments[j] = fragments[j]
@@ -118,6 +121,20 @@ class JurinetUtils {
     }
 
     return xml;
+  }
+
+  static removeMultipleSpace(str) {
+    if (typeof str === 'string') {
+      return str.replace(/  +/gm, ' ').trim();
+    }
+    return str;
+  }
+
+  static replaceErroneousChars(str) {
+    if (typeof str === 'string') {
+      return str.replace(/\x91/gm, '‘').replace(/\x92/gm, '’').replace(/\x80/gm, '€').replace(/\x96/gm, '–');
+    }
+    return str;
   }
 
   static XMLToJSON(xml, opt) {
@@ -236,6 +253,7 @@ class JurinetUtils {
       pseudoStatus: pseudoStatus,
       appeals: [],
       analysis: {
+        nature: undefined,
         target: document.TEXTE_VISE,
         link: document.RAPROCHEMENT,
         source: document.SOURCE,
@@ -256,7 +274,8 @@ class JurinetUtils {
         categoriesToOmit: [],
       },
       publication: [],
-      formation: null,
+      formation: undefined,
+      blocOccultation: undefined,
     };
 
     if (previousVersion) {
@@ -361,6 +380,10 @@ class JurinetUtils {
       normalizedDecision.decatt = document._decatt;
     }
 
+    if (document._bloc_occultation) {
+      normalizedDecision.blocOccultation = document._bloc_occultation;
+    }
+
     if (normalizedDecision.pseudoText) {
       try {
         const zoning = await ZoningUtils.getZones(
@@ -391,7 +414,7 @@ class JurinetUtils {
     };
 
     for (let key in occultations) {
-      if (!document[key] && document[key] !== null) {
+      if (!document[key] && document[key] !== null && document[key] !== undefined) {
         occultations[key].forEach((item) => {
           normalizedDecision.occultation.categoriesToOmit.push(item);
         });

@@ -7,17 +7,37 @@ class JuricaUtils {
   static CleanHTML(html) {
     // Remove HTML tags:
     html = html.replace(/<\/?[^>]+(>|$)/gm, '');
+
     // Handling newlines and carriage returns:
     html = html.replace(/\r\n/gim, '\n');
     html = html.replace(/\r/gim, '\n');
+
     // Remove extra spaces:
     html = html.replace(/\t/gim, '');
     html = html.replace(/\\t/gim, ''); // That could happen...
     html = html.replace(/\f/gim, '');
     html = html.replace(/\\f/gim, ''); // That could happen too...
-    html = html.replace(/  +/gm, ' ').trim();
+    html = JuricaUtils.removeMultipleSpace(html);
+
+    // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):
+    html = JuricaUtils.replaceErroneousChars(html);
+
     // Decode HTML entities:
     return he.decode(html);
+  }
+
+  static removeMultipleSpace(str) {
+    if (typeof str === 'string') {
+      return str.replace(/  +/gm, ' ').trim();
+    }
+    return str;
+  }
+
+  static replaceErroneousChars(str) {
+    if (typeof str === 'string') {
+      return str.replace(/\x91/gm, '‘').replace(/\x92/gm, '’').replace(/\x80/gm, '€').replace(/\x96/gm, '–');
+    }
+    return str;
   }
 
   static async Normalize(document, previousVersion, ignorePreviousContent) {
@@ -127,6 +147,7 @@ class JuricaUtils {
       pseudoStatus: pseudoStatus,
       appeals: [],
       analysis: {
+        nature: undefined,
         target: undefined,
         link: undefined,
         source: undefined,
@@ -147,7 +168,8 @@ class JuricaUtils {
         categoriesToOmit: [],
       },
       publication: [],
-      formation: null,
+      formation: undefined,
+      blocOccultation: undefined,
     };
 
     if (previousVersion) {

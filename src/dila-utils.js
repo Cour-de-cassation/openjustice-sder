@@ -26,22 +26,46 @@ class DilaUtils {
     if (typeof str !== 'string') {
       return '';
     }
+
     str = str.trim();
+
     if (removeNumbers) {
       str = str.replace(/^\(\s*\d+\s*\)\s*(:|\.)?\s*\n?/gm, '');
       str = str.replace(/^\(\s*\d+\s*°\s*\)\s*(:|\.)?\s*\n?/gm, '');
       str = str.replace(/^\d+\s*°\s*(:|\.)?\s*\n?/gm, '');
     }
-    str = str
-      .replace(/<br\s*[^\/>]*\/>/gim, '\n')
-      .replace(/\r\n/gm, '\n')
-      .replace(/\n\s+/gm, '\n')
-      .replace(/\n+/gm, '\n')
-      .replace(/\t/gm, ' ')
-      .replace(/\f/gm, ' ')
-      .replace(/  +/gm, ' ')
-      .trim();
+
+    // Handling newlines and carriage returns:
+    str = str.replace(/<br\s*[^\/>]*\/>/gim, '\n');
+    str = str.replace(/\r\n/gim, '\n');
+    str = str.replace(/\r/gim, '\n');
+
+    // Remove extra spaces:
+    str = str.replace(/\t/gim, '');
+    str = str.replace(/\\t/gim, ''); // That could happen...
+    str = str.replace(/\f/gim, '');
+    str = str.replace(/\\f/gim, ''); // That could happen too...
+    str = DilaUtils.removeMultipleSpace(str);
+
+    // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):
+    str = DilaUtils.replaceErroneousChars(str);
+
     str = str.replace(/\s+\.$/gm, '.');
+
+    return str.trim();
+  }
+
+  static removeMultipleSpace(str) {
+    if (typeof str === 'string') {
+      return str.replace(/  +/gm, ' ').trim();
+    }
+    return str;
+  }
+
+  static replaceErroneousChars(str) {
+    if (typeof str === 'string') {
+      return str.replace(/\x91/gm, '‘').replace(/\x92/gm, '’').replace(/\x80/gm, '€').replace(/\x96/gm, '–');
+    }
     return str;
   }
 
@@ -139,6 +163,39 @@ class DilaUtils {
     }
   }
 
+  static getJuridictionCode(jurisdictionName) {
+    let code;
+    /*
+    "JURIDICTION": [
+      "Cour de cassation",
+      "Tribunal de grande instance de Paris",
+      "Tribunal d'instance d'Illkirch-Graffenstaden",
+      "Tribunal d'instance d'Auch",
+      "Tribunal de grande instance d'Auch",
+      "Tribunal de commerce de Douai",
+      "Tribunal d'instance de Condom"
+    ],
+    */
+    if (jurisdictionName) {
+      switch (jurisdictionName.toLowerCase()) {
+        case 'cour de cassation':
+          code = 'CC';
+          break;
+        case 'tribunal des conflits':
+          code = 'TC';
+          break;
+        case 'tribunal de grande instance de paris':
+          code = 'TGI';
+          break;
+        default:
+          code = 'OTHER';
+      }
+    } else {
+      code = 'OTHER';
+    }
+    return code;
+  }
+
   static async Normalize(document, previousVersion) {
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
@@ -146,7 +203,7 @@ class DilaUtils {
       sourceId: document._id,
       sourceName: 'dila',
       jurisdictionId: undefined,
-      jurisdictionCode: 'CC',
+      jurisdictionCode: DilaUtils.getJuridictionCode(document.JURIDICTION),
       jurisdictionName: document.JURIDICTION,
       chamberId: document.FORMATION,
       chamberName: undefined,
@@ -160,6 +217,8 @@ class DilaUtils {
       pseudoStatus: 2,
       appeals: document.NUMERO_AFFAIRE,
       analysis: {
+        // "NATURE": ["ARRET", "AVIS", "ORDONNANCE", "AUTRES_DECISIONS"],
+        nature: document.NATURE,
         target:
           document.FORM_DEC_ATT && document.DATE_DEC_ATT
             ? document.FORM_DEC_ATT + ', ' + document.DATE_DEC_ATT
@@ -172,12 +231,19 @@ class DilaUtils {
         reference: document.TEXTES_APPLIQUES,
         analyse: [],
       },
-      parties: {},
+      parties: [],
       decatt: null,
       locked: false,
       labelStatus: 'exported',
       labelTreatments: [],
       zoning: undefined,
+      occultation: {
+        additionalTerms: '',
+        categoriesToOmit: [],
+      },
+      publication: [],
+      formation: undefined,
+      blocOccultation: undefined,
     };
 
     return normalizedDecision;

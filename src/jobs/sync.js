@@ -124,6 +124,7 @@ async function syncJurinet() {
           '_partie',
           '_decatt',
           '_portalis',
+          '_bloc_occultation',
           'IND_PM',
           'IND_ADRESSE',
           'IND_DT_NAISSANCE',
@@ -166,6 +167,10 @@ async function syncJurinet() {
       if (normalized === null) {
         try {
           let normDec = await JurinetUtils.Normalize(row);
+          normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
+          normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
+          normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
+          normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
           normDec._version = decisionsVersion;
           await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           normalizeCount++;
@@ -177,6 +182,10 @@ async function syncJurinet() {
         if (updated === true || normalized._version !== decisionsVersion) {
           try {
             let normDec = await JurinetUtils.Normalize(row, normalized);
+            normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
+            normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
+            normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
+            normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
             await decisions.replaceOne({ _id: normalized._id }, normDec, {
               bypassDocumentValidation: true,
@@ -310,6 +319,10 @@ async function syncJurica() {
         if (normalized === null) {
           try {
             let normDec = await JuricaUtils.Normalize(row);
+            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
             await decisions.insertOne(normDec, { bypassDocumentValidation: true });
             normalizeCount++;
@@ -321,6 +334,10 @@ async function syncJurica() {
           if (updated === true || normalized._version !== decisionsVersion) {
             try {
               let normDec = await JuricaUtils.Normalize(row, normalized);
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
               normDec._version = decisionsVersion;
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
                 bypassDocumentValidation: true,

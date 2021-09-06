@@ -1,70 +1,52 @@
+// DILA entries:
+const SRC_ENTRIES = ['CASS', 'INCA']; // , 'CAPP'];
+// CASS: https://echanges.dila.gouv.fr/OPENDATA/CASS/
+// INCA: https://echanges.dila.gouv.fr/OPENDATA/INCA/
+// CAPP: https://echanges.dila.gouv.fr/OPENDATA/CAPP/
+// (ignore CAPP for now...)
+
+// Path where all the .tar.gz files of every DILA entry
+// have been downloaded, in their respective folder (CASS, INCA, CAPP):
+const SRC_DIR = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\';
+
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+const async = require('async');
+const { parentPort } = require('worker_threads');
+const ms = require('ms');
 
-// const walk = require('walkdir');
-const { DilaUtils } = require('../dila-utils');
-const { MongoClient } = require('mongodb');
-// const needle = require('needle');
-const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
-const readline = require('readline');
+let selfKill = setTimeout(cancel, ms('24h'));
 
-// const schema = {};
-// const juri = [];
-
-/*
-function parseError(e) {
-  if (e) {
-    let error = {};
-
-    try {
-      Object.getOwnPropertyNames(e).forEach(function (key) {
-        error[key] = e[key];
-      });
-    } catch (ignore) {}
-
-    return error;
-  } else {
-    return 'unknown';
-  }
+function end() {
+  clearTimeout(selfKill);
+  if (parentPort) parentPort.postMessage('done');
+  kill(0);
 }
 
-function flatten(src, dest) {
-  Object.keys(src).forEach((key) => {
-    if (typeof src[key] === 'object' && src[key] !== null) {
-      if (dest[key] === undefined || typeof dest[key] !== 'object') {
-        dest[key] = {};
-      }
-      flatten(src[key], dest[key]);
-    } else {
-      if (dest[key] === undefined) {
-        dest[key] = 0;
-      } else {
-        dest[key]++;
-      }
-    }
-  });
+function cancel() {
+  clearTimeout(selfKill);
+  if (parentPort) parentPort.postMessage('cancelled');
+  kill(1);
 }
-*/
 
-/* MAIN LOOP */
-async function main() {
-  console.log('Setup DB Clients...');
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
-  await client.connect();
-  const database = client.db(process.env.MONGO_DBNAME);
-  const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
-  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+function kill(code) {
+  process.exit(code);
+}
+
+async function prepare(source, then) {
+  const readline = require('readline');
+  const { DilaUtils } = require('../dila-utils');
 
   let newCount = 0;
   let errorCount = 0;
-  let skipCount = 0;
-  let normalizeCount = 0;
 
-  const stockFilePath = path.join(__dirname, 'data', 'dila_import.json');
-  console.log(`Get decisions from DILA stock (${stockFilePath})...`);
+  if (!fs.existsSync(path.join(__dirname, 'data', `DILA_${source}`))) {
+    fs.mkdirSync(path.join(__dirname, 'data', `DILA_${source}`));
+  }
+
+  const stockFilePath = path.join(__dirname, 'data', `dila_import_${source}.json`);
+  console.log(`Get decisions from DILA stock (${source} : ${stockFilePath})...`);
 
   const fileStream = fs.createReadStream(stockFilePath);
   const rl = readline.createInterface({
@@ -272,152 +254,355 @@ async function main() {
           });
         }
       }
-      let raw = await rawDila.findOne({ _id: decisionToStore._id });
-      if (raw === null) {
-        try {
-          await rawDila.insertOne(decisionToStore, { bypassDocumentValidation: true });
-          newCount++;
-        } catch (e) {
-          console.error(e);
-          errorCount++;
-        }
-      } else {
-        skipCount++;
-      }
-      let normalized = await decisions.findOne({ sourceId: decisionToStore._id, sourceName: 'dila' });
-      let normalizeDoc = null;
-      if (normalized === null) {
-        if (decisionToStore.NUMERO) {
-          let alreadyFromJurinet = await decisions.findOne({
-            registerNumber: decisionToStore.NUMERO,
-            sourceName: 'jurinet',
-          });
-          if (alreadyFromJurinet === null) {
-            normalizeDoc = await DilaUtils.Normalize(decisionToStore);
-          }
-        } else {
-          normalizeDoc = await DilaUtils.Normalize(decisionToStore);
-        }
-        if (normalizeDoc !== null) {
-          normalizeDoc._version = decisionsVersion;
-          try {
-            await decisions.insertOne(normalizeDoc, { bypassDocumentValidation: true });
-            normalizeCount++;
-          } catch (e) {
-            console.error(e);
-            errorCount++;
-          }
-        }
-      }
+      fs.writeFileSync(
+        path.join(__dirname, 'data', `DILA_${source}`, decisionToStore._id + '.json'),
+        JSON.stringify(decisionToStore, null, 2),
+      );
+      fs.writeFileSync(
+        path.join(__dirname, 'data', `DILA_${source}`, decisionToStore._id + '_normalized.json'),
+        JSON.stringify(await DilaUtils.Normalize(decisionToStore), null, 2),
+      );
+      newCount++;
     } catch (e) {
       console.error(e);
       errorCount++;
     }
   }
 
-  console.log(`Teardown...`);
-  console.log(`Done (new: ${newCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`);
+  console.log(`Prepare done (${source} - new: ${newCount}, error: ${errorCount}).`);
 
-  await client.close();
-  process.exit(0);
+  if (typeof then === 'function') {
+    then();
+  } else {
+    setTimeout(end, ms('1s'));
+  }
 }
 
-/*
-async function main() {
-  console.log('Start Import.');
-  fs.writeFileSync(path.join(__dirname, 'dila_import.json'), '');
+function untar(source, then) {
+  const basePath = `${SRC_DIR}${source}`;
+  const files = fs.readdirSync(basePath);
+  if (!fs.existsSync(path.join(basePath, 'extract'))) {
+    fs.mkdirSync(path.join(basePath, 'extract'));
+  }
+  const exec = require('child_process').exec;
+  async.eachSeries(
+    files,
+    function (file, cb) {
+      if (/^\./i.test(file) === false && /\.tar\.gz$/i.test(file) === true && /free/i.test(file) === false) {
+        let cmd = 'tar -xzkf ' + path.join(basePath, file) + ' --strip-components=1';
+        exec(
+          cmd,
+          {
+            cwd: path.join(basePath, 'extract'),
+          },
+          function () {
+            cb(null);
+          },
+        );
+      } else {
+        cb(null);
+      }
+    },
+    function () {
+      console.log(`Main done (${source}).`);
+      async.eachSeries(
+        files,
+        function (file, cb) {
+          if (/^\./i.test(file) === false && /\.tar\.gz$/i.test(file) === true && /free/i.test(file) === true) {
+            let cmd = 'tar -xzkf ' + path.join(basePath, file) + ' --strip-components=1';
+            exec(
+              cmd,
+              {
+                cwd: path.join(basePath, 'extract'),
+              },
+              function () {
+                cb(null);
+              },
+            );
+          } else {
+            cb(null);
+          }
+        },
+        function () {
+          console.log(`Freemium done (${source}).`);
+          console.log(`Exit untar (${source}).`);
+          if (typeof then === 'function') {
+            then();
+          } else {
+            setTimeout(end, ms('1s'));
+          }
+        },
+      );
+    },
+  );
+}
+
+function flatten(src, dest) {
+  Object.keys(src).forEach((key) => {
+    if (typeof src[key] === 'object' && src[key] !== null) {
+      if (dest[key] === undefined || typeof dest[key] !== 'object') {
+        dest[key] = {};
+      }
+      flatten(src[key], dest[key]);
+    } else {
+      if (dest[key] === undefined) {
+        dest[key] = 0;
+      } else {
+        dest[key]++;
+      }
+    }
+  });
+}
+
+function processUntar(source, then) {
+  const schema = {};
+  const walk = require('walkdir');
+  const { DilaUtils } = require('../dila-utils');
+  const basePath = `${SRC_DIR}${source}\\extract`;
+  fs.writeFileSync(path.join(__dirname, 'data', `dila_import_${source}.json`), '');
   let successCount = 0;
   let errorCount = 0;
-  const emitter = walk(process.env.DILA_DIR);
+  const emitter = walk(basePath);
 
   emitter.on('file', function (filename) {
     try {
+      console.log(`Processing file (${source}): ${filename}...`);
       let xmlDocument = DilaUtils.CleanXML(fs.readFileSync(filename).toString());
       let jsonDocument = DilaUtils.XMLToJSON(xmlDocument, {
         filter: false,
       });
       flatten(jsonDocument, schema);
-      fs.appendFileSync(path.join(__dirname, 'dila_import.json'), JSON.stringify(jsonDocument) + '\r\n');
+      fs.appendFileSync(
+        path.join(__dirname, 'data', `dila_import_${source}.json`),
+        JSON.stringify(jsonDocument) + '\r\n',
+      );
       successCount++;
     } catch (e) {
-      console.log(`Erroneous file: ${filename}.`, e);
+      console.log(`Erroneous file (${source}): ${filename}.`, e);
       errorCount++;
     }
   });
 
   emitter.on('end', function () {
-    console.log(`Success count: ${successCount}.`);
-    console.log(`Error count: ${errorCount}.`);
-    console.log('Exit Import.');
-    fs.writeFileSync(path.join(__dirname, 'dila_schema.json'), JSON.stringify(schema, null, '  '));
-  });
-}
-*/
-
-/*
-async function getZones(id, source, text) {
-  const zoneData = JSON.stringify({
-    arret_id: id,
-    source: source,
-    text: text,
-  });
-  const response = await needle('post', 'http://10.16.64.7:8090/zonage', zoneData, {
-    json: true,
-  });
-  delete response.body.arret_id;
-  return response.body;
-}
-*/
-
-main();
-
-/*
-const basePath = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\DILA';
-const files = fs.readdirSync(basePath);
-const exec = require('child_process').exec;
-const async = require('async');
-async.eachSeries(
-  files,
-  function (file, cb) {
-    if (/^\./i.test(file) === false && /\.tar\.gz$/i.test(file) === true && /free/i.test(file) === false) {
-      let cmd = 'tar -xzkf ' + path.join(basePath, file) + ' --strip-components=1';
-      exec(
-        cmd,
-        {
-          cwd: path.join(basePath, 'extract'),
-        },
-        function (error, stdout, stderr) {
-          cb(null);
-        },
-      );
+    console.log(`Success count (${source}): ${successCount}.`);
+    console.log(`Error count (${source}): ${errorCount}.`);
+    console.log(`Exit processUntar (${source}).`);
+    fs.writeFileSync(path.join(__dirname, 'data', `dila_schema_${source}.json`), JSON.stringify(schema, null, 2));
+    if (typeof then === 'function') {
+      then();
     } else {
-      cb(null);
+      setTimeout(end, ms('1s'));
     }
-  },
-  function (err) {
-    console.log('Main done');
-    async.eachSeries(
-      files,
-      function (file, cb) {
-        if (/^\./i.test(file) === false && /\.tar\.gz$/i.test(file) === true && /free/i.test(file) === true) {
-          let cmd = 'tar -xzkf ' + path.join(basePath, file) + ' --strip-components=1';
-          exec(
-            cmd,
-            {
-              cwd: path.join(basePath, 'extract'),
-            },
-            function (error, stdout, stderr) {
-              cb(null);
-            },
-          );
-        } else {
-          cb(null);
+  });
+}
+
+function dico(source, then) {
+  const dict = {
+    ORIGINE: [],
+    NATURE: [],
+    JURIDICTION: [],
+    SOLUTION: [],
+    PUB: [],
+    BULLETIN: [],
+    FORMATION: [],
+    FORM_DEC_ATT: [],
+  };
+  const baseDir = path.join(__dirname, 'data', `DILA_${source}`);
+  const files = fs.readdirSync(baseDir);
+  for (let i = 0; i < files.length; i++) {
+    if (/\.json$/.test(files[i]) === true && /normalized/.test(files[i]) === false) {
+      const data = JSON.parse(fs.readFileSync(path.join(baseDir, files[i])).toString());
+      for (let key in dict) {
+        if (data[key] && dict[key].indexOf(data[key]) === -1) {
+          dict[key].push(data[key]);
         }
-      },
-      function (err) {
-        console.log('Freemium done');
-      },
-    );
-  },
-);
-*/
+      }
+    }
+  }
+  fs.writeFileSync(path.join(__dirname, 'data', `dila_dico_${source}.json`), JSON.stringify(dict, null, 2));
+  if (typeof then === 'function') {
+    then();
+  } else {
+    setTimeout(end, ms('1s'));
+  }
+}
+
+async function store(source) {
+  const { MongoClient } = require('mongodb');
+  const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
+
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+  let newCount = 0;
+  let errorCount = 0;
+  let replacedCount = 0;
+  let skipCount = 0;
+  let normalizeCount = 0;
+
+  const basePath = path.join(__dirname, 'data', `DILA_${source}`);
+  const files = fs.readdirSync(basePath);
+
+  for (let i = 0; i < files.length; i++) {
+    if (/\.json$/.test(files[i]) === true && /normalized/.test(files[i]) === false) {
+      try {
+        const decisionToStore = JSON.parse(fs.readFileSync(path.join(basePath, files[i])).toString());
+        const normalizeDoc = JSON.parse(
+          fs.readFileSync(path.join(basePath, files[i].replace('.json', '_normalized.json')).toString()),
+        );
+
+        let insertOrUpdate = false;
+        if (decisionToStore.NUMERO) {
+          let alreadyFromJurinet = await decisions.findOne({
+            registerNumber: decisionToStore.NUMERO,
+            sourceName: 'jurinet',
+          });
+          if (alreadyFromJurinet === null) {
+            console.log(
+              `Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) already in Jurinet as ${alreadyFromJurinet.sourceId}: skip.`,
+            );
+            skipCount++;
+          } else {
+            console.log(`Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) not found in Jurinet: add.`);
+            insertOrUpdate = true;
+          }
+        } else {
+          console.log(`Decision ${decisionToStore._id} has no number: add anyway.`);
+          insertOrUpdate = true;
+        }
+
+        if (insertOrUpdate) {
+          let raw = await rawDila.findOne({ _id: decisionToStore._id });
+          if (raw === null) {
+            try {
+              await rawDila.insertOne(decisionToStore, { bypassDocumentValidation: true });
+              newCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          } else {
+            try {
+              await rawDila.replaceOne({ _id: decisionToStore._id }, decisionToStore, {
+                bypassDocumentValidation: true,
+              });
+              newCount++;
+              replacedCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          }
+
+          normalizeDoc._version = decisionsVersion;
+          let normalized = await decisions.findOne({ sourceId: decisionToStore._id, sourceName: 'dila' });
+          if (normalized === null) {
+            try {
+              await decisions.insertOne(normalizeDoc, { bypassDocumentValidation: true });
+              normalizeCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          } else {
+            try {
+              await decisions.replaceOne({ _id: normalizeDoc._id }, normalizeDoc, {
+                bypassDocumentValidation: true,
+              });
+              normalizeCount++;
+              replacedCount++;
+            } catch (e) {
+              console.error(e);
+              errorCount++;
+            }
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        errorCount++;
+      }
+    }
+  }
+
+  await client.close();
+
+  console.log(
+    `Store done (${source} - new: ${newCount}, normalized: ${normalizeCount}), replaced: ${replacedCount}, skip: ${skipCount}, error: ${errorCount}.`,
+  );
+}
+
+function importDila() {
+  async.eachSeries(
+    SRC_ENTRIES,
+    function (source, cb) {
+      // 1. Untar XML files:
+      try {
+        untar(source, function () {
+          // 2. Process XML files:
+          try {
+            processUntar(source, function () {
+              // 3. Prepare decisions to store in DB:
+              try {
+                prepare(source, function () {
+                  console.log(`source ${source} done.`);
+                  cb(null);
+                });
+              } catch (e) {
+                console.error(`prepare error (${source}).`, e);
+                cb(null);
+              }
+            });
+          } catch (e) {
+            console.error(`processUntar error (${source}).`, e);
+            cb(null);
+          }
+        });
+      } catch (e) {
+        console.error(`untar error (${source}).`, e);
+        cb(null);
+      }
+    },
+    function () {
+      console.log(`All done.`);
+      setTimeout(end, ms('1s'));
+    },
+  );
+}
+
+function buildDico() {
+  async.eachSeries(
+    SRC_ENTRIES,
+    function (source, cb) {
+      dico(source, function () {
+        cb(null);
+      });
+    },
+    function () {
+      console.log(`All done.`);
+      setTimeout(end, ms('1s'));
+    },
+  );
+}
+
+async function storeDila() {
+  for (let i = 0; i < SRC_ENTRIES.length; i++) {
+    const source = SRC_ENTRIES[i];
+    try {
+      await store(source);
+    } catch (e) {
+      console.error(source, e);
+    }
+  }
+  console.log(`All done.`);
+  setTimeout(end, ms('1s'));
+}
+
+// importDila();
+// buildDico();
+storeDila();
