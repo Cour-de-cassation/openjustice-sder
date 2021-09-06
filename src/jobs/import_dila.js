@@ -441,8 +441,8 @@ async function store(source) {
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   let newCount = 0;
-  let updateCount = 0;
   let errorCount = 0;
+  let replacedCount = 0;
   let skipCount = 0;
   let normalizeCount = 0;
 
@@ -492,7 +492,8 @@ async function store(source) {
               await rawDila.replaceOne({ _id: decisionToStore._id }, decisionToStore, {
                 bypassDocumentValidation: true,
               });
-              updateCount++;
+              newCount++;
+              replacedCount++;
             } catch (e) {
               console.error(e);
               errorCount++;
@@ -515,6 +516,7 @@ async function store(source) {
                 bypassDocumentValidation: true,
               });
               normalizeCount++;
+              replacedCount++;
             } catch (e) {
               console.error(e);
               errorCount++;
@@ -531,7 +533,7 @@ async function store(source) {
   await client.close();
 
   console.log(
-    `Store done (${source} - new: ${newCount}, update: ${updateCount}, skip: ${skipCount}, error: ${errorCount}, normalized: ${normalizeCount}).`,
+    `Store done (${source} - new: ${newCount}, normalized: ${normalizeCount}), replaced: ${replacedCount}, skip: ${skipCount}, error: ${errorCount}.`,
   );
 }
 
