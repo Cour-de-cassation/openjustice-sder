@@ -440,6 +440,8 @@ async function store(source) {
   const rawDila = database.collection(process.env.MONGO_DILA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
+  await decisions.createIndex({ registerNumber: 1, sourceName: 1 });
+
   let newCount = 0;
   let errorCount = 0;
   let replacedCount = 0;
