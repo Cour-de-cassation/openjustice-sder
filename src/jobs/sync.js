@@ -283,6 +283,9 @@ async function syncJurica() {
           'IND_ANO',
           'AUT_ANO',
           '_portalis',
+          'JDEC_CODE',
+          'JDEC_CODNAC',
+          'JDEC_IND_DEC_PUB',
         ];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
