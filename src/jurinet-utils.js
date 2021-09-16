@@ -276,6 +276,9 @@ class JurinetUtils {
       publication: [],
       formation: undefined,
       blocOccultation: undefined,
+      endCaseCode: null,
+      NACCode: null,
+      public: null,
     };
 
     if (previousVersion) {

@@ -244,6 +244,9 @@ class DilaUtils {
       publication: [],
       formation: undefined,
       blocOccultation: undefined,
+      endCaseCode: null,
+      NACCode: null,
+      public: true,
     };
 
     return normalizedDecision;
