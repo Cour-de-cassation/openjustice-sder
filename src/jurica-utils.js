@@ -170,6 +170,9 @@ class JuricaUtils {
       publication: [],
       formation: undefined,
       blocOccultation: undefined,
+      endCaseCode: document.JDEC_CODE || null,
+      NACCode: document.JDEC_CODNAC || null,
+      public: document.JDEC_IND_DEC_PUB === 1 ? true : (document.JDEC_IND_DEC_PUB === 0 ? false : null),
     };
 
     if (previousVersion) {
