@@ -1,7 +1,7 @@
 const parser = require('fast-xml-parser');
 const he = require('he');
 
-const { ZoningUtils } = require('./zoning-utils');
+const { Juritools } = require('./juritools');
 
 const parserOptions = {
   attributeNamePrefix: '$',
@@ -386,7 +386,7 @@ class JurinetUtils {
 
     if (normalizedDecision.pseudoText) {
       try {
-        const zoning = await ZoningUtils.getZones(
+        const zoning = await Juritools.GetZones(
           normalizedDecision.sourceId,
           normalizedDecision.sourceName,
           normalizedDecision.pseudoText,
