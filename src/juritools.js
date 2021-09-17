@@ -23,9 +23,12 @@ class Juritools {
   }
 
   static async GetMetaJurinet(data) {
+    data = {
+      metadata: data,
+    };
     const response = await needle(
       'post',
-      `http://${process.env.META_URI}:${process.env.META_PORT}/meta_jurinet`,
+      `http://${process.env.META_URI}:${process.env.META_PORT}/meta-jurinet`,
       data,
       {
         json: true,
@@ -38,7 +41,10 @@ class Juritools {
   }
 
   static async GetMetaJurica(data) {
-    const response = await needle('post', `http://${process.env.META_URI}:${process.env.META_PORT}/meta_jurica`, data, {
+    data = {
+      metadata: data,
+    };
+    const response = await needle('post', `http://${process.env.META_URI}:${process.env.META_PORT}/meta-jurica`, data, {
       json: true,
     });
     if (!response || !response.body) {
