@@ -5,28 +5,17 @@ const path = require('path');
 const bree = new Bree({
   root: path.join(__dirname, 'jobs'),
   jobs: [
-    /*
-    {
-      name: 'server', // on start
-    },
-    */
     {
       name: 'import',
       interval: 'every 13 minutes after 8:00am and before 12:00pm',
-      // hyperv? interval: 'every 13 minutes after 4:00am and before 9:30pm',
     },
     {
       name: 'reinject',
-      interval: 'at 12:00 am',
+      interval: 'at 9:30 pm',
     },
     {
       name: 'sync',
-      interval: 'every 17 minutes after 8:30am and before 11:30pm',
-      // hyperv? interval: 'every 17 minutes after 4:30am and before 9:00pm',
-    },
-    {
-      name: 'cleanup',
-      interval: 'every 19 minutes',
+      interval: 'every 23 minutes after 9:30am and before 9:30pm',
     },
   ],
 });
