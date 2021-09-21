@@ -11,16 +11,15 @@ const bree = new Bree({
     },
     {
       name: 'reinject',
-      interval: 'at 9:30 pm',
+      interval: 'at 9:00 pm',
     },
     {
       name: 'sync',
-      interval: 'every 23 minutes after 9:30am and before 9:30pm',
+      interval: 'every 23 minutes after 9:00am and before 9:00pm',
     },
   ],
 });
 
 const graceful = new Graceful({ brees: [bree] });
 graceful.listen();
-
 bree.start();
