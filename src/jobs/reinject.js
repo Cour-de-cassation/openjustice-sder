@@ -63,6 +63,7 @@ async function reinjectJurinet() {
       if (decision && decision[process.env.MONGO_ID]) {
         await jurinetSource.reinject(decision);
         const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
+        reinjected._indexed = null;
         await rawJurinet.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
         // The labelStatus of the decision goes from 'done' to 'exported'.
         // We don't do this in the 'reinject' method because we may need
@@ -106,6 +107,7 @@ async function reinjectJurica() {
       if (decision && decision[process.env.MONGO_ID]) {
         await juricaSource.reinject(decision);
         const reinjected = await juricaSource.getDecisionByID(decision.sourceId);
+        reinjected._indexed = null;
         await rawJurica.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
         // The labelStatus of the decision goes from 'done' to 'exported'.
         // We don't do this in the 'reinject' method because we may need

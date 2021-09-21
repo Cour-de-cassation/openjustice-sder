@@ -91,6 +91,7 @@ async function syncJurinet() {
 
       if (rawDocument === null) {
         try {
+          row._indexed = null;
           await raw.insertOne(row, { bypassDocumentValidation: true });
           newCount++;
           if (row['TYPE_ARRET'] !== 'CC') {
@@ -150,6 +151,7 @@ async function syncJurinet() {
 
         if (updated === true) {
           try {
+            row._indexed = null;
             await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
             updateCount++;
             if (row['TYPE_ARRET'] !== 'CC') {
@@ -261,6 +263,7 @@ async function syncJurica() {
 
       if (rawDocument === null) {
         try {
+          row._indexed = null;
           await raw.insertOne(row, { bypassDocumentValidation: true });
           newCount++;
         } catch (e) {
@@ -295,6 +298,7 @@ async function syncJurica() {
 
         if (updated === true) {
           try {
+            row._indexed = null;
             await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
             updateCount++;
           } catch (e) {
