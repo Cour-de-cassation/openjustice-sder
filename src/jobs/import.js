@@ -70,6 +70,7 @@ async function importJurinet() {
       let raw = await rawJurinet.findOne({ _id: row._id });
       if (raw === null) {
         try {
+          row._indexed = null;
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
@@ -92,6 +93,7 @@ async function importJurinet() {
         }
       } else {
         try {
+          row._indexed = null;
           await rawJurinet.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
@@ -149,6 +151,7 @@ async function importJurica() {
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
         try {
+          row._indexed = null;
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
 
           let duplicate;
@@ -197,6 +200,7 @@ async function importJurica() {
         }
       } else {
         try {
+          row._indexed = null;
           await rawJurica.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
 
           let duplicate;

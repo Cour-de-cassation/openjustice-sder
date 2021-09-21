@@ -76,6 +76,7 @@ async function reimportJurinet(n) {
       let raw = await rawJurinet.findOne({ _id: row._id });
       if (raw === null) {
         try {
+          row._indexed = null;
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
           newCount++;
           if (row['TYPE_ARRET'] !== 'CC') {
@@ -105,6 +106,7 @@ async function reimportJurinet(n) {
         }
       } else {
         try {
+          row._indexed = null;
           await rawJurinet.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
           updateCount++;
           if (row['TYPE_ARRET'] !== 'CC') {
@@ -179,6 +181,7 @@ async function reimportJurica(n) {
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
         try {
+          row._indexed = null;
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           newCount++;
 
@@ -222,6 +225,7 @@ async function reimportJurica(n) {
         }
       } else {
         try {
+          row._indexed = null;
           await rawJurica.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
           updateCount++;
 
