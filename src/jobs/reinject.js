@@ -7,7 +7,7 @@ const { JuricaOracle } = require('../jurica-oracle');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
-let selfKill = setTimeout(cancel, ms('15m'));
+let selfKill = setTimeout(cancel, ms('1h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -57,10 +57,11 @@ async function reinjectJurinet() {
   let decision,
     successCount = 0,
     errorCount = 0;
-  const cursor = await decisions.find({ labelStatus: 'done', sourceName: 'jurinet' }, { allowDiskUse: true });
+  const cursor = await decisions.find({ labelStatus: 'done', sourceName: 'jurinet' }, { allowDiskUse: true }).sort({ sourceId: -1});
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
+	      console.log(`reinject decision ${decision.sourceId}...`)
         await jurinetSource.reinject(decision);
         const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;
