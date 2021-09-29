@@ -1,0 +1,15 @@
+[Unit]
+Description=Openjustice jobs for data import/export
+After=syslog.target
+
+[Service]
+User=dbsder
+Type=simple
+ExecStart=/usr/bin/pm2 start /data/openjustice/openjustice-sder/src/index.js --name "pipeline"
+WorkingDirectory=/data/openjustice/openjustice-sder/
+Restart=always
+RestartSec=10
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
