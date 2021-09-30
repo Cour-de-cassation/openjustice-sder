@@ -165,7 +165,7 @@ class JuricaUtils {
       zoning: undefined,
       occultation: {
         additionalTerms: '',
-        categoriesToOmit: [],
+        categoriesToOmit: ['personneMorale', 'etablissement', 'numeroSiretSiren', 'professionnelMagistratGreffier'],
       },
       publication: [],
       formation: undefined,
