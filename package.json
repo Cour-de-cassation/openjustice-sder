@@ -18,7 +18,7 @@
     "iconv-lite": "^0.6.2",
     "mongodb": "^3.6.11",
     "ms": "^2.1.3",
-    "needle": "^2.8.0",
+    "needle": "^2.9.1",
     "oracledb": "^5.1.0",
     "walkdir": "^0.4.1"
   },
