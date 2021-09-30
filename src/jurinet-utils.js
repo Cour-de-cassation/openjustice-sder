@@ -403,7 +403,7 @@ class JurinetUtils {
     }
 
     const occultations = {
-      IND_PM: ['personneMorale', 'etablissement', 'numeroSiretSiren'],
+      IND_PM: ['personneMorale', 'numeroSiretSiren'],
       IND_ADRESSE: ['adresse', 'localite'],
       IND_DT_NAISSANCE: ['dateNaissance'],
       IND_DT_DECE: ['dateDeces'],
