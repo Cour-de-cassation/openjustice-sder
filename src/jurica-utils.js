@@ -1,7 +1,24 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
+const parser = require('fast-xml-parser');
 const he = require('he');
+
+const parserOptions = {
+  attributeNamePrefix: '',
+  attrNodeName: 'attributes',
+  textNodeName: 'value',
+  ignoreAttributes: false,
+  ignoreNameSpace: true,
+  allowBooleanAttributes: false,
+  parseNodeValue: false,
+  parseAttributeValue: false,
+  trimValues: true,
+  cdataTagName: false,
+  parseTrueNumberOnly: false,
+  arrayMode: true,
+  trimValues: true,
+};
 
 class JuricaUtils {
   static CleanHTML(html) {
@@ -179,6 +196,25 @@ class JuricaUtils {
           ? false
           : null,
     };
+
+    try {
+      const xml = `<document>${document.JDEC_COLL_PARTIES}</document>`;
+      const valid = parser.validate(xml);
+      if (valid === true) {
+        const json = parser.parse(xml, parserOptions);
+        if (
+          json &&
+          json.document &&
+          Array.isArray(json.document) &&
+          json.document[0] &&
+          json.document[0].partie &&
+          Array.isArray(json.document[0].partie) &&
+          json.document[0].partie.length > 0
+        ) {
+          normalizedDecision.parties = json.document[0].partie;
+        }
+      }
+    } catch (e) {}
 
     if (previousVersion) {
       if (previousVersion.labelStatus) {

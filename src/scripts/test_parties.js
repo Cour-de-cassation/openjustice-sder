@@ -38,10 +38,10 @@ async function main() {
 
   const valid = parser.validate(xml);
   if (valid === true) {
-  	const json = parser.parse(xml, parserOptions);
-	console.log(JSON.stringify(json.document[0].partie, null, 2));
+    const json = parser.parse(xml, parserOptions);
+    console.log(JSON.stringify(json.document[0].partie, null, 2));
   } else {
-	console.error('invalid xml', valid);
+    console.error('invalid xml', valid);
   }
 
   await client.close();
