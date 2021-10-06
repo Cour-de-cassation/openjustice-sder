@@ -277,23 +277,21 @@ async function importDecatt() {
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
 
-  // 1a. Get all _decatt from rawJurinet (no other choice, really)...
   let allDecatt = [];
 
-  /*
+  // 1a. Get all _decatt from rawJurinet...
+
   let rawJurinetDocument;
-  const rawJurinetCursor = await rawJurinet
-    .find(
-      { TYPE_ARRET: 'CC', _decatt: { $ne: null } },
-      {
-        allowDiskUse: true,
-        fields: {
-          _id: 1,
-          _decatt: 1,
-        },
+  const rawJurinetCursor = await rawJurinet.find(
+    { TYPE_ARRET: 'CC', _decatt: { $ne: null } },
+    {
+      allowDiskUse: true,
+      fields: {
+        _id: 1,
+        _decatt: 1,
       },
-    )
-    .sort({ _id: -1 });
+    },
+  );
   while ((rawJurinetDocument = await rawJurinetCursor.next())) {
     if (
       rawJurinetDocument._decatt &&
@@ -307,9 +305,8 @@ async function importDecatt() {
       }
     }
   }
-  */
 
-  // 1b. The other choice: get all decatt from decisions...
+  // 1b. Get all decatt from decisions...
 
   let decisionDocument;
   const decisionCursor = await decisions.find(
@@ -334,7 +331,6 @@ async function importDecatt() {
 
   console.log(`There are ${allDecatt.length} decatt to process...`);
 
-  /*
   // 2. (re)Import every decatt...
   let newCount = 0;
   let updateCount = 0;
@@ -383,7 +379,6 @@ async function importDecatt() {
   console.log(
     `Done - new: ${newCount}, update: ${updateCount}, normalized: ${normalizedCount}, renormalized: ${reNormalizedCount}, skip: ${skipCount}, error: ${errorCount}.`,
   );
-  */
 
   await juricaSource.close();
   await client.close();
