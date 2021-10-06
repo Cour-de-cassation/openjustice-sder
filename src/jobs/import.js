@@ -278,7 +278,8 @@ async function importDecatt() {
   await juricaSource.connect();
 
   // 1. Get all _decatt from rawJurinet (no other choice, really)...
-  let allDecatt = [];
+  let allDecatt = [545959];
+  /*
   let rawJurinetDocument;
   const rawJurinetCursor = await rawJurinet
     .find(
@@ -305,6 +306,7 @@ async function importDecatt() {
       }
     }
   }
+  */
 
   console.log(`There are ${allDecatt.length} decatt to process...`);
 
