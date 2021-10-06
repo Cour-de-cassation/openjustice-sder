@@ -274,6 +274,9 @@ async function importDecatt() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
+  const juricaSource = new JuricaOracle();
+  await juricaSource.connect();
+
   // 1. Get all _decatt from rawJurinet (no other choice, really)...
   let allDecatt = [];
   let rawJurinetDocument;
@@ -303,8 +306,58 @@ async function importDecatt() {
     }
   }
 
-  console.log(allDecatt.length);
+  console.log(`There are ${allDecatt.length} decatt to process...`);
 
+  // 2. (re)Import every decatt...
+  let newCount = 0;
+  let updateCount = 0;
+  let errorCount = 0;
+  let normalizedCount = 0;
+  let reNormalizedCount = 0;
+  let skipCount = 0;
+  for (let i = 0; i < allDecatt.length; i++) {
+    try {
+      let row = await juricaSource.getDecisionByID(allDecatt[i]);
+      if (parseInt(row.IND_ANO, 10) === 0) {
+        let raw = await rawJurica.findOne({ _id: row._id });
+        if (raw === null) {
+          row._indexed = null;
+          await rawJurica.insertOne(row, { bypassDocumentValidation: true });
+          newCount++;
+        } else {
+          row._indexed = null;
+          await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+          updateCount++;
+        }
+        let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+        if (normalized === null) {
+          let normDec = await JuricaUtils.Normalize(row);
+          normDec._version = decisionsVersion;
+          await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+          normalizedCount++;
+        } else {
+          let normDec = await JuricaUtils.Normalize(row, normalized);
+          normDec._version = decisionsVersion;
+          await decisions.replaceOne({ _id: normalized._id }, normDec, {
+            bypassDocumentValidation: true,
+          });
+          reNormalizedCount++;
+        }
+        await juricaSource.markAsImported(row._id);
+      } else {
+        skipCount++;
+      }
+    } catch (e) {
+      console.error(`Could not process decatt ${allDecatt[i]}`, e);
+      errorCount++;
+    }
+  }
+
+  console.log(
+    `Done - new: ${newCount}, update: ${updateCount}, normalized: ${normalizedCount}, renormalized: ${reNormalizedCount}, skip: ${skipCount}, error: ${errorCount}.`,
+  );
+
+  await juricaSource.close();
   await client.close();
   return true;
 }
