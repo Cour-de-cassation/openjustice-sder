@@ -165,9 +165,15 @@ async function reimportJurica(n) {
   let skipCount = 0;
   let normalizedCount = 0;
   let duplicateCount = 0;
+  let juricaResult;
 
-  console.log(`Get last ${n} month(s) decisions from Jurica...`);
-  const juricaResult = await juricaSource.getLastNMonth(n);
+  if (n > 100) {
+    console.log(`Get Jurica decision ${n}...`);
+    juricaResult = [await juricaSource.getDecisionByID(n)];
+  } else {
+    console.log(`Get last ${n} month(s) decisions from Jurica...`);
+    juricaResult = await juricaSource.getLastNMonth(n);
+  }
 
   if (juricaResult) {
     for (let i = 0; i < juricaResult.length; i++) {
@@ -274,4 +280,4 @@ async function reimportJurica(n) {
   return true;
 }
 
-main(2);
+main(862302);
