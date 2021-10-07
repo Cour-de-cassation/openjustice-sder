@@ -287,6 +287,48 @@ class JuricaUtils {
     await client.close();
     return found;
   }
+
+  static async ImportDecatt(id, juricaSource, rawJurica, decisions) {
+    try {
+      let row = await juricaSource.getDecisionByID(id);
+      if (row && row._id && row.IND_ANO === 0) {
+        let raw = await rawJurica.findOne({ _id: row._id });
+        if (raw === null) {
+          row._indexed = null;
+          await rawJurica.insertOne(row, { bypassDocumentValidation: true });
+          console.log(`Add decatt ${id}`);
+        } else {
+          row._indexed = null;
+          await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+          console.log(`Update decatt ${id}`);
+        }
+        let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+        if (normalized === null) {
+          let normDec = await JuricaUtils.Normalize(row);
+          normDec._version = decisionsVersion;
+          await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+          console.log(`Normalize decatt ${id}`);
+        } else {
+          let normDec = await JuricaUtils.Normalize(row, normalized);
+          normDec._version = decisionsVersion;
+          await decisions.replaceOne({ _id: normalized._id }, normDec, {
+            bypassDocumentValidation: true,
+          });
+          console.log(`Re-normalize decatt ${id} (${normalized._id})`);
+        }
+        await juricaSource.markAsImported(row._id);
+      } else {
+        console.log(`Skip decatt ${id}: IND_ANO=${row.IND_ANO}`);
+      }
+    } catch (e) {
+      console.error(`Could not process decatt ${id}`, e);
+      try {
+        await juricaSource.markAsErroneous(id);
+      } catch (e) {}
+    }
+
+    return true;
+  }
 }
 
 exports.JuricaUtils = JuricaUtils;
