@@ -62,7 +62,7 @@ async function syncJurinet() {
     offset: jurinetOffset,
     limit: jurinetBatch,
     order: jurinetOrder,
-    onlyTreated: true,
+    onlyTreated: false,
   });
   await jurinetSource.close();
 
@@ -72,8 +72,12 @@ async function syncJurinet() {
     });
     await client.connect();
 
+    const juricaSource = new JuricaOracle();
+    await juricaSource.connect();
+
     const database = client.db(process.env.MONGO_DBNAME);
     const raw = database.collection(process.env.MONGO_JURINET_COLLECTION);
+    const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
     console.log(`Syncing Jurinet (${jurinetOffset}-${jurinetOffset + jurinetBatch})...`);
@@ -96,6 +100,11 @@ async function syncJurinet() {
           newCount++;
           if (row['TYPE_ARRET'] !== 'CC') {
             wincicaCount++;
+          }
+          if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
+            for (let d = 0; d < row._decatt.length; d++) {
+              await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+            }
           }
         } catch (e) {
           console.error(e);
@@ -157,6 +166,11 @@ async function syncJurinet() {
             if (row['TYPE_ARRET'] !== 'CC') {
               wincicaCount++;
             }
+            if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
+              for (let d = 0; d < row._decatt.length; d++) {
+                await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+              }
+            }
           } catch (e) {
             updated = false;
             console.error(e);
@@ -203,6 +217,7 @@ async function syncJurinet() {
       jurinetOffset++;
     }
 
+    await juricaSource.close();
     await client.close();
 
     console.log(
@@ -234,7 +249,7 @@ async function syncJurica() {
     offset: juricaOffset,
     limit: juricaBatch,
     order: juricaOrder,
-    onlyTreated: true,
+    onlyTreated: false,
   });
   await juricaSource.close();
 

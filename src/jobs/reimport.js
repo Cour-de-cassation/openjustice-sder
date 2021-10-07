@@ -53,12 +53,17 @@ async function reimportJurinet(n) {
     useUnifiedTopology: true,
   });
   await client.connect();
+
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
+
+  const juricaSource = new JuricaOracle();
+  await juricaSource.connect();
 
   let newCount = 0;
   let updateCount = 0;
@@ -100,6 +105,11 @@ async function reimportJurinet(n) {
             });
             normalizedCount++;
           }
+          if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
+            for (let d = 0; d < row._decatt.length; d++) {
+              await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+            }
+          }
         } catch (e) {
           console.error(e);
           errorCount++;
@@ -130,6 +140,11 @@ async function reimportJurinet(n) {
             });
             normalizedCount++;
           }
+          if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
+            for (let d = 0; d < row._decatt.length; d++) {
+              await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+            }
+          }
         } catch (e) {
           console.error(e);
           errorCount++;
@@ -143,6 +158,7 @@ async function reimportJurinet(n) {
   );
 
   await client.close();
+  await juricaSource.close();
   await jurinetSource.close();
   return true;
 }
