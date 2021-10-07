@@ -41,11 +41,6 @@ async function main() {
   } catch (e) {
     console.error('Jurica import error', e);
   }
-  try {
-    // await importDecatt();
-  } catch (e) {
-    console.error('Decatt import error', e);
-  }
   console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
 }
