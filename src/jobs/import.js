@@ -32,17 +32,17 @@ function kill(code) {
 async function main() {
   console.log('OpenJustice - Start "import" job:', new Date().toLocaleString());
   try {
-    // await importJurinet();
+    await importJurinet();
   } catch (e) {
     console.error('Jurinet import error', e);
   }
   try {
-    // await importJurica();
+    await importJurica();
   } catch (e) {
     console.error('Jurica import error', e);
   }
   try {
-    await importDecatt();
+    // await importDecatt();
   } catch (e) {
     console.error('Decatt import error', e);
   }
