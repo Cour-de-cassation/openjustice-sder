@@ -48,7 +48,7 @@ async function main() {
 
 async function syncJurinet() {
   const jurinetOrder = 'DESC';
-  const jurinetBatch = 500;
+  const jurinetBatch = 1000;
   const jurinetSource = new JurinetOracle();
   let jurinetOffset = 0;
   try {
@@ -235,7 +235,7 @@ async function syncJurinet() {
 
 async function syncJurica() {
   const juricaOrder = 'DESC';
-  const juricaBatch = 500;
+  const juricaBatch = 1000;
   const juricaSource = new JuricaOracle();
   let juricaOffset = 0;
   try {
@@ -337,54 +337,48 @@ async function syncJurica() {
         duplicate = false;
       }
 
-      if (duplicate === false) {
-        let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-        if (normalized === null) {
+      if (duplicate === true) {
+        duplicateCount++;
+      }
+      let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+      if (normalized === null) {
+        try {
+          let normDec = await JuricaUtils.Normalize(row);
+          normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+          normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+          normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+          normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+          normDec._version = decisionsVersion;
+          if (duplicate === true) {
+            normDec.labelStatus = 'exported';
+          }
+          await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+          normalizeCount++;
+        } catch (e) {
+          console.error(e);
+          errorCount++;
+        }
+      } else if (normalized.locked === false) {
+        if (updated === true || normalized._version !== decisionsVersion) {
           try {
-            let normDec = await JuricaUtils.Normalize(row);
+            let normDec = await JuricaUtils.Normalize(row, normalized);
             normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
             normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
             normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
-            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            if (duplicate === true) {
+              normDec.labelStatus = 'exported';
+            }
+            await decisions.replaceOne({ _id: normalized._id }, normDec, {
+              bypassDocumentValidation: true,
+            });
             normalizeCount++;
           } catch (e) {
             console.error(e);
             errorCount++;
           }
-        } else if (normalized.locked === false) {
-          if (updated === true || normalized._version !== decisionsVersion) {
-            try {
-              let normDec = await JuricaUtils.Normalize(row, normalized);
-              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-              normDec._version = decisionsVersion;
-              await decisions.replaceOne({ _id: normalized._id }, normDec, {
-                bypassDocumentValidation: true,
-              });
-              normalizeCount++;
-            } catch (e) {
-              console.error(e);
-              errorCount++;
-            }
-          }
         }
-      } else {
-        let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-        if (normalized !== null && normalized.locked === false) {
-          /*
-          try {
-            await decisions.deleteOne({ sourceId: row._id, sourceName: 'jurica' });
-          } catch (e) {
-            console.error(e);
-            errorCount++;
-          }
-          */
-        }
-        duplicateCount++;
       }
 
       juricaOffset++;
