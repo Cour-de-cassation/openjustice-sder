@@ -1,6 +1,8 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
+const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
+
 const parser = require('fast-xml-parser');
 const he = require('he');
 
