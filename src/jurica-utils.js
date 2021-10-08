@@ -291,6 +291,7 @@ class JuricaUtils {
   }
 
   static async ImportDecatt(id, juricaSource, rawJurica, decisions) {
+    let hasChanges = false;
     try {
       let row = await juricaSource.getDecisionByID(id);
       if (row && row._id && row.IND_ANO === 0) {
@@ -299,6 +300,7 @@ class JuricaUtils {
           row._indexed = null;
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           console.log(`Add decatt ${id}`);
+          hasChanges = true;
         } else {
           row._indexed = null;
           await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
@@ -310,6 +312,7 @@ class JuricaUtils {
           normDec._version = decisionsVersion;
           await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           console.log(`Normalize decatt ${id}`);
+          hasChanges = true;
         } else {
           let normDec = await JuricaUtils.Normalize(row, normalized);
           normDec._version = decisionsVersion;
@@ -329,7 +332,7 @@ class JuricaUtils {
       } catch (e) {}
     }
 
-    return true;
+    return hasChanges;
   }
 }
 
