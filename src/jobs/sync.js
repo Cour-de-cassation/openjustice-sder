@@ -217,6 +217,8 @@ async function syncJurinet() {
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
+            normDec.dateCreation = new Date().toISOString();
+
             await decisions.replaceOne({ _id: normalized._id }, normDec, {
               bypassDocumentValidation: true,
             });
@@ -381,6 +383,7 @@ async function syncJurica() {
             normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
+            normDec.dateCreation = new Date().toISOString();
             if (duplicate === true) {
               normDec.labelStatus = 'exported';
             }
