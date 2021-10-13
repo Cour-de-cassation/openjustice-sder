@@ -57,19 +57,25 @@ async function reinjectJurinet() {
   let decision,
     successCount = 0,
     errorCount = 0;
-  const cursor = await decisions.find({ labelStatus: 'done', sourceName: 'jurinet' }, { allowDiskUse: true }).sort({ sourceId: -1});
+  const cursor = await decisions
+    .find({ labelStatus: 'done', sourceName: 'jurinet' }, { allowDiskUse: true })
+    .sort({ sourceId: -1 });
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
-	      console.log(`reinject decision ${decision.sourceId}...`)
+        console.log(`reinject decision ${decision.sourceId}...`);
         await jurinetSource.reinject(decision);
         const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;
+        reinjected.DT_ANO = new Date();
+        reinjected.DT_MODIF = new Date();
+        reinjected.DT_MODIF_ANO = new Date();
         await rawJurinet.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
         // The labelStatus of the decision goes from 'done' to 'exported'.
         // We don't do this in the 'reinject' method because we may need
         // to reinject some decisions independently of the Label workflow:
         decision.labelStatus = 'exported';
+        decision.dateCreation = new Date().toISOString();
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
@@ -114,6 +120,7 @@ async function reinjectJurica() {
         // We don't do this in the 'reinject' method because we may need
         // to reinject some decisions independently of the Label workflow:
         decision.labelStatus = 'exported';
+        decision.dateCreation = new Date().toISOString();
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
