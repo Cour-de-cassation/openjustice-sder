@@ -416,21 +416,26 @@ class JurinetUtils {
       IND_NOM_PROFESSIONEL: ['professionnelMagistratGreffier'],
     };
 
-    for (let key in occultations) {
-      if(key === "IND_PM" || key === "IND_NOM_PROFESSIONEL" || key === "IND_PRENOM_PROFESSIONEL") {
-        if(!document[key]) {
-          occultations[key].forEach((item) => {
-            normalizedDecision.occultation.categoriesToOmit.push(item);
-          });
-        }
-      } else {
-        if (!document[key] && document[key] !== null && document[key] !== undefined) {
-          occultations[key].forEach((item) => {
-            normalizedDecision.occultation.categoriesToOmit.push(item);
-          });
+    if(document._bloc_occultation) {
+      for (let key in occultations) {
+        if(key === "IND_PM" || key === "IND_NOM_PROFESSIONEL" || key === "IND_PRENOM_PROFESSIONEL") {
+          if(!document[key]) {
+            occultations[key].forEach((item) => {
+              normalizedDecision.occultation.categoriesToOmit.push(item);
+            });
+          }
+        } else {
+          if (!document[key] && document[key] !== null && document[key] !== undefined) {
+            occultations[key].forEach((item) => {
+              normalizedDecision.occultation.categoriesToOmit.push(item);
+            });
+          }
         }
       }
+    } else {
+      normalizedDecision.occultation.categoriesToOmit = ["personneMorale", "numeroSiretSiren", "professionnelMagistratGreffier"];
     }
+
 
     if (!!document.OCCULTATION_SUPPLEMENTAIRE) {
       normalizedDecision.occultation.additionalTerms = document.OCCULTATION_SUPPLEMENTAIRE;
