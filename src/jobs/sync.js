@@ -218,7 +218,6 @@ async function syncJurinet() {
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
             normDec.dateCreation = new Date().toISOString();
-
             await decisions.replaceOne({ _id: normalized._id }, normDec, {
               bypassDocumentValidation: true,
             });
