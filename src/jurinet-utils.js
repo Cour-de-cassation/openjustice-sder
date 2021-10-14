@@ -457,6 +457,14 @@ class JurinetUtils {
       normalizedDecision.formation = document.ID_FORMATION;
     }
 
+    if (document._natureAffaireCivil) {
+      normalizedDecision.natureAffaireCivil = document._natureAffaireCivil;
+    }
+
+    if (document._natureAffairePenal) {
+      normalizedDecision.natureAffairePenal = document._natureAffairePenal;
+    }
+
     if (!normalizedDecision.originalText) {
       throw new Error(`JurinetUtils.Normalize: Document '${normalizedDecision.sourceId}' has no text.`);
     }

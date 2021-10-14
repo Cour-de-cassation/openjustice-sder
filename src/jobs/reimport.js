@@ -32,18 +32,18 @@ function kill(code) {
 
 async function main(n) {
   console.log('OpenJustice - Start "reimport" job:', new Date().toLocaleString());
-  /*
   try {
     await reimportJurinet(n);
   } catch (e) {
     console.error('Jurinet reimport error', e);
   }
-  */
+  /*
   try {
     await reimportJurica(n);
   } catch (e) {
     console.error('Jurica reimport error', e);
   }
+  */
   console.log('OpenJustice - End "reimport" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
 }
@@ -71,9 +71,15 @@ async function reimportJurinet(n) {
   let skipCount = 0;
   let normalizedCount = 0;
   let wincicaCount = 0;
+  let jurinetResult;
 
-  console.log(`Get last ${n} month(s) decisions from Jurinet...`);
-  const jurinetResult = await jurinetSource.getLastNMonth(n);
+  if (n > 12) {
+    console.log(`Reimport Jurinet decision ${n}...`);
+    jurinetResult = [await jurinetSource.getDecisionByID(n)];
+  } else {
+    console.log(`Reimport last ${n} month(s) decisions from Jurinet...`);
+    jurinetResult = await jurinetSource.getLastNMonth(n);
+  }
 
   if (jurinetResult) {
     for (let i = 0; i < jurinetResult.length; i++) {
@@ -154,7 +160,7 @@ async function reimportJurinet(n) {
   }
 
   console.log(
-    `Done Reimporting ${n} month(s) of Jurinet - New: ${newCount}, Update: ${updateCount}, Normalized: ${normalizedCount}, WinciCA: ${wincicaCount}, Skip: ${skipCount}, Error: ${errorCount}).`,
+    `Done Reimporting Jurinet - New: ${newCount}, Update: ${updateCount}, Normalized: ${normalizedCount}, WinciCA: ${wincicaCount}, Skip: ${skipCount}, Error: ${errorCount}).`,
   );
 
   await client.close();
@@ -183,11 +189,11 @@ async function reimportJurica(n) {
   let duplicateCount = 0;
   let juricaResult;
 
-  if (n > 100) {
-    console.log(`Get Jurica decision ${n}...`);
+  if (n > 12) {
+    console.log(`Reimport Jurica decision ${n}...`);
     juricaResult = [await juricaSource.getDecisionByID(n)];
   } else {
-    console.log(`Get last ${n} month(s) decisions from Jurica...`);
+    console.log(`Reimport last ${n} month(s) decisions from Jurica...`);
     juricaResult = await juricaSource.getLastNMonth(n);
   }
 
@@ -288,7 +294,7 @@ async function reimportJurica(n) {
   }
 
   console.log(
-    `Done Reimporting ${n} month(s) of Jurica - New: ${newCount}, Update: ${updateCount}, Normalized: ${normalizedCount}, Duplicate: ${duplicateCount}, Skip: ${skipCount}, Error: ${errorCount}).`,
+    `Done Reimporting Jurica - New: ${newCount}, Update: ${updateCount}, Normalized: ${normalizedCount}, Duplicate: ${duplicateCount}, Skip: ${skipCount}, Error: ${errorCount}).`,
   );
 
   await client.close();
@@ -296,4 +302,4 @@ async function reimportJurica(n) {
   return true;
 }
 
-main(862302);
+main(/*862302*/);
