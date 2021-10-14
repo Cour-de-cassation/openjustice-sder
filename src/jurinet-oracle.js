@@ -226,6 +226,92 @@ class JurinetOracle {
         } catch (e) {
           data['_bloc_occultation'] = null;
         }
+
+        try {
+          // Inject "nature affaire" data (if any) into the document:
+          let numPourvoiCode;
+          let resultRow;
+          let civilNatCont;
+          let penalNatCont;
+          let civilNatId = null;
+          let penalNatId = null;
+
+          let numPourvoiQuery = `SELECT *
+            FROM NUMPOURVOI
+            WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
+          let numPourvoiResult = await this.connection.execute(numPourvoiQuery, [row[process.env.DB_ID_FIELD]], {
+            resultSet: true,
+          });
+          let numPourvoiRs = numPourvoiResult.resultSet;
+          while ((resultRow = await numPourvoiRs.getRow())) {
+            numPourvoiCode = resultRow.NUMPOURVOICODE;
+          }
+          await numPourvoiRs.close();
+
+          if (numPourvoiCode) {
+            let civQuery = `SELECT *
+              FROM GPCIV.AFF
+              WHERE GPCIV.AFF.CODE = :code`;
+            let civResult = await this.connection.execute(civQuery, [numPourvoiCode], {
+              resultSet: true,
+            });
+            let civRs = civResult.resultSet;
+            while ((resultRow = await civRs.getRow())) {
+              civilNatCont = resultRow.ID_MATIERE;
+            }
+            await civRs.close();
+
+            let penQuery = `SELECT *
+              FROM GPPEN.AFF
+              WHERE GPPEN.AFF.CODE = :code`;
+            let penResult = await this.connection.execute(penQuery, [numPourvoiCode], {
+              resultSet: true,
+            });
+            let penRs = penResult.resultSet;
+            while ((resultRow = await penRs.getRow())) {
+              penalNatCont = resultRow.ID_NATAFF;
+            }
+            await penRs.close();
+          }
+
+          if (civilNatCont) {
+            let finalCivilQuery = `SELECT *
+              FROM GRCIV.MATIERE
+              WHERE GRCIV.MATIERE.ID_MATIERE = :code`;
+            let finalCivilResult = await this.connection.execute(finalCivilQuery, [civilNatCont], {
+              resultSet: true,
+            });
+            let finalCivilRs = finalCivilResult.resultSet;
+            while ((resultRow = await finalCivilRs.getRow())) {
+              civilNatId = resultRow.ID_NATAFF;
+            }
+            await finalCivilRs.close();
+          }
+
+          if (penalNatCont) {
+            const { PenalOracle } = require('./penal-oracle');
+            const penalSource = new PenalOracle();
+            await penalSource.connect();
+            let finalPenalQuery = `SELECT *
+              FROM GRPEN.NATAFF
+              WHERE GRPEN.NATAFF.ID_NATAFF = :code`;
+            let finalPenalRrsult = await penalSource.connection.execute(finalPenalQuery, [penalNatCont], {
+              resultSet: true,
+            });
+            let finalPenalRs = finalPenalRrsult.resultSet;
+            while ((resultRow = await finalPenalRs.getRow())) {
+              penalNatId = resultRow.ID_NATAFF;
+            }
+            await finalPenalRs.close();
+            await penalSource.close();
+          }
+
+          data['_natureAffaireCivil'] = civilNatId;
+          data['_natureAffairePenal'] = penalNatId;
+        } catch (e) {
+          data['_natureAffaireCivil'] = null;
+          data['_natureAffairePenal'] = null;
+        }
       }
 
       return data;
