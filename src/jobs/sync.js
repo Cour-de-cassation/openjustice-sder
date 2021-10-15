@@ -156,6 +156,8 @@ async function syncJurinet() {
           'IND_LETTRE',
           'IND_COMMUNIQUE',
           'ID_FORMATION',
+          '_natureAffaireCivil',
+          '_natureAffairePenal',
         ];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
