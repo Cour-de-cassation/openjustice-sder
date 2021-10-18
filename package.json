@@ -22,9 +22,11 @@
     "oracledb": "^5.1.0",
     "walkdir": "^0.4.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "^27.3.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",

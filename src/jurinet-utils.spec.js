@@ -25,7 +25,7 @@ describe('JurinetUtils', () => {
 
 describe('ConvertOccultationBlockInCategoriesToOmit', () => {
   it('should return categories for block 1', () => {
-    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(1);
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : 1, chamberId: "SOC"});
 
     expect(categoriesToOmit.sort()).toEqual(
       ['professionnelMagistratGreffier'].sort(),
@@ -33,7 +33,7 @@ describe('ConvertOccultationBlockInCategoriesToOmit', () => {
   });
 
   it('should return categories for block 2', () => {
-    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(2);
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : 2, chamberId: "SOC"});
 
     expect(categoriesToOmit.sort()).toEqual(
       [
@@ -46,7 +46,7 @@ describe('ConvertOccultationBlockInCategoriesToOmit', () => {
   });
 
   it('should return categories for block 3', () => {
-    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(3);
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : 3, chamberId: "SOC"});
 
     expect(categoriesToOmit.sort()).toEqual(
       [
@@ -58,7 +58,7 @@ describe('ConvertOccultationBlockInCategoriesToOmit', () => {
   });
 
   it('should return categories for block 4', () => {
-    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(4);
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : 4, chamberId: "SOC"});
 
     expect(categoriesToOmit.sort()).toEqual(
       [
@@ -73,7 +73,7 @@ describe('ConvertOccultationBlockInCategoriesToOmit', () => {
   });
 
   it('should return categories for block null', () => {
-    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(null);
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : null, chamberId: "SOC"});
 
     expect(categoriesToOmit.sort()).toEqual(
       [
@@ -83,12 +83,22 @@ describe('ConvertOccultationBlockInCategoriesToOmit', () => {
       ].sort(),
     );
   });
+
+  it('should return categories for block 1 if chambre criminelle', () => {
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : null, chamberId: "CR"});
+
+    expect(categoriesToOmit.sort()).toEqual(
+      [
+        'professionnelMagistratGreffier',
+      ].sort(),
+    );
+  });
 });
 
 
 function buildJurinetXml(textArrets) {
   const textArretsWithTags = textArrets.map((textArret) => `<TEXTE_ARRET>${textArret}</TEXTE_ARRET>`);
-  const xmlDocument = `<DOCUMENT>${textArretsWithTags.join('')}</DOCUMENT>`;
+  const xmlDocument = `<DOCUMENT><CAT_PUB>D</CAT_PUB>${textArretsWithTags.join('')}</DOCUMENT>`;
 
   return xmlDocument;
 }
