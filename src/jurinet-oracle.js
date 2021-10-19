@@ -231,8 +231,8 @@ class JurinetOracle {
           // Inject "nature affaire" data (if any) into the document:
           let numPourvoiCode;
           let resultRow;
-          let civilNatCont;
-          let penalNatCont;
+          let civilNatCont = null;
+          let penalNatCont = null;
           let civilNatId = null;
           let penalNatId = null;
 
@@ -308,9 +308,11 @@ class JurinetOracle {
 
           data['_natureAffaireCivil'] = civilNatId;
           data['_natureAffairePenal'] = penalNatId;
+          data['_codeMatiereCivil'] = civilNatCont;
         } catch (e) {
           data['_natureAffaireCivil'] = null;
           data['_natureAffairePenal'] = null;
+          data['_codeMatiereCivil'] = null;
         }
       }
 

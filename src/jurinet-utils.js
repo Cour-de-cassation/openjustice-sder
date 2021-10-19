@@ -279,6 +279,9 @@ class JurinetUtils {
       endCaseCode: null,
       NACCode: null,
       public: null,
+      natureAffaireCivil: null,
+      natureAffairePenal: null,
+      codeMatiereCivil: null,
     };
 
     if (previousVersion) {
@@ -463,6 +466,10 @@ class JurinetUtils {
 
     if (document._natureAffairePenal) {
       normalizedDecision.natureAffairePenal = document._natureAffairePenal;
+    }
+
+    if (document._codeMatiereCivil) {
+      normalizedDecision.codeMatiereCivil = document._codeMatiereCivil;
     }
 
     if (!normalizedDecision.originalText) {
