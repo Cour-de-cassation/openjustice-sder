@@ -432,7 +432,7 @@ class JurinetUtils {
     //   }
     // }
 
-    normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(document._bloc_occultation)
+    normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock: document._bloc_occultation, chamberId: document.ID_CHAMBRE})
 
     if (!!document.OCCULTATION_SUPPLEMENTAIRE) {
       normalizedDecision.occultation.additionalTerms = document.OCCULTATION_SUPPLEMENTAIRE;
@@ -463,7 +463,7 @@ class JurinetUtils {
   }
 }
 
-function ConvertOccultationBlockInCategoriesToOmit(occultationBlock) {
+function ConvertOccultationBlockInCategoriesToOmit({occultationBlock, chamberId}) {
   let categoriesToOmit = ['professionnelMagistratGreffier'];
   if (occultationBlock >= 1 && occultationBlock <= 4) {
     switch (occultationBlock) {
@@ -483,7 +483,7 @@ function ConvertOccultationBlockInCategoriesToOmit(occultationBlock) {
         );
         break;
     }
-  } else {
+  } else if(chamberId !== "CR"){
     categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
   }
   return categoriesToOmit;
