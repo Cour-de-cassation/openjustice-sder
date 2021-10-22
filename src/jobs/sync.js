@@ -323,6 +323,7 @@ async function syncJurica() {
           'JDEC_CODNAC',
           'JDEC_IND_DEC_PUB',
           'JDEC_COLL_PARTIES',
+          '_bloc_occultation',
         ];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {

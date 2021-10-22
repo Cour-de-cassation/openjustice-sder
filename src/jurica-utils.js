@@ -230,6 +230,45 @@ class JuricaUtils {
       }
     }
 
+    if (document._bloc_occultation) {
+      normalizedDecision.blocOccultation = document._bloc_occultation;
+    }
+
+    // SHOULD WORK THE SAME AS JURINET:
+    // const occultations = {
+    //   IND_PM: ['personneMorale', 'numeroSiretSiren'],
+    //   IND_ADRESSE: ['adresse', 'localite', 'etablissement'],
+    //   IND_DT_NAISSANCE: ['dateNaissance'],
+    //   IND_DT_DECE: ['dateDeces'],
+    //   IND_DT_MARIAGE: ['dateMariage'],
+    //   IND_IMMATRICULATION: ['plaqueImmatriculation'],
+    //   IND_CADASTRE: ['cadastre'],
+    //   IND_CHAINE: ['compteBancaire', 'telephoneFax', 'insee'],
+    //   IND_COORDONNEE_ELECTRONIQUE: ['email'],
+    //   IND_PRENOM_PROFESSIONEL: ['professionnelMagistratGreffier'],
+    //   IND_NOM_PROFESSIONEL: ['professionnelMagistratGreffier'],
+    // };
+
+    // for (let key in occultations) {
+    //   if(key === "IND_PM" || key === "IND_NOM_PROFESSIONEL" || key === "IND_PRENOM_PROFESSIONEL") {
+    //     if(!document[key]) {
+    //       occultations[key].forEach((item) => {
+    //         normalizedDecision.occultation.categoriesToOmit.push(item);
+    //       });
+    //     }
+    //   } else {
+    //     if (!document[key] && document[key] !== null && document[key] !== undefined) {
+    //       occultations[key].forEach((item) => {
+    //         normalizedDecision.occultation.categoriesToOmit.push(item);
+    //       });
+    //     }
+    //   }
+    // }
+
+    normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmitForJurica(
+      document._bloc_occultation,
+    );
+
     if (!normalizedDecision.originalText) {
       throw new Error(`JuricaUtils.Normalize: Document '${normalizedDecision.sourceId}' has no text.`);
     }
@@ -336,4 +375,26 @@ class JuricaUtils {
   }
 }
 
+function ConvertOccultationBlockInCategoriesToOmitForJurica(occultationBlock) {
+  let categoriesToOmit = ['professionnelMagistratGreffier'];
+  if (occultationBlock >= 1 && occultationBlock <= 4) {
+    switch (occultationBlock) {
+      case 2:
+        categoriesToOmit.push('dateNaissance', 'dateMariage', 'dateDeces');
+        break;
+      case 3:
+        categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
+        break;
+      case 4:
+        categoriesToOmit.push('dateNaissance', 'dateMariage', 'dateDeces', 'personneMorale', 'numeroSiretSiren');
+        break;
+    }
+  } else {
+    categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
+  }
+  return categoriesToOmit;
+}
+
 exports.JuricaUtils = JuricaUtils;
+
+exports.ConvertOccultationBlockInCategoriesToOmitForJurica = ConvertOccultationBlockInCategoriesToOmitForJurica;

@@ -106,6 +106,42 @@ class JuricaOracle {
         } catch (e) {
           data['_portalis'] = null;
         }
+
+        try {
+          // Inject "bloc_occultation" data (if any) into the document:
+          let blocId = null;
+          if (row.JDEC_CODNAC) {
+            const NACquery = `SELECT *
+              FROM JCA_NAC
+              WHERE JCA_NAC.JNAC_F22CODE = :code`;
+            const NACResult = await this.connection.execute(NACquery, [row.JDEC_CODNAC]);
+            if (NACResult && NACResult.rows && NACResult.rows.length > 0) {
+              const indexBloc = NACResult.rows[0].JNAC_IND_BLOC;
+              if (indexBloc) {
+                const { GRCOMOracle } = require('./grcom-oracle');
+                const GRCOMSource = new GRCOMOracle();
+                await GRCOMSource.connect();
+                const GRCOMQuery = `SELECT *
+                  FROM BLOCS_OCCULT_COMPL
+                  WHERE BLOCS_OCCULT_COMPL.ID_BLOC = :code`;
+                const GRCOMResult = await GRCOMSource.connection.execute(GRCOMQuery, [indexBloc]);
+                if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
+                  blocId = GRCOMResult.rows[0].ID_BLOC;
+                  let occultations = this.buildRawData(GRCOMResult.rows[0], false);
+                  for (let key in occultations) {
+                    if (key !== 'ID_BLOC' && data[key] === undefined) {
+                      data[key] = occultations[key];
+                    }
+                  }
+                }
+                await GRCOMSource.close();
+              }
+            }
+          }
+          data['_bloc_occultation'] = blocId;
+        } catch (e) {
+          data['_bloc_occultation'] = null;
+        }
       }
       return data;
     } else {
