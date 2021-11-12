@@ -127,7 +127,7 @@ class JuricaOracle {
                 const GRCOMResult = await GRCOMSource.connection.execute(GRCOMQuery, [indexBloc]);
                 if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
                   blocId = GRCOMResult.rows[0].ID_BLOC;
-                  let occultations = this.buildRawData(GRCOMResult.rows[0], false);
+                  let occultations = await this.buildRawData(GRCOMResult.rows[0], false);
                   for (let key in occultations) {
                     if (key !== 'ID_BLOC' && data[key] === undefined) {
                       data[key] = occultations[key];
