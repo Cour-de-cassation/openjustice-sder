@@ -18,7 +18,7 @@ class GRCOMOracle {
       this.connection = await oracledb.getConnection({
         user: process.env.GRCOM_DB_USER,
         password: process.env.GRCOM_DB_PASS,
-        connectString: process.env.JURINET_DB_HOST,
+        connectString: process.env.DB_HOST,
       });
       this.connected = true;
     } else {
