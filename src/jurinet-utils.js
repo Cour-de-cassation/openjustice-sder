@@ -478,6 +478,56 @@ class JurinetUtils {
 
     return normalizedDecision;
   }
+
+  static GetDecisionNumberForIndexing(decision, zoning) {
+    let number = null;
+    if (
+      zoning &&
+      !zoning.detail &&
+      zoning.introduction_subzonage &&
+      zoning.introduction_subzonage.pourvoi &&
+      Array.isArray(zoning.introduction_subzonage.pourvoi) &&
+      zoning.introduction_subzonage.pourvoi.length > 0
+    ) {
+      number = zoning.introduction_subzonage.pourvoi;
+    } else if (decision.appeals && Array.isArray(decision.appeals) && decision.appeals.length > 0) {
+      number = decision.appeals;
+    }
+    if (Array.isArray(number)) {
+      number = number.map((x) => {
+        return `${x}`;
+      });
+      number.sort((a, b) => {
+        a = parseInt(a.replace(/\D/gm, '').trim(), 10);
+        b = parseInt(b.replace(/\D/gm, '').trim(), 10);
+        if (a < b) {
+          return -1;
+        }
+        if (a > b) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+    return number;
+  }
+
+  static GetDecisionDateForIndexing(date) {
+    let dateForIndexing = null;
+    try {
+      date = new Date(Date.parse(date));
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+      date.setHours(date.getHours() + 2);
+      dateForIndexing = date.getFullYear() + '-';
+      dateForIndexing += (date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+      dateForIndexing += date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+    } catch (e) {
+      dateForIndexing = null;
+    }
+    return dateForIndexing;
+  }
 }
 
 function ConvertOccultationBlockInCategoriesToOmit(occultationBlock) {

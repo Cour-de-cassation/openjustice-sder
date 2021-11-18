@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JuricaOracle } = require('../jurica-oracle');
+const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -79,6 +80,7 @@ async function reinjectJurinet() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
+        await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         successCount++;
       }
     } catch (e) {
@@ -124,6 +126,7 @@ async function reinjectJurica() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
+        await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         successCount++;
       }
     } catch (e) {

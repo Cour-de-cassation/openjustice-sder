@@ -276,6 +276,47 @@ class JuricaUtils {
     return normalizedDecision;
   }
 
+  static GetDecisionNumberForIndexing(decision) {
+    let number = null;
+    try {
+      number = [decision.registerNumber.split(' ')[0]];
+    } catch (e) {}
+    if (Array.isArray(number)) {
+      number = number.map((x) => {
+        return `${x}`;
+      });
+      number.sort((a, b) => {
+        a = parseInt(a.replace(/\D/gm, '').trim(), 10);
+        b = parseInt(b.replace(/\D/gm, '').trim(), 10);
+        if (a < b) {
+          return -1;
+        }
+        if (a > b) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+    return number;
+  }
+
+  static GetDecisionDateForIndexing(date) {
+    let dateForIndexing = null;
+    try {
+      date = new Date(Date.parse(date));
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+      date.setHours(date.getHours() + 2);
+      dateForIndexing = date.getFullYear() + '-';
+      dateForIndexing += (date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+      dateForIndexing += date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+    } catch (e) {
+      dateForIndexing = null;
+    }
+    return dateForIndexing;
+  }
+
   static async GetJurinetDuplicate(id) {
     const { MongoClient } = require('mongodb');
 
@@ -330,26 +371,47 @@ class JuricaUtils {
   }
 
   static async ImportDecatt(id, juricaSource, rawJurica, decisions) {
+    const { JudilibreIndex } = require('./judilibre-index');
+
     let hasChanges = false;
     try {
       let row = await juricaSource.getDecisionByID(id);
       if (row && row._id && row.IND_ANO === 0) {
+        let duplicate = false;
+        let duplicateId = null;
+
+        try {
+          duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
+          if (duplicateId !== null) {
+            duplicateId = `jurinet:${duplicateId}`;
+            duplicate = true;
+          } else {
+            duplicate = false;
+          }
+        } catch (e) {
+          duplicate = false;
+        }
+
         let raw = await rawJurica.findOne({ _id: row._id });
         if (raw === null) {
           row._indexed = null;
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
+          await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica (decatt)');
           console.log(`Add decatt ${id}`);
           hasChanges = true;
         } else {
           row._indexed = null;
           await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+          await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'update in rawJurica (decatt)');
           console.log(`Update decatt ${id}`);
         }
         let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
         if (normalized === null) {
           let normDec = await JuricaUtils.Normalize(row);
           normDec._version = decisionsVersion;
-          await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+          const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+          normDec._id = insertResult.insertedId;
+          await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
           console.log(`Normalize decatt ${id}`);
           hasChanges = true;
         } else {
@@ -358,6 +420,8 @@ class JuricaUtils {
           await decisions.replaceOne({ _id: normalized._id }, normDec, {
             bypassDocumentValidation: true,
           });
+          normDec._id = normalized._id;
+          await JudilibreIndex.updateDecisionDocument(normDec, duplicateId, 'update in decisions (decatt)');
           console.log(`Re-normalize decatt ${id} (${normalized._id})`);
         }
         await juricaSource.markAsImported(row._id);
