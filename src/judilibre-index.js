@@ -28,8 +28,14 @@ class JudilibreIndex {
       public: true,
       date: JurinetUtils.GetDecisionDateForIndexing(normalized.dateDecision),
       duplicates: [],
+      decatt: [],
       log: [],
     };
+    if (doc._decatt && Array.isArray(doc._decatt) && doc._decatt.length > 0) {
+      for (let d = 0; d < doc._decatt.length; d++) {
+        indexedDoc.decatt.push(`jurica:${row._decatt[d]}`);
+      }
+    }
     if (duplicateId) {
       if (Array.isArray(duplicateId)) {
         indexedDoc.duplicates = duplicateId;
@@ -63,6 +69,11 @@ class JudilibreIndex {
           indexedDoc.duplicates.push(item);
         }
       });
+      existingDoc.decatt.forEach((item) => {
+        if (indexedDoc.decatt.indexOf(item) === -1) {
+          indexedDoc.decatt.push(item);
+        }
+      });
       indexedDoc.log.unshift({
         date: new Date(),
         msg: msg,
@@ -91,6 +102,7 @@ class JudilibreIndex {
       public: null,
       date: JuricaUtils.GetDecisionDateForIndexing(normalized.dateDecision),
       duplicates: [],
+      decatt: [],
       log: [],
     };
     if (duplicateId) {
@@ -124,6 +136,11 @@ class JudilibreIndex {
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
+        }
+      });
+      existingDoc.decatt.forEach((item) => {
+        if (indexedDoc.decatt.indexOf(item) === -1) {
+          indexedDoc.decatt.push(item);
         }
       });
       indexedDoc.log.unshift({
