@@ -397,13 +397,11 @@ class JuricaUtils {
           row._indexed = null;
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica (decatt)');
-          console.log(`Add decatt ${id}`);
           hasChanges = true;
         } else {
           row._indexed = null;
           await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
           await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'update in rawJurica (decatt)');
-          console.log(`Update decatt ${id}`);
         }
         let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
         if (normalized === null) {
@@ -412,7 +410,6 @@ class JuricaUtils {
           const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           normDec._id = insertResult.insertedId;
           await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
-          console.log(`Normalize decatt ${id}`);
           hasChanges = true;
         } else {
           let normDec = await JuricaUtils.Normalize(row, normalized);
@@ -422,11 +419,8 @@ class JuricaUtils {
           });
           normDec._id = normalized._id;
           await JudilibreIndex.updateDecisionDocument(normDec, duplicateId, 'update in decisions (decatt)');
-          console.log(`Re-normalize decatt ${id} (${normalized._id})`);
         }
         await juricaSource.markAsImported(row._id);
-      } else {
-        console.log(`Skip decatt ${id}: IND_ANO=${row.IND_ANO}`);
       }
     } catch (e) {
       console.error(`Could not process decatt ${id}`, e);

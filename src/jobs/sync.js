@@ -239,6 +239,24 @@ async function syncJurinet() {
         }
       }
 
+      let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id}` });
+      if (existingDoc === null) {
+        rawDocument = await raw.findOne({ _id: row._id });
+        normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+        if (rawDocument && normalized) {
+          const indexedDoc = await JudilibreIndex.buildJurinetDocument(rawDocument, null);
+          indexedDoc.sderId = normalized._id;
+          if (rawDocument._indexed === true) {
+            indexedDoc.judilibreId = normalized._id.valueOf();
+          }
+          indexedDoc.log.unshift({
+            date: new Date(),
+            msg: 'index Jurinet stock (sync)',
+          });
+          await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+        }
+      }
+
       jurinetOffset++;
     }
 
@@ -414,6 +432,24 @@ async function syncJurica() {
             console.error(e);
             errorCount++;
           }
+        }
+      }
+
+      let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+      if (existingDoc === null) {
+        rawDocument = await raw.findOne({ _id: row._id });
+        normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+        if (rawDocument && normalized) {
+          const indexedDoc = await JudilibreIndex.buildJuricaDocument(rawDocument, duplicateId);
+          indexedDoc.sderId = normalized._id;
+          if (rawDocument._indexed === true) {
+            indexedDoc.judilibreId = normalized._id.valueOf();
+          }
+          indexedDoc.log.unshift({
+            date: new Date(),
+            msg: 'index Jurica stock (sync)',
+          });
+          await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
         }
       }
 
