@@ -18,7 +18,9 @@ class JudilibreIndex {
     const normalized = await JurinetUtils.Normalize(doc);
     const indexedDoc = {
       _id: `jurinet:${doc._id}`,
-      reference: JurinetUtils.GetDecisionNumberForIndexing(normalized, normalized.zoning),
+      reference: JurinetUtils.GetDecisionNumberForIndexing(normalized, normalized.zoning).map((item) => {
+        return item.replace(/\D/gm, '').trim();
+      }),
       sderId: null,
       judilibreId: null,
       ccass: doc.TYPE_ARRET === 'CC',
@@ -79,7 +81,9 @@ class JudilibreIndex {
     const normalized = await JuricaUtils.Normalize(doc);
     const indexedDoc = {
       _id: `jurica:${doc._id}`,
-      reference: JuricaUtils.GetDecisionNumberForIndexing(normalized),
+      reference: JuricaUtils.GetDecisionNumberForIndexing(normalized).map((item) => {
+        return item.replace(/\D/gm, '').trim();
+      }),
       sderId: null,
       judilibreId: null,
       ccass: false,
