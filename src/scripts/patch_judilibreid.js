@@ -36,10 +36,10 @@ async function main() {
 async function patch() {
   const result = await JudilibreIndex.find('mainIndex', { judilibreId: { $ne: null } });
 
-  result.forEach((indexedDoc) => {
-    if (typeof indexedDoc.judilibreId === 'string' && /ObjectID/.test(indexedDoc.judilibreId)) {
-      indexedDoc.judilibreId = indexedDoc.judilibreId.replace(/ObjectID\("([a-z0-9]+)"\)/, '$1').trim();
-      console.log(indexedDoc);
+  result.forEach(async (indexedDoc) => {
+    if (typeof indexedDoc.judilibreId !== 'string') {
+      indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
+      console.log(indexedDoc.judilibreId, typeof indexedDoc.judilibreId);
     }
   });
 
