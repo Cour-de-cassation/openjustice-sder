@@ -39,7 +39,7 @@ async function main() {
     console.error('Jurinet sync error', e);
   }
   try {
-    // await syncJurica();
+    // await syncJurica(); // @TODO
   } catch (e) {
     console.error('Jurica sync error', e);
   }
@@ -89,7 +89,6 @@ async function syncJurinet() {
       let rawDocument = await raw.findOne({ _id: row._id });
       let updated = false;
 
-      /*
       if (rawDocument === null) {
         try {
           row._indexed = null;
@@ -252,9 +251,6 @@ async function syncJurinet() {
           await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
         }
       }
-      */
-
-      errorCount++;
 
       let modifTime = DateTime.fromJSDate(row.DT_MODIF);
       jurinetLastDate = DateTime.max(jurinetLastDate, modifTime);
@@ -287,7 +283,7 @@ async function syncJurica() {
   }
 
   await juricaSource.connect();
-  const juricaResult = await juricaSource.getModifiedSince(juricaLastDate.toJSDate());
+  const juricaResult = await juricaSource.getModifiedSince(juricaLastDate.toJSDate()); // @TODO
   await juricaSource.close();
 
   if (juricaResult) {
@@ -315,7 +311,6 @@ async function syncJurica() {
       let duplicate = false;
       let duplicateId = null;
 
-      /*
       try {
         duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
         if (duplicateId !== null) {
@@ -448,11 +443,8 @@ async function syncJurica() {
           await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
         }
       }
-      */
 
-      errorCount++;
-
-      let modifTime = DateTime.fromISO(row.JDEC_DATE_MAJ);
+      let modifTime = DateTime.fromISO(row.JDEC_DATE_MAJ); // @TODO
       juricaLastDate = DateTime.max(juricaLastDate, modifTime);
     }
 
