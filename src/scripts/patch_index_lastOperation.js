@@ -41,19 +41,10 @@ async function patch() {
     console.log(typeof indexedDoc.log[0].date, indexedDoc.log[0].date);
     let lastOperation = DateTime.fromJSDate(indexedDoc.log[0].date);
     console.log(lastOperation.toISODate());
-
-    /*
-    if (typeof indexedDoc.judilibreId !== 'string') {
-      indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
-      indexedDoc.log.unshift({
-        date: new Date(),
-        msg: 'patch judilibreId',
-      });
-      await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
-        bypassDocumentValidation: true,
-      });
-    }
-    */
+    indexedDoc.lastOperation = lastOperation.toISODate();
+    await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
+      bypassDocumentValidation: true,
+    });
   });
 
   return true;
