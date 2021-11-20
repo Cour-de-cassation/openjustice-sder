@@ -10,7 +10,7 @@ const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
-
+const { DateTime } = require('luxon');
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
 let selfKill = setTimeout(cancel, ms('1h'));
@@ -39,7 +39,7 @@ async function main() {
     console.error('Jurinet sync error', e);
   }
   try {
-    await syncJurica();
+    // await syncJurica();
   } catch (e) {
     console.error('Jurica sync error', e);
   }
@@ -48,23 +48,18 @@ async function main() {
 }
 
 async function syncJurinet() {
-  const jurinetOrder = 'DESC';
-  const jurinetBatch = 1000;
   const jurinetSource = new JurinetOracle();
-  let jurinetOffset = 0;
+  let now = DateTime.now();
+  let jurinetLastDate;
+
   try {
-    jurinetOffset = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'jurinet.offset')).toString(), 10);
+    jurinetLastDate = DateTime.fromISO(fs.readFileSync(path.join(__dirname, 'data', 'jurinet.lastDate')).toString());
   } catch (ignore) {
-    jurinetOffset = 0;
+    jurinetLastDate = now.minus({ days: 1 });
   }
 
   await jurinetSource.connect();
-  const jurinetResult = await jurinetSource.getBatch({
-    offset: jurinetOffset,
-    limit: jurinetBatch,
-    order: jurinetOrder,
-    onlyTreated: false,
-  });
+  const jurinetResult = await jurinetSource.getModifiedSince(jurinetLastDate.toJSDate());
   await jurinetSource.close();
 
   if (jurinetResult) {
@@ -81,7 +76,7 @@ async function syncJurinet() {
     const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-    console.log(`Syncing Jurinet (${jurinetOffset}-${jurinetOffset + jurinetBatch})...`);
+    console.log(`Syncing Jurinet (${jurinetResult.length} decisions modified since ${jurinetLastDate.toISODate()})...`);
 
     let newCount = 0;
     let updateCount = 0;
@@ -94,6 +89,7 @@ async function syncJurinet() {
       let rawDocument = await raw.findOne({ _id: row._id });
       let updated = false;
 
+      /*
       if (rawDocument === null) {
         try {
           row._indexed = null;
@@ -256,8 +252,12 @@ async function syncJurinet() {
           await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
         }
       }
+      */
 
-      jurinetOffset++;
+      errorCount++;
+
+      let modifTime = DateTime.fromJSDate(row.DT_MODIF);
+      jurinetLastDate = DateTime.max(jurinetLastDate, modifTime);
     }
 
     await juricaSource.close();
@@ -268,32 +268,26 @@ async function syncJurinet() {
     );
   } else {
     console.log(`Done Syncing Jurinet - Empty round.`);
-    jurinetOffset = 0;
   }
 
-  fs.writeFileSync(path.join(__dirname, 'data', 'jurinet.offset'), `${jurinetOffset}`);
+  fs.writeFileSync(path.join(__dirname, 'data', 'jurinet.lastDate'), jurinetLastDate.toISO());
 
   return true;
 }
 
 async function syncJurica() {
-  const juricaOrder = 'DESC';
-  const juricaBatch = 1000;
   const juricaSource = new JuricaOracle();
-  let juricaOffset = 0;
+  let now = DateTime.now();
+  let juricaLastDate;
+
   try {
-    juricaOffset = parseInt(fs.readFileSync(path.join(__dirname, 'data', 'jurica.offset')).toString(), 10);
+    juricaLastDate = DateTime.fromISO(fs.readFileSync(path.join(__dirname, 'data', 'jurica.lastDate')).toString());
   } catch (ignore) {
-    juricaOffset = 0;
+    juricaLastDate = now.minus({ days: 1 });
   }
 
   await juricaSource.connect();
-  const juricaResult = await juricaSource.getBatch({
-    offset: juricaOffset,
-    limit: juricaBatch,
-    order: juricaOrder,
-    onlyTreated: false,
-  });
+  const juricaResult = await juricaSource.getModifiedSince(juricaLastDate.toJSDate());
   await juricaSource.close();
 
   if (juricaResult) {
@@ -306,7 +300,7 @@ async function syncJurica() {
     const raw = database.collection(process.env.MONGO_JURICA_COLLECTION);
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-    console.log(`Syncing Jurica (${juricaOffset}-${juricaOffset + juricaBatch})...`);
+    console.log(`Syncing Jurica (${juricaResult.length} decisions modified since ${juricaLastDate.toISODate()})...`);
 
     let newCount = 0;
     let updateCount = 0;
@@ -321,6 +315,7 @@ async function syncJurica() {
       let duplicate = false;
       let duplicateId = null;
 
+      /*
       try {
         duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
         if (duplicateId !== null) {
@@ -453,8 +448,12 @@ async function syncJurica() {
           await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
         }
       }
+      */
 
-      juricaOffset++;
+      errorCount++;
+
+      let modifTime = DateTime.fromISO(row.JDEC_DATE_MAJ);
+      juricaLastDate = DateTime.max(juricaLastDate, modifTime);
     }
 
     await client.close();
@@ -464,10 +463,9 @@ async function syncJurica() {
     );
   } else {
     console.log(`Done Syncing Jurica - Empty round.`);
-    juricaOffset = 0;
   }
 
-  fs.writeFileSync(path.join(__dirname, 'data', 'jurica.offset'), `${juricaOffset}`);
+  fs.writeFileSync(path.join(__dirname, 'data', 'jurica.lastDate'), juricaLastDate.toISO());
 
   return true;
 }

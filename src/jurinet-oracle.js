@@ -377,6 +377,49 @@ class JurinetOracle {
   }
 
   /**
+   * Get all decisions from Jurinet that have been modified since the given date.
+   *
+   * @returns {Array} An array of documents (with UTF-8 encoded content)
+   */
+  async getModifiedSince(date) {
+    if (this.connected === true && this.connection !== null) {
+      let strDate = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+      strDate += '/' + (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
+      strDate += '/' + date.getFullYear();
+
+      const query = `SELECT *
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
+        AND ${process.env.DB_TABLE}.DT_MODIF >= TO_DATE('${strDate}', 'DD/MM/YYYY')
+        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        if (this.filter(resultRow)) {
+          rows.push(await this.buildRawData(resultRow, true));
+        }
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurinet.getModifiedSince: not connected.');
+    }
+  }
+
+  /**
    * Get all decisions from Jurinet from the last N months.
    *
    * @returns {Array} An array of documents (with UTF-8 encoded content)

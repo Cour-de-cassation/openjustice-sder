@@ -203,6 +203,48 @@ class JuricaOracle {
   }
 
   /**
+   * Get all decisions from Jurica that have been modified since the given date.
+   *
+   * @returns {Array} An array of documents (with UTF-8 encoded content)
+   */
+  async getModifiedSince(date) {
+    if (this.connected === true && this.connection !== null) {
+      let strDate = date.getFullYear();
+      strDate += '-' + (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
+      strDate += '-' + (date.getDate() < 10 ? '0' + date.getDate() : date.getDate());
+
+      const query = `SELECT *
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_MAJ >= '${strDate}'
+        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        const data = await this.buildRawData(resultRow, true);
+        rows.push(data);
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurica.getModifiedSince: not connected.');
+    }
+  }
+
+  /**
    * Get all decisions from Jurica from the last N months.
    *
    * @returns {Array} An array of documents (with UTF-8 encoded content)
