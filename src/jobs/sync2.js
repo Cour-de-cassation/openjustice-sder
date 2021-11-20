@@ -247,6 +247,8 @@ async function syncJurinet() {
               indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
             }
           }
+          const lastOperation = DateTime.fromJSDate(new Date());
+          indexedDoc.lastOperation = lastOperation.toISODate();
           indexedDoc.log.unshift({
             date: new Date(),
             msg: 'index Jurinet stock (sync)',
@@ -442,6 +444,8 @@ async function syncJurica() {
               indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
             }
           }
+          const lastOperation = DateTime.fromJSDate(new Date());
+          indexedDoc.lastOperation = lastOperation.toISODate();
           indexedDoc.log.unshift({
             date: new Date(),
             msg: 'index Jurica stock (sync)',

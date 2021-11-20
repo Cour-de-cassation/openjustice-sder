@@ -9,6 +9,7 @@ const { JuricaOracle } = require('../jurica-oracle');
 const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
+const { DateTime } = require('luxon');
 const ms = require('ms');
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
@@ -252,6 +253,8 @@ async function syncJurinet() {
               indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
             }
           }
+          const lastOperation = DateTime.fromJSDate(new Date());
+          indexedDoc.lastOperation = lastOperation.toISODate();
           indexedDoc.log.unshift({
             date: new Date(),
             msg: 'index Jurinet stock (sync)',
@@ -452,6 +455,8 @@ async function syncJurica() {
               indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
             }
           }
+          const lastOperation = DateTime.fromJSDate(new Date());
+          indexedDoc.lastOperation = lastOperation.toISODate();
           indexedDoc.log.unshift({
             date: new Date(),
             msg: 'index Jurica stock (sync)',

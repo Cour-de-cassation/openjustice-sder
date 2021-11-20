@@ -1,6 +1,7 @@
 const { MongoClient } = require('mongodb');
 const { JurinetUtils } = require('./jurinet-utils');
 const { JuricaUtils } = require('./jurica-utils');
+const { DateTime } = require('luxon');
 
 class JudilibreIndex {
   constructor() {
@@ -30,6 +31,7 @@ class JudilibreIndex {
       duplicates: [],
       decatt: [],
       log: [],
+      lastOperation: null,
     };
     if (doc._decatt && Array.isArray(doc._decatt) && doc._decatt.length > 0) {
       for (let d = 0; d < doc._decatt.length; d++) {
@@ -48,6 +50,8 @@ class JudilibreIndex {
 
   async indexJurinetDocument(doc, duplicateId, msg) {
     const indexedDoc = await this.buildJurinetDocument(doc, duplicateId);
+    const lastOperation = DateTime.fromJSDate(new Date());
+    indexedDoc.lastOperation = lastOperation.toISODate();
     indexedDoc.log.unshift({
       date: new Date(),
       msg: msg,
@@ -74,12 +78,16 @@ class JudilibreIndex {
           indexedDoc.decatt.push(item);
         }
       });
+      const lastOperation = DateTime.fromJSDate(new Date());
+      indexedDoc.lastOperation = lastOperation.toISODate();
       indexedDoc.log.unshift({
         date: new Date(),
         msg: msg,
       });
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
+      const lastOperation = DateTime.fromJSDate(new Date());
+      indexedDoc.lastOperation = lastOperation.toISODate();
       indexedDoc.log.unshift({
         date: new Date(),
         msg: msg,
@@ -104,6 +112,7 @@ class JudilibreIndex {
       duplicates: [],
       decatt: [],
       log: [],
+      lastOperation: null,
     };
     if (duplicateId) {
       if (Array.isArray(duplicateId)) {
@@ -117,6 +126,8 @@ class JudilibreIndex {
 
   async indexJuricaDocument(doc, duplicateId, msg) {
     const indexedDoc = await this.buildJuricaDocument(doc, duplicateId);
+    const lastOperation = DateTime.fromJSDate(new Date());
+    indexedDoc.lastOperation = lastOperation.toISODate();
     indexedDoc.log.unshift({
       date: new Date(),
       msg: msg,
@@ -143,12 +154,16 @@ class JudilibreIndex {
           indexedDoc.decatt.push(item);
         }
       });
+      const lastOperation = DateTime.fromJSDate(new Date());
+      indexedDoc.lastOperation = lastOperation.toISODate();
       indexedDoc.log.unshift({
         date: new Date(),
         msg: msg,
       });
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
+      const lastOperation = DateTime.fromJSDate(new Date());
+      indexedDoc.lastOperation = lastOperation.toISODate();
       indexedDoc.log.unshift({
         date: new Date(),
         msg: msg,
@@ -172,6 +187,8 @@ class JudilibreIndex {
           existingDoc.duplicates.push(duplicateId);
         }
       }
+      const lastOperation = DateTime.fromJSDate(new Date());
+      existingDoc.lastOperation = lastOperation.toISODate();
       existingDoc.log.unshift({
         date: new Date(),
         msg: msg,
@@ -194,6 +211,8 @@ class JudilibreIndex {
           existingDoc.duplicates.push(duplicateId);
         }
       }
+      const lastOperation = DateTime.fromJSDate(new Date());
+      existingDoc.lastOperation = lastOperation.toISODate();
       existingDoc.log.unshift({
         date: new Date(),
         msg: msg,
