@@ -33,7 +33,7 @@ class JudilibreIndex {
     };
     if (doc._decatt && Array.isArray(doc._decatt) && doc._decatt.length > 0) {
       for (let d = 0; d < doc._decatt.length; d++) {
-        indexedDoc.decatt.push(`jurica:${row._decatt[d]}`);
+        indexedDoc.decatt.push(`jurica:${doc._decatt[d]}`);
       }
     }
     if (duplicateId) {
