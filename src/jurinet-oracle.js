@@ -390,7 +390,7 @@ class JurinetOracle {
       const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
-        AND ${process.env.DB_TABLE}.DT_MODIF >= TO_DATE('${strDate}', 'DD/MM/YYYY')
+        AND ${process.env.DB_TABLE}.DT_MODIF > TO_DATE('${strDate}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
 
       const result = await this.connection.execute(query, [], {

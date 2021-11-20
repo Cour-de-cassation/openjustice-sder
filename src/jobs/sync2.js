@@ -55,7 +55,7 @@ async function syncJurinet() {
   try {
     jurinetLastDate = DateTime.fromISO(fs.readFileSync(path.join(__dirname, 'data', 'jurinet.lastDate')).toString());
   } catch (ignore) {
-    jurinetLastDate = now.minus({ days: 1 });
+    jurinetLastDate = now.minus({ days: 2 });
   }
 
   await jurinetSource.connect();
@@ -283,7 +283,7 @@ async function syncJurica() {
   try {
     juricaLastDate = DateTime.fromISO(fs.readFileSync(path.join(__dirname, 'data', 'jurica.lastDate')).toString());
   } catch (ignore) {
-    juricaLastDate = now.minus({ days: 1 });
+    juricaLastDate = now.minus({ days: 2 });
   }
 
   await juricaSource.connect();
