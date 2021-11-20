@@ -39,7 +39,13 @@ async function patch() {
   result.forEach(async (indexedDoc) => {
     if (typeof indexedDoc.judilibreId !== 'string') {
       indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
-      console.log(indexedDoc.judilibreId, typeof indexedDoc.judilibreId);
+      indexedDoc.log.unshift({
+        date: new Date(),
+        msg: 'patch judilibreId',
+      });
+      await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
+        bypassDocumentValidation: true,
+      });
     }
   });
 

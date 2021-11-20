@@ -243,6 +243,9 @@ async function syncJurinet() {
           indexedDoc.sderId = normalized._id;
           if (rawDocument._indexed === true) {
             indexedDoc.judilibreId = normalized._id.valueOf();
+            if (typeof indexedDoc.judilibreId !== 'string') {
+              indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
+            }
           }
           indexedDoc.log.unshift({
             date: new Date(),
@@ -435,6 +438,9 @@ async function syncJurica() {
           indexedDoc.sderId = normalized._id;
           if (rawDocument._indexed === true) {
             indexedDoc.judilibreId = normalized._id.valueOf();
+            if (typeof indexedDoc.judilibreId !== 'string') {
+              indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
+            }
           }
           indexedDoc.log.unshift({
             date: new Date(),
