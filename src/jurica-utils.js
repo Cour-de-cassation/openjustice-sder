@@ -232,42 +232,25 @@ class JuricaUtils {
 
     if (document._bloc_occultation) {
       normalizedDecision.blocOccultation = document._bloc_occultation;
+
+      switch (parseInt(document.JDEC_OCC_COMP, 10)) {
+        case 0:
+          normalizedDecision.occultation.categoriesToOmit = [];
+          break;
+        case 1:
+          normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
+            document._bloc_occultation,
+          );
+        case 2:
+          normalizedDecision.occultation.categoriesToOmit = [];
+          normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
+        case 3:
+          normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
+            document._bloc_occultation,
+          );
+          normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
+      }
     }
-
-    // SHOULD WORK THE SAME AS JURINET:
-    // const occultations = {
-    //   IND_PM: ['personneMorale', 'numeroSiretSiren'],
-    //   IND_ADRESSE: ['adresse', 'localite', 'etablissement'],
-    //   IND_DT_NAISSANCE: ['dateNaissance'],
-    //   IND_DT_DECE: ['dateDeces'],
-    //   IND_DT_MARIAGE: ['dateMariage'],
-    //   IND_IMMATRICULATION: ['plaqueImmatriculation'],
-    //   IND_CADASTRE: ['cadastre'],
-    //   IND_CHAINE: ['compteBancaire', 'telephoneFax', 'insee'],
-    //   IND_COORDONNEE_ELECTRONIQUE: ['email'],
-    //   IND_PRENOM_PROFESSIONEL: ['professionnelMagistratGreffier'],
-    //   IND_NOM_PROFESSIONEL: ['professionnelMagistratGreffier'],
-    // };
-
-    // for (let key in occultations) {
-    //   if(key === "IND_PM" || key === "IND_NOM_PROFESSIONEL" || key === "IND_PRENOM_PROFESSIONEL") {
-    //     if(!document[key]) {
-    //       occultations[key].forEach((item) => {
-    //         normalizedDecision.occultation.categoriesToOmit.push(item);
-    //       });
-    //     }
-    //   } else {
-    //     if (!document[key] && document[key] !== null && document[key] !== undefined) {
-    //       occultations[key].forEach((item) => {
-    //         normalizedDecision.occultation.categoriesToOmit.push(item);
-    //       });
-    //     }
-    //   }
-    // }
-
-    normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmitForJurica(
-      document._bloc_occultation,
-    );
 
     if (!normalizedDecision.originalText) {
       throw new Error(`JuricaUtils.Normalize: Document '${normalizedDecision.sourceId}' has no text.`);
@@ -433,7 +416,7 @@ class JuricaUtils {
   }
 }
 
-function ConvertOccultationBlockInCategoriesToOmitForJurica(occultationBlock) {
+function ConvertOccultationBlockInCategoriesToOmit(occultationBlock) {
   let categoriesToOmit = ['professionnelMagistratGreffier'];
   if (occultationBlock >= 1 && occultationBlock <= 4) {
     switch (occultationBlock) {
@@ -455,4 +438,4 @@ function ConvertOccultationBlockInCategoriesToOmitForJurica(occultationBlock) {
 
 exports.JuricaUtils = JuricaUtils;
 
-exports.ConvertOccultationBlockInCategoriesToOmitForJurica = ConvertOccultationBlockInCategoriesToOmitForJurica;
+exports.ConvertOccultationBlockInCategoriesToOmit = ConvertOccultationBlockInCategoriesToOmit;

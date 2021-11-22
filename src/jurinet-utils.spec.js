@@ -23,7 +23,7 @@ describe('JurinetUtils', () => {
 
 function buildJurinetXml(textArrets) {
   const textArretsWithTags = textArrets.map((textArret) => `<TEXTE_ARRET>${textArret}</TEXTE_ARRET>`);
-  const xmlDocument = `<DOCUMENT>${textArretsWithTags.join('')}</DOCUMENT>`;
+  const xmlDocument = `<DOCUMENT><CAT_PUB>D</CAT_PUB>${textArretsWithTags.join('')}</DOCUMENT>`;
 
   return xmlDocument;
 }
