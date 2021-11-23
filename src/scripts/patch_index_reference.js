@@ -49,11 +49,10 @@ async function patch() {
       }
     });
     console.log(newRef);
-    /*
+    indexedDoc.reference = newRef;
     await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
       bypassDocumentValidation: true,
     });
-    */
   });
 
   return true;
