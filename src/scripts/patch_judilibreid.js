@@ -36,18 +36,15 @@ async function main() {
 async function patch() {
   const result = await JudilibreIndex.find('mainIndex', { judilibreId: { $ne: null } });
 
-  result.forEach(async (indexedDoc) => {
+  for (let i = 0; i < result.length; i++) {
+    let indexedDoc = result[i];
     if (typeof indexedDoc.judilibreId !== 'string') {
       indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
-      indexedDoc.log.unshift({
-        date: new Date(),
-        msg: 'patch judilibreId',
-      });
       await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
         bypassDocumentValidation: true,
       });
     }
-  });
+  }
 
   return true;
 }
