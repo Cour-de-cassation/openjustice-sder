@@ -50,11 +50,13 @@ async function patch() {
     let juridiction = 'inconnue';
     if (/jurinet/.test(indexedDoc._id)) {
       const res = await rawJurinet.findOne({ _id: indexedDoc._id.split(':')[1] });
+      console.log(res);
       if (res) {
         juridiction = `${res.JURIDICTION}`.toLowerCase();
       }
     } else if (/jurica/.test(indexedDoc._id)) {
       const res = await rawJurica.findOne({ _id: indexedDoc._id.split(':')[1] });
+      console.log(res);
       if (res) {
         juridiction = `${res.JDEC_JURIDICTION}`.toLowerCase();
       }
@@ -68,7 +70,7 @@ async function patch() {
     */
   });
 
-  await client.close();
+  // await client.close();
   return true;
 }
 
