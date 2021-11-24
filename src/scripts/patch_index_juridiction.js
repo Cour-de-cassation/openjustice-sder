@@ -59,13 +59,10 @@ async function patch() {
         juridiction = `${res.JDEC_JURIDICTION}`.toLowerCase();
       }
     }
-    console.log(juridiction);
-    /*
     indexedDoc.juridiction = juridiction;
     await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
       bypassDocumentValidation: true,
     });
-    */
   });
 
   // await client.close();
