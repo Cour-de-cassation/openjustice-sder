@@ -37,15 +37,15 @@ async function main() {
 async function patch() {
   const result = await JudilibreIndex.find('mainIndex', {});
 
-  result.forEach(async (indexedDoc) => {
-    console.log(typeof indexedDoc.log[0].date, indexedDoc.log[0].date);
+  for (let i = 0; i < result.length; i++) {
+    let indexedDoc = result[i];
     let lastOperation = DateTime.fromJSDate(indexedDoc.log[0].date);
     console.log(lastOperation.toISODate());
     indexedDoc.lastOperation = lastOperation.toISODate();
     await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
       bypassDocumentValidation: true,
     });
-  });
+  }
 
   return true;
 }
