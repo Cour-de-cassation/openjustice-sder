@@ -37,7 +37,8 @@ async function main() {
 async function patch() {
   const result = await JudilibreIndex.find('mainIndex', {});
 
-  result.forEach(async (indexedDoc) => {
+  for (let i = 0; i < result.length; i++) {
+    let indexedDoc = result[i];
     let newRef = [];
     indexedDoc.reference.forEach((ref) => {
       if (newRef.indexOf(ref) === -1) {
@@ -53,7 +54,7 @@ async function patch() {
     await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
       bypassDocumentValidation: true,
     });
-  });
+  }
 
   return true;
 }
