@@ -49,14 +49,12 @@ async function patch() {
   result.forEach(async (indexedDoc) => {
     let juridiction = 'inconnue';
     if (/jurinet/.test(indexedDoc._id)) {
-      const res = await rawJurinet.findOne({ _id: indexedDoc._id.split(':')[1] });
-      console.log(res);
+      const res = await rawJurinet.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
       if (res) {
         juridiction = `${res.JURIDICTION}`.toLowerCase();
       }
     } else if (/jurica/.test(indexedDoc._id)) {
-      const res = await rawJurica.findOne({ _id: indexedDoc._id.split(':')[1] });
-      console.log(res);
+      const res = await rawJurica.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
       if (res) {
         juridiction = `${res.JDEC_JURIDICTION}`.toLowerCase();
       }
