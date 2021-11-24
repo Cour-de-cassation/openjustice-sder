@@ -46,15 +46,17 @@ async function patch() {
 
   const result = await JudilibreIndex.find('mainIndex', {});
 
-  result.forEach(async (indexedDoc) => {
+  for (let i = 0; i < result.length; i++) {
+    let indexedDoc = result[i];
     let juridiction = 'inconnue';
+    let res = null;
     if (/jurinet/.test(indexedDoc._id)) {
-      const res = await rawJurinet.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
+      res = await rawJurinet.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
       if (res) {
         juridiction = `${res.JURIDICTION}`.toLowerCase();
       }
     } else if (/jurica/.test(indexedDoc._id)) {
-      const res = await rawJurica.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
+      res = await rawJurica.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
       if (res) {
         juridiction = `${res.JDEC_JURIDICTION}`.toLowerCase();
       }
@@ -63,7 +65,7 @@ async function patch() {
     await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
       bypassDocumentValidation: true,
     });
-  });
+  }
 
   // await client.close();
   return true;
