@@ -53,12 +53,12 @@ async function patch() {
     if (/jurinet/.test(indexedDoc._id)) {
       res = await rawJurinet.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
       if (res) {
-        juridiction = `${res.JURIDICTION}`.toLowerCase();
+        juridiction = `${res.JURIDICTION}`.toLowerCase().trim();
       }
     } else if (/jurica/.test(indexedDoc._id)) {
       res = await rawJurica.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
       if (res) {
-        juridiction = `${res.JDEC_JURIDICTION}`.toLowerCase();
+        juridiction = `${res.JDEC_JURIDICTION}`.toLowerCase().trim();
       }
     }
     indexedDoc.juridiction = juridiction;

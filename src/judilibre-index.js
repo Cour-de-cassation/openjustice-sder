@@ -24,6 +24,7 @@ class JudilibreIndex {
       }),
       sderId: null,
       judilibreId: null,
+      juridiction: `${doc.JURIDICTION}`.toLowerCase().trim(),
       ccass: doc.TYPE_ARRET === 'CC',
       deleted: false,
       public: true,
@@ -33,6 +34,17 @@ class JudilibreIndex {
       log: [],
       lastOperation: null,
     };
+    let newRef = [];
+    indexedDoc.reference.forEach((ref) => {
+      if (newRef.indexOf(ref) === -1) {
+        newRef.push(ref);
+      }
+      let refStrip = ref.replace(/[^\w\d]/gm, '').trim();
+      if (refStrip !== ref && newRef.indexOf(refStrip) === -1) {
+        newRef.push(refStrip);
+      }
+    });
+    indexedDoc.reference = newRef;
     if (doc._decatt && Array.isArray(doc._decatt) && doc._decatt.length > 0) {
       for (let d = 0; d < doc._decatt.length; d++) {
         indexedDoc.decatt.push(`jurica:${doc._decatt[d]}`);
@@ -65,6 +77,7 @@ class JudilibreIndex {
     if (existingDoc !== null) {
       indexedDoc.sderId = existingDoc.sderId;
       indexedDoc.judilibreId = existingDoc.judilibreId;
+      indexedDoc.juridiction = existingDoc.juridiction;
       indexedDoc.deleted = existingDoc.deleted;
       indexedDoc.public = existingDoc.public;
       indexedDoc.log = existingDoc.log;
@@ -105,6 +118,7 @@ class JudilibreIndex {
       }),
       sderId: null,
       judilibreId: null,
+      juridiction: `${doc.JDEC_JURIDICTION}`.toLowerCase().trim(),
       ccass: false,
       deleted: false,
       public: null,
@@ -114,6 +128,17 @@ class JudilibreIndex {
       log: [],
       lastOperation: null,
     };
+    let newRef = [];
+    indexedDoc.reference.forEach((ref) => {
+      if (newRef.indexOf(ref) === -1) {
+        newRef.push(ref);
+      }
+      let refStrip = ref.replace(/[^\w\d]/gm, '').trim();
+      if (refStrip !== ref && newRef.indexOf(refStrip) === -1) {
+        newRef.push(refStrip);
+      }
+    });
+    indexedDoc.reference = newRef;
     if (duplicateId) {
       if (Array.isArray(duplicateId)) {
         indexedDoc.duplicates = duplicateId;
@@ -141,6 +166,7 @@ class JudilibreIndex {
     if (existingDoc !== null) {
       indexedDoc.sderId = existingDoc.sderId;
       indexedDoc.judilibreId = existingDoc.judilibreId;
+      indexedDoc.juridiction = existingDoc.juridiction;
       indexedDoc.deleted = existingDoc.deleted;
       indexedDoc.public = existingDoc.public;
       indexedDoc.log = existingDoc.log;
