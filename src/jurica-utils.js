@@ -241,14 +241,17 @@ class JuricaUtils {
           normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
             document._bloc_occultation,
           );
+          break;
         case 2:
           normalizedDecision.occultation.categoriesToOmit = [];
           normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
+          break;
         case 3:
           normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
             document._bloc_occultation,
           );
           normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
+          break;
       }
     }
 
