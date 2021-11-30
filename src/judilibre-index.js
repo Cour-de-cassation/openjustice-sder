@@ -16,25 +16,49 @@ class JudilibreIndex {
   }
 
   async buildJurinetDocument(doc, duplicateId) {
-    const normalized = await JurinetUtils.Normalize(doc);
-    const indexedDoc = {
-      _id: `jurinet:${doc._id}`,
-      reference: JurinetUtils.GetDecisionNumberForIndexing(normalized, normalized.zoning).map((item) => {
-        return item.replace(/[^\d/.-]/gm, '').trim();
-      }),
-      sderId: null,
-      judilibreId: null,
-      juridiction: `${doc.JURIDICTION}`.toLowerCase().trim(),
-      ccass: doc.TYPE_ARRET === 'CC',
-      deleted: false,
-      public: true,
-      date: JurinetUtils.GetDecisionDateForIndexing(normalized.dateDecision),
-      duplicates: [],
-      decatt: [],
-      log: [],
-      lastOperation: null,
-      error: null,
-    };
+    let indexedDoc;
+    try {
+      const normalized = await JurinetUtils.Normalize(doc);
+      indexedDoc = {
+        _id: `jurinet:${doc._id}`,
+        reference: JurinetUtils.GetDecisionNumberForIndexing(normalized, normalized.zoning).map((item) => {
+          return item.replace(/[^\d/.-]/gm, '').trim();
+        }),
+        sderId: null,
+        judilibreId: null,
+        juridiction: `${doc.JURIDICTION}`.toLowerCase().trim(),
+        ccass: doc.TYPE_ARRET === 'CC',
+        deleted: false,
+        public: true,
+        date: JurinetUtils.GetDecisionDateForIndexing(normalized.dateDecision),
+        duplicates: [],
+        decatt: [],
+        log: [],
+        lastOperation: null,
+        error: null,
+      };
+    } catch (e) {
+      let dateDecision = null;
+      if (doc.DT_DECISION && typeof doc.DT_DECISION.toISOString === 'function') {
+        dateDecision = doc.DT_DECISION.toISOString();
+      }
+      indexedDoc = {
+        _id: `jurinet:${doc._id}`,
+        reference: [],
+        sderId: null,
+        judilibreId: null,
+        juridiction: `${doc.JURIDICTION}`.toLowerCase().trim(),
+        ccass: doc.TYPE_ARRET === 'CC',
+        deleted: false,
+        public: true,
+        date: JurinetUtils.GetDecisionDateForIndexing(dateDecision),
+        duplicates: [],
+        decatt: [],
+        log: [],
+        lastOperation: null,
+        error: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+      };
+    }
     let newRef = [];
     indexedDoc.reference.forEach((ref) => {
       if (newRef.indexOf(ref) === -1) {
@@ -139,25 +163,58 @@ class JudilibreIndex {
   }
 
   async buildJuricaDocument(doc, duplicateId) {
-    const normalized = await JuricaUtils.Normalize(doc);
-    const indexedDoc = {
-      _id: `jurica:${doc._id}`,
-      reference: JuricaUtils.GetDecisionNumberForIndexing(normalized).map((item) => {
-        return item.replace(/[^\d/.-]/gm, '').trim();
-      }),
-      sderId: null,
-      judilibreId: null,
-      juridiction: `${doc.JDEC_JURIDICTION}`.toLowerCase().trim(),
-      ccass: false,
-      deleted: false,
-      public: null,
-      date: JuricaUtils.GetDecisionDateForIndexing(normalized.dateDecision),
-      duplicates: [],
-      decatt: [],
-      log: [],
-      lastOperation: null,
-      error: null,
-    };
+    let indexedDoc;
+    try {
+      const normalized = await JuricaUtils.Normalize(doc);
+      indexedDoc = {
+        _id: `jurica:${doc._id}`,
+        reference: JuricaUtils.GetDecisionNumberForIndexing(normalized).map((item) => {
+          return item.replace(/[^\d/.-]/gm, '').trim();
+        }),
+        sderId: null,
+        judilibreId: null,
+        juridiction: `${doc.JDEC_JURIDICTION}`.toLowerCase().trim(),
+        ccass: false,
+        deleted: false,
+        public: null,
+        date: JuricaUtils.GetDecisionDateForIndexing(normalized.dateDecision),
+        duplicates: [],
+        decatt: [],
+        log: [],
+        lastOperation: null,
+        error: null,
+      };
+    } catch (e) {
+      let dateDecision = null;
+      if (doc.JDEC_DATE && typeof doc.JDEC_DATE === 'string') {
+        dateDecision = new Date();
+        let dateDecisionElements = doc.JDEC_DATE.split('-');
+        dateDecision.setFullYear(parseInt(dateDecisionElements[0], 10));
+        dateDecision.setMonth(parseInt(dateDecisionElements[1], 10) - 1);
+        dateDecision.setDate(parseInt(dateDecisionElements[2], 10));
+        dateDecision.setHours(0);
+        dateDecision.setMinutes(0);
+        dateDecision.setSeconds(0);
+        dateDecision.setMilliseconds(0);
+        dateDecision = dateDecision.toISOString();
+      }
+      indexedDoc = {
+        _id: `jurica:${doc._id}`,
+        reference: [],
+        sderId: null,
+        judilibreId: null,
+        juridiction: `${doc.JDEC_JURIDICTION}`.toLowerCase().trim(),
+        ccass: false,
+        deleted: false,
+        public: null,
+        date: JuricaUtils.GetDecisionDateForIndexing(dateDecision),
+        duplicates: [],
+        decatt: [],
+        log: [],
+        lastOperation: null,
+        error: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+      };
+    }
     let newRef = [];
     indexedDoc.reference.forEach((ref) => {
       if (newRef.indexOf(ref) === -1) {
