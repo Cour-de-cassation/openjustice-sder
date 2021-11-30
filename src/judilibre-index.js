@@ -61,18 +61,27 @@ class JudilibreIndex {
     return indexedDoc;
   }
 
-  async indexJurinetDocument(doc, duplicateId, msg) {
+  async indexJurinetDocument(doc, duplicateId, msg, err) {
     const indexedDoc = await this.buildJurinetDocument(doc, duplicateId);
     const lastOperation = DateTime.fromJSDate(new Date());
     indexedDoc.lastOperation = lastOperation.toISODate();
-    indexedDoc.log.unshift({
-      date: new Date(),
-      msg: msg,
-    });
+    if (msg) {
+      indexedDoc.log.unshift({
+        date: new Date(),
+        msg: msg,
+      });
+    }
+    if (err) {
+      if (typeof err === 'object') {
+        indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+      } else {
+        indexedDoc.error = err;
+      }
+    }
     await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
   }
 
-  async updateJurinetDocument(doc, duplicateId, msg) {
+  async updateJurinetDocument(doc, duplicateId, msg, err) {
     const indexedDoc = await this.buildJurinetDocument(doc, duplicateId);
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
@@ -95,18 +104,36 @@ class JudilibreIndex {
       });
       const lastOperation = DateTime.fromJSDate(new Date());
       indexedDoc.lastOperation = lastOperation.toISODate();
-      indexedDoc.log.unshift({
-        date: new Date(),
-        msg: msg,
-      });
+      if (msg) {
+        indexedDoc.log.unshift({
+          date: new Date(),
+          msg: msg,
+        });
+      }
+      if (err) {
+        if (typeof err === 'object') {
+          indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        } else {
+          indexedDoc.error = err;
+        }
+      }
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
       const lastOperation = DateTime.fromJSDate(new Date());
       indexedDoc.lastOperation = lastOperation.toISODate();
-      indexedDoc.log.unshift({
-        date: new Date(),
-        msg: msg,
-      });
+      if (msg) {
+        indexedDoc.log.unshift({
+          date: new Date(),
+          msg: msg,
+        });
+      }
+      if (err) {
+        if (typeof err === 'object') {
+          indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        } else {
+          indexedDoc.error = err;
+        }
+      }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
   }
@@ -152,18 +179,27 @@ class JudilibreIndex {
     return indexedDoc;
   }
 
-  async indexJuricaDocument(doc, duplicateId, msg) {
+  async indexJuricaDocument(doc, duplicateId, msg, err) {
     const indexedDoc = await this.buildJuricaDocument(doc, duplicateId);
     const lastOperation = DateTime.fromJSDate(new Date());
     indexedDoc.lastOperation = lastOperation.toISODate();
-    indexedDoc.log.unshift({
-      date: new Date(),
-      msg: msg,
-    });
+    if (msg) {
+      indexedDoc.log.unshift({
+        date: new Date(),
+        msg: msg,
+      });
+    }
+    if (err) {
+      if (typeof err === 'object') {
+        indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+      } else {
+        indexedDoc.error = err;
+      }
+    }
     await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
   }
 
-  async updateJuricaDocument(doc, duplicateId, msg) {
+  async updateJuricaDocument(doc, duplicateId, msg, err) {
     const indexedDoc = await this.buildJuricaDocument(doc, duplicateId);
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
@@ -186,23 +222,41 @@ class JudilibreIndex {
       });
       const lastOperation = DateTime.fromJSDate(new Date());
       indexedDoc.lastOperation = lastOperation.toISODate();
-      indexedDoc.log.unshift({
-        date: new Date(),
-        msg: msg,
-      });
+      if (msg) {
+        indexedDoc.log.unshift({
+          date: new Date(),
+          msg: msg,
+        });
+      }
+      if (err) {
+        if (typeof err === 'object') {
+          indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        } else {
+          indexedDoc.error = err;
+        }
+      }
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
       const lastOperation = DateTime.fromJSDate(new Date());
       indexedDoc.lastOperation = lastOperation.toISODate();
-      indexedDoc.log.unshift({
-        date: new Date(),
-        msg: msg,
-      });
+      if (msg) {
+        indexedDoc.log.unshift({
+          date: new Date(),
+          msg: msg,
+        });
+      }
+      if (err) {
+        if (typeof err === 'object') {
+          indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        } else {
+          indexedDoc.error = err;
+        }
+      }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
   }
 
-  async indexDecisionDocument(doc, duplicateId, msg) {
+  async indexDecisionDocument(doc, duplicateId, msg, err) {
     const existingDoc = await this.findOne('mainIndex', { _id: `${doc.sourceName}:${doc.sourceId}` });
     if (existingDoc) {
       existingDoc.sderId = doc._id;
@@ -219,15 +273,24 @@ class JudilibreIndex {
       }
       const lastOperation = DateTime.fromJSDate(new Date());
       existingDoc.lastOperation = lastOperation.toISODate();
-      existingDoc.log.unshift({
-        date: new Date(),
-        msg: msg,
-      });
+      if (msg) {
+        existingDoc.log.unshift({
+          date: new Date(),
+          msg: msg,
+        });
+      }
+      if (err) {
+        if (typeof err === 'object') {
+          existingDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        } else {
+          existingDoc.error = err;
+        }
+      }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }
   }
 
-  async updateDecisionDocument(doc, duplicateId, msg) {
+  async updateDecisionDocument(doc, duplicateId, msg, err) {
     const existingDoc = await this.findOne('mainIndex', { sderId: doc._id });
     if (existingDoc) {
       if (duplicateId) {
@@ -243,10 +306,19 @@ class JudilibreIndex {
       }
       const lastOperation = DateTime.fromJSDate(new Date());
       existingDoc.lastOperation = lastOperation.toISODate();
-      existingDoc.log.unshift({
-        date: new Date(),
-        msg: msg,
-      });
+      if (msg) {
+        existingDoc.log.unshift({
+          date: new Date(),
+          msg: msg,
+        });
+      }
+      if (err) {
+        if (typeof err === 'object') {
+          existingDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        } else {
+          existingDoc.error = err;
+        }
+      }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }
   }

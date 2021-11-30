@@ -85,6 +85,7 @@ async function reinjectJurinet() {
       }
     } catch (e) {
       console.error(`Jurinet reinjection error processing decision ${decision._id}`, e);
+      await JudilibreIndex.updateDecisionDocument(decision, null, null, e);
       errorCount++;
     }
   }
@@ -131,6 +132,7 @@ async function reinjectJurica() {
       }
     } catch (e) {
       console.error(`Jurica reinjection error processing decision ${decision._id}`, e);
+      await JudilibreIndex.updateDecisionDocument(decision, null, null, e);
       errorCount++;
     }
   }

@@ -209,6 +209,7 @@ async function syncJurinet() {
           normalizeCount++;
         } catch (e) {
           console.error(e);
+          await JudilibreIndex.updateJurinetDocument(row, null, null, e);
           errorCount++;
         }
       } else if (normalized.locked === false) {
@@ -229,6 +230,7 @@ async function syncJurinet() {
             normalizeCount++;
           } catch (e) {
             console.error(e);
+            await JudilibreIndex.updateDecisionDocument(normalized, null, null, e);
             errorCount++;
           }
         }
@@ -403,6 +405,7 @@ async function syncJurica() {
           normalizeCount++;
         } catch (e) {
           console.error(e);
+          await JudilibreIndex.updateJuricaDocument(row, null, null, e);
           errorCount++;
         }
       } else if (normalized.locked === false) {
@@ -426,6 +429,7 @@ async function syncJurica() {
             normalizeCount++;
           } catch (e) {
             console.error(e);
+            await JudilibreIndex.updateDecisionDocument(normalized, null, null, e);
             errorCount++;
           }
         }

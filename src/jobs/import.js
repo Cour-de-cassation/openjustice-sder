@@ -103,6 +103,7 @@ async function importJurinet() {
         } catch (e) {
           console.error(`Jurinet import error processing decision ${row._id}`, e);
           await jurinetSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJurinetDocument(row, null, null, e);
           errorCount++;
         }
       }
@@ -181,6 +182,7 @@ async function importJurica() {
         } catch (e) {
           console.error(`Jurica import error processing decision ${row._id}`, e);
           await juricaSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJuricaDocument(row, null, null, e);
           errorCount++;
         }
       }
