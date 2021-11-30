@@ -33,6 +33,7 @@ class JudilibreIndex {
       decatt: [],
       log: [],
       lastOperation: null,
+      error: null,
     };
     let newRef = [];
     indexedDoc.reference.forEach((ref) => {
@@ -81,6 +82,7 @@ class JudilibreIndex {
       indexedDoc.deleted = existingDoc.deleted;
       indexedDoc.public = existingDoc.public;
       indexedDoc.log = existingDoc.log;
+      indexedDoc.error = existingDoc.error;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
@@ -127,6 +129,7 @@ class JudilibreIndex {
       decatt: [],
       log: [],
       lastOperation: null,
+      error: null,
     };
     let newRef = [];
     indexedDoc.reference.forEach((ref) => {
@@ -170,6 +173,7 @@ class JudilibreIndex {
       indexedDoc.deleted = existingDoc.deleted;
       indexedDoc.public = existingDoc.public;
       indexedDoc.log = existingDoc.log;
+      indexedDoc.error = existingDoc.error;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);

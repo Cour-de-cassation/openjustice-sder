@@ -32,18 +32,18 @@ function kill(code) {
 }
 
 async function main() {
-  console.log('OpenJustice - Start "sync" job:', new Date().toLocaleString());
+  console.log('OpenJustice - Start "sync2" job:', new Date().toLocaleString());
   try {
     await syncJurinet();
   } catch (e) {
-    console.error('Jurinet sync error', e);
+    console.error('Jurinet sync2 error', e);
   }
   try {
     // await syncJurica(); // @TODO
   } catch (e) {
-    console.error('Jurica sync error', e);
+    console.error('Jurica sync2 error', e);
   }
-  console.log('OpenJustice - End "sync" job:', new Date().toLocaleString());
+  console.log('OpenJustice - End "sync2" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
 }
 
@@ -97,7 +97,7 @@ async function syncJurinet() {
           if (row['TYPE_ARRET'] !== 'CC') {
             wincicaCount++;
           }
-          await JudilibreIndex.indexJurinetDocument(row, null, 'import in rawJurinet (sync)');
+          await JudilibreIndex.indexJurinetDocument(row, null, 'import in rawJurinet (sync2)');
         } catch (e) {
           console.error(e);
           errorCount++;
@@ -185,7 +185,7 @@ async function syncJurinet() {
             if (row['TYPE_ARRET'] !== 'CC') {
               wincicaCount++;
             }
-            await JudilibreIndex.updateJurinetDocument(row, null, 'update in rawJurinet (sync)');
+            await JudilibreIndex.updateJurinetDocument(row, null, 'update in rawJurinet (sync2)');
           } catch (e) {
             updated = false;
             console.error(e);
@@ -205,7 +205,7 @@ async function syncJurinet() {
           normDec._version = decisionsVersion;
           const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           normDec._id = insertResult.insertedId;
-          await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (sync)');
+          await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (sync2)');
           normalizeCount++;
         } catch (e) {
           console.error(e);
@@ -225,7 +225,7 @@ async function syncJurinet() {
               bypassDocumentValidation: true,
             });
             normDec._id = normalized._id;
-            await JudilibreIndex.updateDecisionDocument(normDec, null, 'update in decisions (sync)');
+            await JudilibreIndex.updateDecisionDocument(normDec, null, 'update in decisions (sync2)');
             normalizeCount++;
           } catch (e) {
             console.error(e);
@@ -251,7 +251,7 @@ async function syncJurinet() {
           indexedDoc.lastOperation = lastOperation.toISODate();
           indexedDoc.log.unshift({
             date: new Date(),
-            msg: 'index Jurinet stock (sync)',
+            msg: 'index Jurinet stock (sync2)',
           });
           await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
         }
@@ -336,7 +336,7 @@ async function syncJurica() {
         try {
           row._indexed = null;
           await raw.insertOne(row, { bypassDocumentValidation: true });
-          await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica (sync)');
+          await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica (sync2)');
           newCount++;
         } catch (e) {
           console.error(e);
@@ -375,7 +375,7 @@ async function syncJurica() {
           try {
             row._indexed = null;
             await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-            await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'update in rawJurica (sync)');
+            await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'update in rawJurica (sync2)');
             updateCount++;
           } catch (e) {
             updated = false;
@@ -399,7 +399,7 @@ async function syncJurica() {
           }
           const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           normDec._id = insertResult.insertedId;
-          await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (sync)');
+          await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (sync2)');
           normalizeCount++;
         } catch (e) {
           console.error(e);
@@ -422,7 +422,7 @@ async function syncJurica() {
               bypassDocumentValidation: true,
             });
             normDec._id = normalized._id;
-            await JudilibreIndex.updateDecisionDocument(normDec, duplicateId, 'update in decisions (sync)');
+            await JudilibreIndex.updateDecisionDocument(normDec, duplicateId, 'update in decisions (sync2)');
             normalizeCount++;
           } catch (e) {
             console.error(e);
@@ -448,7 +448,7 @@ async function syncJurica() {
           indexedDoc.lastOperation = lastOperation.toISODate();
           indexedDoc.log.unshift({
             date: new Date(),
-            msg: 'index Jurica stock (sync)',
+            msg: 'index Jurica stock (sync2)',
           });
           await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
         }
