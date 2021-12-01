@@ -30,17 +30,17 @@ function kill(code) {
   process.exit(code);
 }
 
-async function main() {
+async function main(n) {
   console.log('OpenJustice - Start "reimport" job:', new Date().toLocaleString());
+  /*
   try {
-    // Get last month:
-    await reimportJurinet(1);
+    await reimportJurinet(n);
   } catch (e) {
     console.error('Jurinet reimport error', e);
   }
+  */
   try {
-    // Get last month:
-    await reimportJurica(1);
+    await reimportJurica(n);
   } catch (e) {
     console.error('Jurica reimport error', e);
   }
@@ -167,13 +167,7 @@ async function reimportJurica(n) {
   let duplicateCount = 0;
 
   console.log(`Get last ${n} month(s) decisions from Jurica...`);
-  // NOT ENOUGH MEMORY: const juricaResult = await juricaSource.getLastNMonth(n);
-  const juricaResult = await juricaSource.getBatch({
-    offset: 0,
-    limit: 200,
-    order: 'DESC',
-    onlyTreated: false,
-  });
+  const juricaResult = await juricaSource.getLastNMonth(n);
 
   if (juricaResult) {
     for (let i = 0; i < juricaResult.length; i++) {
@@ -280,4 +274,4 @@ async function reimportJurica(n) {
   return true;
 }
 
-main();
+main(2);
