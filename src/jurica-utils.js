@@ -235,7 +235,7 @@ class JuricaUtils {
 
       switch (parseInt(document.JDEC_OCC_COMP, 10)) {
         case 0:
-          normalizedDecision.occultation.categoriesToOmit = [];
+          normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
           break;
         case 1:
           normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
@@ -243,7 +243,7 @@ class JuricaUtils {
           );
           break;
         case 2:
-          normalizedDecision.occultation.categoriesToOmit = [];
+          normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
           normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
           break;
         case 3:
@@ -437,6 +437,27 @@ function ConvertOccultationBlockInCategoriesToOmit(occultationBlock) {
     categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
   }
   return categoriesToOmit;
+}
+
+function GetAllCategoriesToOmit() {
+  return [
+    'dateNaissance',
+    'dateMariage',
+    'dateDeces',
+    'insee',
+    'professionnelMagistratGreffier',
+    'personneMorale',
+    'etablissement',
+    'numeroSiretSiren',
+    'adresse',
+    'localite',
+    'telephoneFax',
+    'email',
+    'siteWebSensible',
+    'compteBancaire',
+    'cadastre',
+    'plaqueImmatriculation',
+  ];
 }
 
 exports.JuricaUtils = JuricaUtils;
