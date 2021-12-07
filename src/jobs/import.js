@@ -64,7 +64,6 @@ async function importJurinet() {
 
   let newCount = 0;
   let errorCount = 0;
-  let skipCount = 0;
   let wincicaCount = 0;
 
   const jurinetResult = await jurinetSource.getNew();
@@ -110,9 +109,7 @@ async function importJurinet() {
     }
   }
 
-  console.log(
-    `Done Importing Jurinet - New: ${newCount}, Skip: ${skipCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`,
-  );
+  console.log(`Done Importing Jurinet - New: ${newCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`);
   await client.close();
   await jurinetSource.close();
   await juricaSource.close();
@@ -133,7 +130,6 @@ async function importJurica() {
 
   let newCount = 0;
   let errorCount = 0;
-  let skipCount = 0;
   let duplicateCount = 0;
 
   const juricaResult = await juricaSource.getNew();
@@ -189,9 +185,7 @@ async function importJurica() {
     }
   }
 
-  console.log(
-    `Done Importing Jurica - New: ${newCount}, Skip: ${skipCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
-  );
+  console.log(`Done Importing Jurica - New: ${newCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`);
   await client.close();
   await juricaSource.close();
   return true;
