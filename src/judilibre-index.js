@@ -36,6 +36,9 @@ class JudilibreIndex {
         log: [],
         lastOperation: null,
         error: null,
+        chamber: this.getChamber(doc),
+        dateImport: null,
+        dateExport: null,
       };
     } catch (e) {
       let dateDecision = null;
@@ -57,6 +60,9 @@ class JudilibreIndex {
         log: [],
         lastOperation: null,
         error: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+        chamber: this.getChamber(doc),
+        dateImport: null,
+        dateExport: null,
       };
     }
     let newRef = [];
@@ -116,6 +122,9 @@ class JudilibreIndex {
       indexedDoc.public = existingDoc.public;
       indexedDoc.log = existingDoc.log;
       indexedDoc.error = existingDoc.error;
+      indexedDoc.chamber = existingDoc.chamber;
+      indexedDoc.dateImport = existingDoc.dateImport;
+      indexedDoc.dateExport = existingDoc.dateExport;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
@@ -183,6 +192,9 @@ class JudilibreIndex {
         log: [],
         lastOperation: null,
         error: null,
+        chamber: this.getChamber(doc),
+        dateImport: null,
+        dateExport: null,
       };
     } catch (e) {
       let dateDecision = null;
@@ -213,6 +225,9 @@ class JudilibreIndex {
         log: [],
         lastOperation: null,
         error: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+        chamber: this.getChamber(doc),
+        dateImport: null,
+        dateExport: null,
       };
     }
     let newRef = [];
@@ -267,6 +282,9 @@ class JudilibreIndex {
       indexedDoc.public = existingDoc.public;
       indexedDoc.log = existingDoc.log;
       indexedDoc.error = existingDoc.error;
+      indexedDoc.chamber = existingDoc.chamber;
+      indexedDoc.dateImport = existingDoc.dateImport;
+      indexedDoc.dateExport = existingDoc.dateExport;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
