@@ -50,25 +50,27 @@ async function patch() {
     let indexedDoc = result[i];
     let chamber = null;
     let res = null;
-    if (/jurinet/.test(indexedDoc._id)) {
-      res = await rawJurinet.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
-      if (res) {
-        chamber = JudilibreIndex.getChamber(res);
+    if (!indexedDoc.chamber) {
+      if (/jurinet/.test(indexedDoc._id)) {
+        res = await rawJurinet.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
+        if (res) {
+          chamber = JudilibreIndex.getChamber(res);
+        }
+      } else if (/jurica/.test(indexedDoc._id)) {
+        res = await rawJurica.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
+        if (res) {
+          chamber = JudilibreIndex.getChamber(res);
+        }
       }
-    } else if (/jurica/.test(indexedDoc._id)) {
-      res = await rawJurica.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
-      if (res) {
-        chamber = JudilibreIndex.getChamber(res);
+      if (chamber) {
+        indexedDoc.chamber = chamber;
+      } else {
+        indexedDoc.chamber = 'inconnue';
       }
+      await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
+        bypassDocumentValidation: true,
+      });
     }
-    if (chamber) {
-      indexedDoc.chamber = chamber;
-    } else {
-      indexedDoc.chamber = 'inconnue';
-    }
-    await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
-      bypassDocumentValidation: true,
-    });
   }
 
   // await client.close();
