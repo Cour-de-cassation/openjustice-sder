@@ -361,6 +361,9 @@ class JudilibreIndex {
           existingDoc.error = err;
         }
       }
+      if (msg && typeof msg === 'string' && msg.indexOf('import in decisions') === 0 && !existingDoc.dateImport) {
+        existingDoc.dateImport = this.getDateString();
+      }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }
   }
@@ -396,6 +399,26 @@ class JudilibreIndex {
       }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }
+  }
+
+  getDateString(date) {
+    let dateString = null;
+    try {
+      if (date === undefined) {
+        date = new Date();
+      } else if (typeof date === 'string') {
+        date = new Date(Date.parse(date));
+      }
+      if (isNaN(date.getTime())) {
+        date = new Date();
+      }
+      dateString = date.getFullYear() + '-';
+      dateString += (date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+      dateString += date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+    } catch (e) {
+      dateString = this.getDateString();
+    }
+    return dateString;
   }
 
   getChamber(doc) {
