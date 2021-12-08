@@ -380,6 +380,47 @@ class JudilibreIndex {
     }
   }
 
+  getChamber(doc) {
+    let chamber = null;
+    if (typeof doc.ID_CHAMBRE === 'string' && doc.ID_CHAMBRE) {
+      switch (doc.ID_CHAMBRE.toLowerCase().trim()) {
+        case 'civ.1':
+          chamber = 'première chambre civile';
+          break;
+        case 'civ.2':
+          chamber = 'deuxième chambre civile';
+          break;
+        case 'civ.3':
+          chamber = 'troisième chambre civile';
+          break;
+        case 'comm':
+          chamber = 'chambre commerciale financière et économique';
+          break;
+        case 'cr':
+          chamber = 'chambre criminelle';
+          break;
+        case 'soc':
+          chamber = 'chambre sociale';
+          break;
+        case 'mi':
+          chamber = 'chambre mixte';
+          break;
+        case 'pl':
+          chamber = 'assemblée plénière';
+          break;
+        case 'ordo':
+          chamber = 'première présidence ordonnance';
+          break;
+        case 'creun':
+          chamber = 'chambres réunies';
+          break;
+      }
+    } else if (typeof doc.JDEC_LIB_AUTORITE === 'string' && doc.JDEC_LIB_AUTORITE) {
+      chamber = doc.JDEC_LIB_AUTORITE.toLowerCase().trim();
+    }
+    return chamber;
+  }
+
   getHandler() {
     return this.handler;
   }
