@@ -38,15 +38,17 @@ async function patch() {
   const result = await JudilibreIndex.find('mainIndex', {});
 
   for (let i = 0; i < result.length; i++) {
+    let changed = false;
     let indexedDoc = result[i];
-    if (indexedDoc.error) {
+    if (indexedDoc.error !== null && indexedDoc.dateError === null) {
       indexedDoc.dateError = indexedDoc.lastOperation;
-    } else {
-      indexedDoc.dateError = null;
+      changed = true;
     }
-    await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
-      bypassDocumentValidation: true,
-    });
+    if (changed) {
+      await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
+        bypassDocumentValidation: true,
+      });
+    }
   }
 
   return true;
