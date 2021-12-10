@@ -39,6 +39,7 @@ class JudilibreIndex {
         chamber: this.getChamber(doc),
         dateImport: null,
         dateExport: null,
+        dateError: null,
       };
     } catch (e) {
       let dateDecision = null;
@@ -63,6 +64,7 @@ class JudilibreIndex {
         chamber: this.getChamber(doc),
         dateImport: null,
         dateExport: null,
+        dateError: this.getDateString(),
       };
     }
     let newRef = [];
@@ -107,6 +109,7 @@ class JudilibreIndex {
       } else {
         indexedDoc.error = err;
       }
+      indexedDoc.dateError = this.getDateString();
     }
     await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
   }
@@ -125,6 +128,7 @@ class JudilibreIndex {
       indexedDoc.chamber = existingDoc.chamber;
       indexedDoc.dateImport = existingDoc.dateImport;
       indexedDoc.dateExport = existingDoc.dateExport;
+      indexedDoc.dateError = existingDoc.dateError;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
@@ -149,6 +153,7 @@ class JudilibreIndex {
         } else {
           indexedDoc.error = err;
         }
+        indexedDoc.dateError = this.getDateString();
       }
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
@@ -166,6 +171,7 @@ class JudilibreIndex {
         } else {
           indexedDoc.error = err;
         }
+        indexedDoc.dateError = this.getDateString();
       }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
@@ -195,6 +201,7 @@ class JudilibreIndex {
         chamber: this.getChamber(doc),
         dateImport: null,
         dateExport: null,
+        dateError: null,
       };
     } catch (e) {
       let dateDecision = null;
@@ -228,6 +235,7 @@ class JudilibreIndex {
         chamber: this.getChamber(doc),
         dateImport: null,
         dateExport: null,
+        dateError: this.getDateString(),
       };
     }
     let newRef = [];
@@ -267,6 +275,7 @@ class JudilibreIndex {
       } else {
         indexedDoc.error = err;
       }
+      indexedDoc.dateError = this.getDateString();
     }
     await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
   }
@@ -285,6 +294,7 @@ class JudilibreIndex {
       indexedDoc.chamber = existingDoc.chamber;
       indexedDoc.dateImport = existingDoc.dateImport;
       indexedDoc.dateExport = existingDoc.dateExport;
+      indexedDoc.dateError = existingDoc.dateError;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
@@ -309,6 +319,7 @@ class JudilibreIndex {
         } else {
           indexedDoc.error = err;
         }
+        indexedDoc.dateError = this.getDateString();
       }
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
@@ -326,6 +337,7 @@ class JudilibreIndex {
         } else {
           indexedDoc.error = err;
         }
+        indexedDoc.dateError = this.getDateString();
       }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
@@ -360,6 +372,7 @@ class JudilibreIndex {
         } else {
           existingDoc.error = err;
         }
+        existingDoc.dateError = this.getDateString();
       }
       if (msg && typeof msg === 'string' && msg.indexOf('import in decisions') === 0 && !existingDoc.dateImport) {
         existingDoc.dateImport = this.getDateString();
@@ -396,6 +409,7 @@ class JudilibreIndex {
         } else {
           existingDoc.error = err;
         }
+        existingDoc.dateError = this.getDateString();
       }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }
@@ -518,6 +532,18 @@ class JudilibreIndex {
       throw new Error(`JudilibreIndex.findOne: unknown collection '${collection}'.`);
     }
     const result = await this.getHandler().collections[collection].findOne.apply(
+      this.getHandler().collections[collection],
+      args,
+    );
+    return result;
+  }
+
+  async count(collection, ...args) {
+    await this.connect();
+    if (!this.getHandler().collections[collection]) {
+      throw new Error(`JudilibreIndex.count: unknown collection '${collection}'.`);
+    }
+    const result = await this.getHandler().collections[collection].count.apply(
       this.getHandler().collections[collection],
       args,
     );
