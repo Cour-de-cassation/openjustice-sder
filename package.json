@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "dependencies": {
     "@ladjs/graceful": "^1.0.5",
-    "async": "^3.2.1",
+    "async": "^3.2.2",
     "bree": "^6.3.0",
     "colors": "^1.4.0",
     "command-line-args": "^5.2.0",
