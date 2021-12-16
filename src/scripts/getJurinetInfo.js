@@ -32,7 +32,7 @@ async function getJurinetInfo(id) {
   let resultRow;
 
   while ((resultRow = await rs.getRow())) {
-    rows.push(await jurinetSource.buildRawData(resultRow, true));
+    rows.push(await jurinetSource.buildRawData(resultRow, false));
   }
 
   await rs.close();
