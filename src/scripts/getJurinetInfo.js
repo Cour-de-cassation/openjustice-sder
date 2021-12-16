@@ -28,17 +28,17 @@ async function getJurinetInfo(id) {
   });
 
   const rs = result.resultSet;
-  let result = [];
+  let rows = [];
   let resultRow;
 
   while ((resultRow = await rs.getRow())) {
-    result.push(await jurinetSource.buildRawData(resultRow, true));
+    rows.push(await jurinetSource.buildRawData(resultRow, true));
   }
 
   await rs.close();
   await jurinetSource.close();
 
-  console.log(JSON.stringify(result[0], null, 2));
+  console.log(JSON.stringify(rows[0], null, 2));
 
   return true;
 }
