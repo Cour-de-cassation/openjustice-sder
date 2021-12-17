@@ -90,6 +90,7 @@ async function reimportJurinet(n) {
         try {
           row._indexed = null;
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
+          await JudilibreIndex.indexJurinetDocument(row, null, 'import in rawJurinet');
           newCount++;
           if (row['TYPE_ARRET'] !== 'CC') {
             wincicaCount++;
@@ -97,8 +98,14 @@ async function reimportJurinet(n) {
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
             let normDec = await JurinetUtils.Normalize(row);
+            normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
+            normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
+            normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
+            normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
-            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normDec._id = insertResult.insertedId;
+            await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (reimport)');
             normalizedCount++;
           } else {
             let normDec = await JurinetUtils.Normalize(row, normalized, true);
@@ -107,11 +114,15 @@ async function reimportJurinet(n) {
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
+            normDec.dateCreation = new Date().toISOString();
             await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
               bypassDocumentValidation: true,
             });
-            normalizedCount++;
+            normDec._id = normalized._id;
+            await JudilibreIndex.updateDecisionDocument(normDec, null, 'update in decisions (reimport)');
+            updateCount++;
           }
+          await jurinetSource.markAsImported(row._id);
           if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
             for (let d = 0; d < row._decatt.length; d++) {
               await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
@@ -119,6 +130,8 @@ async function reimportJurinet(n) {
           }
         } catch (e) {
           console.error(e);
+          await jurinetSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJurinetDocument(row, null, null, e);
           errorCount++;
         }
       } else {
@@ -129,11 +142,18 @@ async function reimportJurinet(n) {
           if (row['TYPE_ARRET'] !== 'CC') {
             wincicaCount++;
           }
+          await JudilibreIndex.updateJurinetDocument(row, null, 'update in rawJurinet (reimport)');
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
             let normDec = await JurinetUtils.Normalize(row);
+            normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
+            normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
+            normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
+            normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
-            await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normDec._id = insertResult.insertedId;
+            await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (reimport)');
             normalizedCount++;
           } else {
             let normDec = await JurinetUtils.Normalize(row, normalized, true);
@@ -142,9 +162,12 @@ async function reimportJurinet(n) {
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
+            normDec.dateCreation = new Date().toISOString();
             await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
               bypassDocumentValidation: true,
             });
+            normDec._id = normalized._id;
+            await JudilibreIndex.updateDecisionDocument(normDec, null, 'update in decisions (reimport)');
             normalizedCount++;
           }
           if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
@@ -154,7 +177,32 @@ async function reimportJurinet(n) {
           }
         } catch (e) {
           console.error(e);
+          await jurinetSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJurinetDocument(row, null, null, e);
           errorCount++;
+        }
+      }
+
+      let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id}` });
+      if (existingDoc === null) {
+        rawDocument = await rawJurinet.findOne({ _id: row._id });
+        normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+        if (rawDocument && normalized) {
+          const indexedDoc = await JudilibreIndex.buildJurinetDocument(rawDocument, null);
+          indexedDoc.sderId = normalized._id;
+          if (rawDocument._indexed === true) {
+            indexedDoc.judilibreId = normalized._id.valueOf();
+            if (typeof indexedDoc.judilibreId !== 'string') {
+              indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
+            }
+          }
+          const lastOperation = DateTime.fromJSDate(new Date());
+          indexedDoc.lastOperation = lastOperation.toISODate();
+          indexedDoc.log.unshift({
+            date: new Date(),
+            msg: 'index Jurinet stock (reimport)',
+          });
+          await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
         }
       }
     }

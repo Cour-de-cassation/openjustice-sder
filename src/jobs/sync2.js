@@ -153,6 +153,7 @@ async function syncJurinet() {
           'IND_LETTRE',
           'IND_COMMUNIQUE',
           'ID_FORMATION',
+          'OCCULTATION_SUPPLEMENTAIRE',
           '_natureAffaireCivil',
           '_natureAffairePenal',
           '_codeMatiereCivil',
