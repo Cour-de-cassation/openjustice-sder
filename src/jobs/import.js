@@ -131,6 +131,7 @@ async function importJurica() {
   let newCount = 0;
   let errorCount = 0;
   let duplicateCount = 0;
+  let nonPublicCount = 0;
 
   const juricaResult = await juricaSource.getNew();
 
@@ -156,24 +157,34 @@ async function importJurica() {
           }
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
-          if (duplicate === false) {
-            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-            if (normalized === null) {
-              let normDec = await JuricaUtils.Normalize(row);
-              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-              normDec._version = decisionsVersion;
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normDec._id = insertResult.insertedId;
-              await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions');
+          if (!row.JDEC_CODNAC || JuricaUtils.getPublicStatusFromNAC(row.JDEC_CODNAC) === true) {
+            if (!row.JDEC_IND_DEC_PUB || parseInt(row.JDEC_IND_DEC_PUB, 10) !== 0) {
+              if (duplicate === false) {
+                let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+                if (normalized === null) {
+                  let normDec = await JuricaUtils.Normalize(row);
+                  normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+                  normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+                  normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+                  normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+                  normDec._version = decisionsVersion;
+                  const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                  normDec._id = insertResult.insertedId;
+                  await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions');
+                  await juricaSource.markAsImported(row._id);
+                  newCount++;
+                }
+              } else {
+                await juricaSource.markAsImported(row._id);
+                duplicateCount++;
+              }
+            } else {
               await juricaSource.markAsImported(row._id);
-              newCount++;
+              nonPublicCount++;
             }
           } else {
             await juricaSource.markAsImported(row._id);
-            duplicateCount++;
+            nonPublicCount++;
           }
         } catch (e) {
           console.error(`Jurica import error processing decision ${row._id}`, e);
@@ -185,7 +196,9 @@ async function importJurica() {
     }
   }
 
-  console.log(`Done Importing Jurica - New: ${newCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`);
+  console.log(
+    `Done Importing Jurica - New: ${newCount}, Non-public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
+  );
   await client.close();
   await juricaSource.close();
   return true;
