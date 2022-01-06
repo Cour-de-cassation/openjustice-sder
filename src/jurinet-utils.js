@@ -420,8 +420,8 @@ class JurinetUtils {
     };
 
     for (let key in occultations) {
-      if(key === "IND_PM" || key === "IND_NOM_PROFESSIONEL" || key === "IND_PRENOM_PROFESSIONEL") {
-        if(!document[key]) {
+      if (key === 'IND_PM' || key === 'IND_NOM_PROFESSIONEL' || key === 'IND_PRENOM_PROFESSIONEL') {
+        if (!document[key]) {
           occultations[key].forEach((item) => {
             normalizedDecision.occultation.categoriesToOmit.push(item);
           });
@@ -488,6 +488,8 @@ class JurinetUtils {
       number = zoning.introduction_subzonage.pourvoi;
     } else if (decision.appeals && Array.isArray(decision.appeals) && decision.appeals.length > 0) {
       number = decision.appeals;
+    } else if (decision.registerNumber) {
+      number = [decision.registerNumber];
     }
     if (Array.isArray(number)) {
       number = number.map((x) => {

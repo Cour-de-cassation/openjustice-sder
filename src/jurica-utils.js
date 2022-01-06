@@ -149,7 +149,6 @@ class JuricaUtils {
       '97B',
       '97G',
       '97P',
-      '00A',
     ];
     if (nonPublicNAC.indexOf(`${nac}`.toUpperCase().trim()) !== -1) {
       return false;
