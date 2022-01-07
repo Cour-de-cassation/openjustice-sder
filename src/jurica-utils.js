@@ -23,7 +23,10 @@ const parserOptions = {
 };
 
 class JuricaUtils {
-  static getPublicStatusFromNAC(nac) {
+  static ShouldBeSentToJudifiltre(nac, np, publicCheckbox) {
+    nac = `${nac}`.toUpperCase().trim();
+    np = `${np}`.toUpperCase().trim();
+    publicCheckbox = parseInt(`${publicCheckbox}`, 10);
     const nonPublicNAC = [
       '11A',
       '11B',
@@ -150,7 +153,15 @@ class JuricaUtils {
       '97G',
       '97P',
     ];
-    if (nonPublicNAC.indexOf(`${nac}`.toUpperCase().trim()) !== -1) {
+    const requirePublicCheckboxNAC = ['70J', '78S', '78T', '78U', '97A'];
+    const requireNPCheck = ['00A'];
+    if (nonPublicNAC.indexOf(nac) !== -1) {
+      return false;
+    }
+    if (requirePublicCheckboxNAC.indexOf(nac) !== -1 && publicCheckbox !== 1) {
+      return false;
+    }
+    if (requireNPCheck.indexOf(nac) !== -1 && /^9[0-9A-T]$/.test(np) === true) {
       return false;
     }
     return true;
@@ -324,6 +335,7 @@ class JuricaUtils {
       blocOccultation: undefined,
       endCaseCode: document.JDEC_CODE || null,
       NACCode: document.JDEC_CODNAC || null,
+      NPCode: document.JDEC_CODNACPART || null,
       public:
         parseInt(document.JDEC_IND_DEC_PUB, 10) === 1
           ? true

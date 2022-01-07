@@ -8,6 +8,8 @@ const { JuricaOracle } = require('../jurica-oracle');
 const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
+const { Juritools } = require('../juritools');
+
 const ms = require('ms');
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
@@ -157,34 +159,43 @@ async function importJurica() {
           }
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
-          if (!row.JDEC_CODNAC || JuricaUtils.getPublicStatusFromNAC(row.JDEC_CODNAC) === true) {
-            if (!row.JDEC_IND_DEC_PUB || parseInt(row.JDEC_IND_DEC_PUB, 10) !== 0) {
-              if (duplicate === false) {
-                let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-                if (normalized === null) {
-                  let normDec = await JuricaUtils.Normalize(row);
-                  normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-                  normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-                  normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-                  normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-                  normDec._version = decisionsVersion;
-                  const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-                  normDec._id = insertResult.insertedId;
-                  await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions');
-                  await juricaSource.markAsImported(row._id);
-                  newCount++;
-                }
-              } else {
-                await juricaSource.markAsImported(row._id);
-                duplicateCount++;
-              }
-            } else {
+          const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            row.JDEC_CODNAC,
+            row.JDEC_CODNACPART,
+            row.JDEC_IND_DEC_PUB,
+          );
+          if (duplicate === false && ShouldBeSentToJudifiltre === true) {
+            /*
+            {
+              decisionDate: publicityInfoDto.decisionDate,
+              sourceDb: publicityInfoDto.sourceDb, // "jurica"
+              sourceId: publicityInfoDto.sourceId,
+              jurisdiction: publicityInfoDto.jurisdictionName, // "CA_ROUEN"
+              clerkRequest: publicityInfoDto.publicityClerkRequest, // "public", "notPublic", "unspecified"
+              fieldCode: publicityInfoDto.fieldCode, // NACCode
+            }
+            */
+            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+            if (normalized === null) {
+              let normDec = await JuricaUtils.Normalize(row);
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec._version = decisionsVersion;
+              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              normDec._id = insertResult.insertedId;
+              await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions');
               await juricaSource.markAsImported(row._id);
-              nonPublicCount++;
+              newCount++;
             }
           } else {
             await juricaSource.markAsImported(row._id);
-            nonPublicCount++;
+            if (duplicate) {
+              duplicateCount++;
+            } else {
+              nonPublicCount++;
+            }
           }
         } catch (e) {
           console.error(`Jurica import error processing decision ${row._id}`, e);

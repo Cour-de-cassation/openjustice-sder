@@ -246,6 +246,7 @@ class DilaUtils {
       blocOccultation: undefined,
       endCaseCode: null,
       NACCode: null,
+      NPCode: null,
       public: true,
     };
 

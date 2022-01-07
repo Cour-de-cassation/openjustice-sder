@@ -278,6 +278,7 @@ class JurinetUtils {
       blocOccultation: undefined,
       endCaseCode: null,
       NACCode: null,
+      NPCode: null,
       public: null,
       natureAffaireCivil: null,
       natureAffairePenal: null,
