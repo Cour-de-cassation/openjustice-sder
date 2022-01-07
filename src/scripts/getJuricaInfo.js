@@ -44,12 +44,12 @@ async function getJuricaInfo(id) {
 
   const normalizedDecision = await JuricaUtils.Normalize(rows[0]);
 
-  if (normalizedDecision.pseudoText) {
+  if (normalizedDecision.originalText) {
     try {
       const zoning = await Juritools.GetZones(
         normalizedDecision.sourceId,
         normalizedDecision.sourceName,
-        normalizedDecision.pseudoText,
+        normalizedDecision.originalText,
       );
       console.log(JSON.stringify(zoning, null, 2));
     } catch (e) {
