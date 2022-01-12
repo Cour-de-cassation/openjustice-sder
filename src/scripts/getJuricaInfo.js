@@ -50,6 +50,7 @@ async function getJuricaInfo(id) {
         normalizedDecision.sourceId,
         normalizedDecision.sourceName,
         normalizedDecision.originalText,
+        'https://nlp-jurizonage-api.judilibre-prive.local',
       );
       console.log(JSON.stringify(zoning, null, 2));
     } catch (e) {
