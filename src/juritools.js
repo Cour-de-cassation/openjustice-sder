@@ -12,6 +12,7 @@ class Juritools {
     };
     const response = await needle('post', `${host}/zonage`, zoneData, {
       json: true,
+      rejectUnauthorized: false,
     });
     if (!response || !response.body || !response.body.zones) {
       delete zoneData.text;
@@ -30,6 +31,7 @@ class Juritools {
     };
     const response = await needle('post', `${host}/meta-jurinet`, data, {
       json: true,
+      rejectUnauthorized: false,
     });
     if (!response || !response.body) {
       console.warn('GetMetaJurinet failed for the given data', data);
@@ -46,6 +48,7 @@ class Juritools {
     };
     const response = await needle('post', `${host}/meta-jurica`, data, {
       json: true,
+      rejectUnauthorized: false,
     });
     if (!response || !response.body) {
       console.warn('GetMetaJurica failed for the given data', data);
