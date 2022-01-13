@@ -17,7 +17,7 @@ class Juritools {
     if (!response || !response.body || !response.body.zones) {
       delete zoneData.text;
       console.warn('GetZones failed for the given data', zoneData);
-      console.warn(response);
+      console.warn(response.body);
     }
     delete response.body.arret_id;
     return response.body;
