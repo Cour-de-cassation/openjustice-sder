@@ -3,7 +3,7 @@ const needle = require('needle');
 class Juritools {
   static async GetZones(id, source, text, host) {
     if (host === undefined) {
-      host = `http://${process.env.ZONING_URI}:${process.env.ZONING_PORT}`;
+      host = `${process.env.ZONING_SCHEME || 'http'}://${process.env.ZONING_URI}:${process.env.ZONING_PORT}`;
     }
     const zoneData = {
       arret_id: id,
