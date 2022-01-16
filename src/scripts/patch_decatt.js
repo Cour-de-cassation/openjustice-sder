@@ -49,8 +49,6 @@ async function patch() {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
-  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
-  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   let rawJurinetDocument;
   const rawJurinetCursor = await rawJurinet.find(
@@ -68,8 +66,10 @@ async function patch() {
       try {
         let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument[process.env.DB_ID_FIELD]);
         let decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
-        console.log('New decatt', decatt);
-      } catch (e) {}
+        console.log('Missing decatt', decatt, 'for', rawJurinetDocument[process.env.DB_ID_FIELD]);
+      } catch (e) {
+        console.log('No missing decatt for', rawJurinetDocument[process.env.DB_ID_FIELD], e);
+      }
     }
   }
 
