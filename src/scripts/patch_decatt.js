@@ -64,11 +64,11 @@ async function patch() {
   while ((rawJurinetDocument = await rawJurinetCursor.next())) {
     if (!rawJurinetDocument._decatt) {
       try {
-        let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument[process.env.DB_ID_FIELD]);
+        let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument._id);
         let decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
-        console.log('Missing decatt', decatt, 'for', rawJurinetDocument[process.env.DB_ID_FIELD]);
+        console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
       } catch (e) {
-        console.log('No missing decatt for', rawJurinetDocument[process.env.DB_ID_FIELD], e);
+        console.log('No missing decatt for', rawJurinetDocument._id, e);
       }
     }
   }
