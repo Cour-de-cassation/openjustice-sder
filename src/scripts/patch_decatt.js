@@ -68,7 +68,7 @@ async function patch() {
         let decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
         console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
       } catch (e) {
-        console.log('No missing decatt for', rawJurinetDocument._id, e);
+        // console.log('No missing decatt for', rawJurinetDocument._id, e);
       }
     }
   }
