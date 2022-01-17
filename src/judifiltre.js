@@ -5,8 +5,8 @@ class Judifiltre {
     if (host === undefined) {
       host = `${process.env.JUDIFILTRE_PROTOCOL}://${process.env.JUDIFILTRE_URI}`;
     }
-    console.log(`${host}/api/publicityInfos`);
-    const response = await needle('post', `${host}/api/publicityInfos`, batch, {
+    console.log(`${host}/judifiltre/api/publicityInfos`);
+    const response = await needle('post', `${host}/judifiltre/api/publicityInfos`, batch, {
       json: true,
       rejectUnauthorized: false,
     });
