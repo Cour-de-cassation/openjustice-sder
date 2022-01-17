@@ -3,9 +3,6 @@ const needle = require('needle');
 class Juritools {
   static async GetZones(id, source, text, host) {
     if (host === undefined) {
-<<<<<<< HEAD
-      host = `${process.env.ZONING_SCHEME || 'http'}://${process.env.ZONING_URI}:${process.env.ZONING_PORT}`;
-=======
       host = `${process.env.ZONING_PROTOCOL}://${process.env.ZONING_URI}:${process.env.ZONING_PORT}`;
     }
     if (`${process.env.ZONING_NORMALIZE_SOURCE}` === 'true') {
@@ -18,7 +15,6 @@ class Juritools {
           source = 'cc';
           break;
       }
->>>>>>> 82ae2c4df26b8a1c72cabf27ab00a6fd50976d41
     }
     const zoneData = {
       arret_id: id,
