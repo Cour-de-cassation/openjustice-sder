@@ -3,7 +3,22 @@ const needle = require('needle');
 class Juritools {
   static async GetZones(id, source, text, host) {
     if (host === undefined) {
+<<<<<<< HEAD
       host = `${process.env.ZONING_SCHEME || 'http'}://${process.env.ZONING_URI}:${process.env.ZONING_PORT}`;
+=======
+      host = `${process.env.ZONING_PROTOCOL}://${process.env.ZONING_URI}:${process.env.ZONING_PORT}`;
+    }
+    if (`${process.env.ZONING_NORMALIZE_SOURCE}` === 'true') {
+      switch (`${source}`.toLowerCase()) {
+        case 'ca':
+        case 'jurica':
+          source = 'ca';
+          break;
+        default:
+          source = 'cc';
+          break;
+      }
+>>>>>>> 82ae2c4df26b8a1c72cabf27ab00a6fd50976d41
     }
     const zoneData = {
       arret_id: id,
@@ -24,7 +39,7 @@ class Juritools {
 
   static async GetMetaJurinet(data, host) {
     if (host === undefined) {
-      host = `http://${process.env.META_URI}:${process.env.META_PORT}`;
+      host = `${process.env.META_PROTOCOL}://${process.env.META_URI}:${process.env.META_PORT}`;
     }
     data = {
       metadata: data,
@@ -41,7 +56,7 @@ class Juritools {
 
   static async GetMetaJurica(data, host) {
     if (host === undefined) {
-      host = `http://${process.env.META_URI}:${process.env.META_PORT}`;
+      host = `${process.env.META_PROTOCOL}://${process.env.META_URI}:${process.env.META_PORT}`;
     }
     data = {
       metadata: data,
