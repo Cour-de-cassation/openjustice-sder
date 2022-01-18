@@ -2,9 +2,11 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
-
 const parser = require('fast-xml-parser');
 const he = require('he');
+
+const { Juritools } = require('./juritools');
+const { Judifiltre } = require('./judifiltre');
 
 const parserOptions = {
   attributeNamePrefix: '',
@@ -404,6 +406,21 @@ class JuricaUtils {
       throw new Error(`JuricaUtils.Normalize: Document '${normalizedDecision.sourceId}' has no text.`);
     }
 
+    if (normalizedDecision.pseudoText) {
+      try {
+        const zoning = await Juritools.GetZones(
+          normalizedDecision.sourceId,
+          normalizedDecision.sourceName,
+          normalizedDecision.pseudoText,
+        );
+        if (zoning && !zoning.detail) {
+          normalizedDecision.zoning = zoning;
+        }
+      } catch (e) {
+        normalizedDecision.zoning = undefined;
+      }
+    }
+
     return normalizedDecision;
   }
 
@@ -536,12 +553,46 @@ class JuricaUtils {
         }
         let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
         if (normalized === null) {
-          let normDec = await JuricaUtils.Normalize(row);
-          normDec._version = decisionsVersion;
-          const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-          normDec._id = insertResult.insertedId;
-          await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
-          hasChanges = true;
+          const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            row.JDEC_CODNAC,
+            row.JDEC_CODNACPART,
+            row.JDEC_IND_DEC_PUB,
+          );
+          if (duplicate === false && ShouldBeSentToJudifiltre === true) {
+            /*
+            let normDec = await JuricaUtils.Normalize(row);
+            normDec._version = decisionsVersion;
+            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normDec._id = insertResult.insertedId;
+            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
+            */
+            try {
+              const judifiltreResult = await Judifiltre.SendBatch([
+                {
+                  decisionDate: row.JDEC_DATE,
+                  sourceDb: 'jurica',
+                  sourceId: row._id,
+                  jurisdiction: row.JDEC_CODE_JURIDICTION,
+                  clerkRequest:
+                    row.JDEC_IND_DEC_PUB === null
+                      ? 'unspecified'
+                      : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
+                      ? 'public'
+                      : 'notPublic',
+                  fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
+                },
+              ]);
+              await JudilibreIndex.updateJuricaDocument(
+                row,
+                duplicateId,
+                `submitted to Judifiltre (decatt): ${JSON.stringify(judifiltreResult)}`,
+              );
+            } catch (e) {
+              console.error(`Jurica import to Judifiltre error processing decision ${row._id} (decatt)`, e);
+              await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
+            }
+            hasChanges = true;
+          }
         } else {
           let normDec = await JuricaUtils.Normalize(row, normalized);
           normDec._version = decisionsVersion;

@@ -8,7 +8,6 @@ const { JuricaOracle } = require('../jurica-oracle');
 const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
-const { Juritools } = require('../juritools');
 const { Judifiltre } = require('../judifiltre');
 
 const ms = require('ms');
@@ -42,6 +41,11 @@ async function main() {
   }
   try {
     await importJurica();
+  } catch (e) {
+    console.error('Jurica import error', e);
+  }
+  try {
+    await importJudifiltre();
   } catch (e) {
     console.error('Jurica import error', e);
   }
@@ -126,7 +130,6 @@ async function importJurica() {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
-  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
@@ -166,7 +169,6 @@ async function importJurica() {
             row.JDEC_IND_DEC_PUB,
           );
           if (duplicate === false && ShouldBeSentToJudifiltre === true) {
-            // @TODO GET {BASE_URL}/judifiltre/api/decisions-to-release pour récupérer la liste des décisions sous la forme {sourceId, sourceDb} qui doivent aller dans la base SDER
             try {
               const judifiltreResult = await Judifiltre.SendBatch([
                 {
@@ -195,22 +197,6 @@ async function importJurica() {
               await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
               errorCount++;
             }
-            /*
-            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-            if (normalized === null) {
-              let normDec = await JuricaUtils.Normalize(row);
-              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-              normDec._version = decisionsVersion;
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normDec._id = insertResult.insertedId;
-              await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions');
-              await juricaSource.markAsImported(row._id);
-              newCount++;
-            }
-            */
           } else {
             await juricaSource.markAsImported(row._id);
             if (duplicate) {
@@ -234,6 +220,84 @@ async function importJurica() {
   );
   await client.close();
   await juricaSource.close();
+  return true;
+}
+
+async function importJudifiltre() {
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+  let row;
+  let newCount = 0;
+  let skipCount = 0;
+  let errorCount = 0;
+
+  try {
+    const batch = await Judifiltre.GetBatch();
+    if (batch && Array.isArray(batch)) {
+      for (let i = 0; i < batch.length; i++) {
+        if (batch[i] && batch[i].sourceId && batch[i].sourceDb === 'jurica') {
+          try {
+            row = await rawJurica.findOne({ _id: batch[i].sourceId });
+            if (row) {
+              let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+              if (normalized === null) {
+                let normDec = await JuricaUtils.Normalize(row);
+                normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+                normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+                normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+                normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+                normDec._version = decisionsVersion;
+                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                normDec._id = insertResult.insertedId;
+                await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+                newCount++;
+                try {
+                  const judifiltreResult = await Judifiltre.DeleteBatch([
+                    {
+                      sourceId: batch[i].sourceId,
+                      sourceName: batch[i].sourceName,
+                    },
+                  ]);
+                  await JudilibreIndex.updateJuricaDocument(
+                    row,
+                    null,
+                    `deleted from Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+                  );
+                } catch (e) {
+                  console.error(`Judifiltre delete error`, e);
+                  errorCount++;
+                }
+              }
+            } else {
+              console.error(`Judifiltre import error: decision ${batch[i].sourceId} not found in rawJurica`);
+              errorCount++;
+            }
+          } catch (e) {
+            console.error(`Judifiltre import error`, batch[i]);
+            errorCount++;
+          }
+        } else {
+          console.log(`Judifiltre skip decision`, batch[i]);
+          skipCount++;
+        }
+      }
+    } else {
+      console.error(`Judifiltre import error`, batch);
+      errorCount++;
+    }
+  } catch (e) {
+    console.error(`Judifiltre import error`, e);
+    errorCount++;
+  }
+
+  console.log(`Done Importing Judifiltre - New: ${newCount}, Skip: ${skipCount}, Error: ${errorCount}.`);
+  await client.close();
   return true;
 }
 
