@@ -9,6 +9,7 @@ const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const { Juritools } = require('../juritools');
+const { Judifiltre } = require('../judifiltre');
 
 const ms = require('ms');
 
@@ -165,16 +166,36 @@ async function importJurica() {
             row.JDEC_IND_DEC_PUB,
           );
           if (duplicate === false && ShouldBeSentToJudifiltre === true) {
-            /*
-            {
-              decisionDate: publicityInfoDto.decisionDate,
-              sourceDb: publicityInfoDto.sourceDb, // "jurica"
-              sourceId: publicityInfoDto.sourceId,
-              jurisdiction: publicityInfoDto.jurisdictionName, // "CA_ROUEN"
-              clerkRequest: publicityInfoDto.publicityClerkRequest, // "public", "notPublic", "unspecified"
-              fieldCode: publicityInfoDto.fieldCode, // NACCode
+            // @TODO GET {BASE_URL}/judifiltre/api/decisions-to-release pour récupérer la liste des décisions sous la forme {sourceId, sourceDb} qui doivent aller dans la base SDER
+            try {
+              const judifiltreResult = await Judifiltre.SendBatch([
+                {
+                  decisionDate: row.JDEC_DATE,
+                  sourceDb: 'jurica',
+                  sourceId: row._id,
+                  jurisdiction: row.JDEC_CODE_JURIDICTION,
+                  clerkRequest:
+                    row.JDEC_IND_DEC_PUB === null
+                      ? 'unspecified'
+                      : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
+                      ? 'public'
+                      : 'notPublic',
+                  fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
+                },
+              ]);
+              await JudilibreIndex.updateJuricaDocument(
+                row,
+                duplicateId,
+                `submitted to Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+              );
+              await juricaSource.markAsImported(row._id);
+              newCount++;
+            } catch (e) {
+              console.error(`Jurica import to Judifiltre error processing decision ${row._id}`, e);
+              await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
+              errorCount++;
             }
-            */
+            /*
             let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized === null) {
               let normDec = await JuricaUtils.Normalize(row);
@@ -189,6 +210,7 @@ async function importJurica() {
               await juricaSource.markAsImported(row._id);
               newCount++;
             }
+            */
           } else {
             await juricaSource.markAsImported(row._id);
             if (duplicate) {
