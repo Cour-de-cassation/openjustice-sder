@@ -49,8 +49,8 @@ async function main() {
                 : 'notPublic',
           },
         ]);
+        console.log(judifiltreResult);
       }
-      console.log(judifiltreResult);
     } catch (e) {
       console.error(e);
     }
