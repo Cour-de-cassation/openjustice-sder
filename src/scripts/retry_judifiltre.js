@@ -27,64 +27,34 @@ async function main() {
 
   console.log(failedDocs.length);
 
-  for (let i = 0; i < failedDocs.length; i++) {
+  for (let i = 0; i < 1 /* failedDocs.length */; i++) {
     console.log(`retry ${failedDocs[i]._id} (${i + 1}/${failedDocs.length})...`);
 
     try {
       let row = await rawJurica.findOne({ _id: parseInt(failedDocs[i]._id.split(':')[1], 10) });
 
       if (row) {
-        console.log({
-          decisionDate: row.JDEC_DATE,
-          sourceDb: 'jurica',
-          sourceId: row._id,
-          jurisdiction: row.JDEC_CODE_JURIDICTION,
-          clerkRequest:
-            row.JDEC_IND_DEC_PUB === null
-              ? 'unspecified'
-              : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
-              ? 'public'
-              : 'notPublic',
-          fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
-        });
+        const judifiltreResult = await Judifiltre.SendBatch([
+          {
+            decisionDate: row.JDEC_DATE,
+            sourceDb: 'jurica',
+            sourceId: row._id,
+            jurisdiction: row.JDEC_CODE_JURIDICTION,
+            clerkRequest:
+              row.JDEC_IND_DEC_PUB === null
+                ? 'unspecified'
+                : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
+                ? 'public'
+                : 'notPublic',
+            fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
+          },
+        ]);
       }
-
-      /*
-      const judifiltreResult = await Judifiltre.SendBatch([
-        {
-          decisionDate: row.JDEC_DATE,
-          sourceDb: 'jurica',
-          sourceId: row._id,
-          jurisdiction: row.JDEC_CODE_JURIDICTION,
-          clerkRequest:
-            row.JDEC_IND_DEC_PUB === null
-              ? 'unspecified'
-              : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
-              ? 'public'
-              : 'notPublic',
-          fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
-        },
-      ]);
-      */
+      console.log(judifiltreResult);
     } catch (e) {
       console.error(e);
     }
   }
-
-  /*
-  const result = await Judifiltre.SendBatch([
-    {
-      decisionDate: new Date(),
-      sourceDb: 'jurica',
-      // sourceId: Integer,
-      jurisdiction: 'CA_ROUEN',
-      clerkRequest: 'unspecified',
-      fieldCode: 'AAA',
-    },
-  ]);
-
-  console.log(result);
-  */
 
   await client.close();
 
