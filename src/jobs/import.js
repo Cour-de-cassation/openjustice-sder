@@ -239,11 +239,15 @@ async function importJudifiltre() {
 
   try {
     const batch = await Judifiltre.GetBatch();
-    if (batch && Array.isArray(batch)) {
-      for (let i = 0; i < batch.length; i++) {
-        if (batch[i] && batch[i].sourceId && batch[i].sourceDb === 'jurica') {
+    if (batch && batch.releasableDecisions && Array.isArray(batch.releasableDecisions)) {
+      for (let i = 0; i < batch.releasableDecisions.length; i++) {
+        if (
+          batch.releasableDecisions[i] &&
+          batch.releasableDecisions[i].sourceId &&
+          batch.releasableDecisions[i].sourceDb === 'jurica'
+        ) {
           try {
-            row = await rawJurica.findOne({ _id: batch[i].sourceId });
+            row = await rawJurica.findOne({ _id: batch.releasableDecisions[i].sourceId });
             if (row) {
               let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
               if (normalized === null) {
@@ -260,8 +264,8 @@ async function importJudifiltre() {
                 try {
                   const judifiltreResult = await Judifiltre.DeleteBatch([
                     {
-                      sourceId: batch[i].sourceId,
-                      sourceName: batch[i].sourceName,
+                      sourceId: batch.releasableDecisions[i].sourceId,
+                      sourceName: batch.releasableDecisions[i].sourceName,
                     },
                   ]);
                   await JudilibreIndex.updateJuricaDocument(
@@ -275,15 +279,17 @@ async function importJudifiltre() {
                 }
               }
             } else {
-              console.error(`Judifiltre import error: decision ${batch[i].sourceId} not found in rawJurica`);
+              console.error(
+                `Judifiltre import error: decision ${batch.releasableDecisions[i].sourceId} not found in rawJurica`,
+              );
               errorCount++;
             }
           } catch (e) {
-            console.error(`Judifiltre import error`, batch[i]);
+            console.error(`Judifiltre import error`, batch.releasableDecisions[i]);
             errorCount++;
           }
         } else {
-          console.log(`Judifiltre skip decision`, batch[i]);
+          console.log(`Judifiltre skip decision`, batch.releasableDecisions[i]);
           skipCount++;
         }
       }
