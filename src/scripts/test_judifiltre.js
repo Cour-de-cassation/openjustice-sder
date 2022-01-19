@@ -6,12 +6,12 @@ const { Judifiltre } = require('../judifiltre');
 async function main() {
   const result = await Judifiltre.SendBatch([
     {
-      decisionDate: new Date(),
-      sourceDb: 'jurica',
       // sourceId: Integer,
-      jurisdiction: 'CA_ROUEN',
-      clerkRequest: 'unspecified',
+      sourceDb: 'jurica',
+      decisionDate: new Date(),
+      jurisdictionName: 'CA_ROUEN',
       fieldCode: 'AAA',
+      publicityClerkRequest: 'unspecified',
     },
   ]);
 
