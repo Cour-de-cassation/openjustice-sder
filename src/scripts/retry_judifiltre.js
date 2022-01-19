@@ -36,17 +36,17 @@ async function main() {
       if (row) {
         const judifiltreResult = await Judifiltre.SendBatch([
           {
-            decisionDate: row.JDEC_DATE,
-            sourceDb: 'jurica',
             sourceId: row._id,
-            jurisdiction: row.JDEC_CODE_JURIDICTION,
-            clerkRequest:
+            sourceDb: 'jurica',
+            decisionDate: row.JDEC_DATE,
+            jurisdictionName: row.JDEC_CODE_JURIDICTION,
+            fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
+            publicityClerkRequest:
               row.JDEC_IND_DEC_PUB === null
                 ? 'unspecified'
                 : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
                 ? 'public'
                 : 'notPublic',
-            fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
           },
         ]);
       }
