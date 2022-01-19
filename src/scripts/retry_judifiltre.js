@@ -31,6 +31,9 @@ async function main() {
     if (failedDocs[i]._id === 'jurica:2483944') {
       continue;
     }
+    if (failedDocs[i]._id === 'jurica:2483947') {
+      continue;
+    }
     console.log(`retry ${failedDocs[i]._id} (${i + 1}/${failedDocs.length})...`);
 
     try {
