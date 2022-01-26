@@ -495,32 +495,12 @@ class JuricaOracle {
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
 
-      const decisionResult = await this.connection.execute(decisionQuery, [info['NUM_RG']]);
+      const decisionResult = await this.connection.execute(decisionQuery, [`${info.NUM_RG}`.trim()]);
 
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         let result = [];
         for (let i = 0; i < decisionResult.rows.length; i++) {
-          if (decisionResult.rows.length >= 1) {
-            console.log(decisionResult.rows[i]);
-            try {
-              let actualFormation = decisionResult.rows[i]['JDEC_LIB_AUTORITE']
-                .replace(/[^a-z0-9]/gim, '')
-                .trim()
-                .toLowerCase();
-              let decattFormation = info['FORMATION_DECATT']
-                .replace(/[^a-z0-9]/gim, '')
-                .trim()
-                .toLowerCase();
-              console.log(actualFormation, decattFormation);
-              if (actualFormation === decattFormation) {
-                result.push(decisionResult.rows[i]['JDEC_ID']);
-              }
-            } catch (e) {
-              result.push(decisionResult.rows[i]['JDEC_ID']);
-            }
-          } else {
-            result.push(decisionResult.rows[i]['JDEC_ID']);
-          }
+          result.push(decisionResult.rows[i]['JDEC_ID']);
         }
         return result;
       } else {
