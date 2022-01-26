@@ -63,19 +63,40 @@ async function patch() {
   );
 
   let missingCount = 0;
+  let diffCount = 0;
+  let sameCount = 0;
 
   while ((rawJurinetDocument = await rawJurinetCursor.next())) {
-    if (!rawJurinetDocument._decatt) {
-      try {
-        let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument._id);
-        let decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
-        console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
-        missingCount++;
-      } catch (e) {}
+    let decatt = null;
+    try {
+      let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument._id);
+      decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
+    } catch (e) {}
+    let hasPreviousDecatt =
+      rawJurinetDocument._decatt && Array.isArray(rawJurinetDocument._decatt) && rawJurinetDocument._decatt.length > 0;
+    let hasNewDecatt = decatt && Array.isArray(decatt) && decatt.length > 0;
+
+    if (!hasPreviousDecatt && hasNewDecatt) {
+      console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
+      missingCount++;
+    } else if (hasPreviousDecatt && JSON.stringify(decatt) !== JSON.stringify(rawJurinetDocument._decatt)) {
+      console.log(
+        'Different decatt',
+        JSON.stringify(decatt),
+        'for',
+        rawJurinetDocument._id,
+        ' - previous was: ',
+        JSON.stringify(rawJurinetDocument._decatt),
+      );
+      diffCount++;
+    } else {
+      sameCount++;
     }
   }
 
   console.log(`${missingCount} missing decatt.`);
+  console.log(`${diffCount} different decatt.`);
+  console.log(`${sameCount} same decatt.`);
 
   await client.close();
   await jurinetSource.close();
