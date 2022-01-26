@@ -60,9 +60,12 @@ async function getJurinetInfo(id) {
   try {
     const decattInfo = jurinetSource.getDecatt(id);
     console.log(JSON.stringify(decattInfo, null, 2));
+    console.log('pim');
   } catch (e) {
     console.error(e);
+    console.log('pam');
   }
+  console.log('poum');
 
   await jurinetSource.close();
   return true;
