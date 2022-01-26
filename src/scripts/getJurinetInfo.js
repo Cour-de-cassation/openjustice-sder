@@ -65,10 +65,10 @@ async function getJurinetInfo(id) {
     const juricaSource = new JuricaOracle();
     await juricaSource.connect();
 
-    /*
     const decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
     console.log(JSON.stringify(decatt, null, 2));
-    */
+
+    /*
 
     let decattDate1 = new Date(Date.parse(decattInfo['DT_DECATT']));
     decattDate1.setDate(decattDate1.getDate() - 1);
@@ -103,6 +103,7 @@ async function getJurinetInfo(id) {
         }
       }
     }
+    */
     await juricaSource.close();
   } catch (e) {
     console.error(e);

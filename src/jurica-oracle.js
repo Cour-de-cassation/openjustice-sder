@@ -491,7 +491,7 @@ class JuricaOracle {
 
       const decisionQuery = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
-        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber
+        WHERE TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
 
