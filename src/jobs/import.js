@@ -45,7 +45,7 @@ async function main() {
     console.error('Jurica import error', e);
   }
   try {
-    await importJudifiltre();
+    // await importJudifiltre();
   } catch (e) {
     console.error('Jurica import error', e);
   }
@@ -131,6 +131,8 @@ async function importJurica() {
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
 
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION); // XXX TEMP
+
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
 
@@ -169,6 +171,23 @@ async function importJurica() {
             row.JDEC_IND_DEC_PUB,
           );
           if (duplicate === false && ShouldBeSentToJudifiltre === true) {
+            // XXX TEMP BEGIN
+            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+            if (normalized === null) {
+              let normDec = await JuricaUtils.Normalize(row);
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec._version = decisionsVersion;
+              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              normDec._id = insertResult.insertedId;
+              await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+              await juricaSource.markAsImported(row._id);
+              newCount++;
+            }
+            // XXX TEMP END
+            /* TOO EARLY
             try {
               const judifiltreResult = await Judifiltre.SendBatch([
                 {
@@ -197,6 +216,7 @@ async function importJurica() {
               await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
               errorCount++;
             }
+            */
           } else {
             await juricaSource.markAsImported(row._id);
             if (duplicate) {

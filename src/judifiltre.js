@@ -39,6 +39,23 @@ class Judifiltre {
     });
     return response.body;
   }
+
+  static async GetQueue(host) {
+    if (host === undefined) {
+      host = `${process.env.JUDIFILTRE_PROTOCOL}://${process.env.JUDIFILTRE_URI}`;
+    }
+    const response = await needle('get', `${host}/judifiltre/api/publicityInfos`, {
+      json: true,
+      rejectUnauthorized: false,
+    });
+    let res = response.body;
+    if (typeof res === 'string') {
+      try {
+        res = JSON.parse(res);
+      } catch (e) {}
+    }
+    return res;
+  }
 }
 
 exports.Judifiltre = Judifiltre;

@@ -12,31 +12,24 @@ async function main() {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const failedDocs = await JudilibreIndex.find('mainIndex', {
-    $or: [
-      {
-        'log.msg': /service unavailable/i,
-      },
-      {
-        'log.msg': /bad gateway/i,
-      },
-    ],
-  });
+  const queueDocs = await Judifiltre.GetQueue();
 
-  console.log(failedDocs.length);
+  console.log(queueDocs.length);
 
-  for (let i = 0; i < failedDocs.length; i++) {
-    if (failedDocs[i]._id === 'jurica:2483944') {
+  /*
+  for (let i = 0; i < queueDocs.length; i++) {
+    if (queueDocs[i]._id === 'jurica:2483944') {
       continue;
     }
-    if (failedDocs[i]._id === 'jurica:2483947') {
+    if (queueDocs[i]._id === 'jurica:2483947') {
       continue;
     }
-    console.log(`retry ${failedDocs[i]._id} (${i + 1}/${failedDocs.length})...`);
+    console.log(`retry ${queueDocs[i]._id} (${i + 1}/${queueDocs.length})...`);
 
     try {
-      let row = await rawJurica.findOne({ _id: parseInt(failedDocs[i]._id.split(':')[1], 10) });
+      let row = await rawJurica.findOne({ _id: parseInt(queueDocs[i]._id.split(':')[1], 10) });
 
       if (row) {
         const judifiltreResult = await Judifiltre.SendBatch([
@@ -60,6 +53,7 @@ async function main() {
       console.error(e);
     }
   }
+  */
 
   await client.close();
 
