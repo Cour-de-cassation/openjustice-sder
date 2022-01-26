@@ -28,7 +28,6 @@ async function main() {
       if (row) {
         let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
         if (normalized === null) {
-          /*
           let normDec = await JuricaUtils.Normalize(row);
           normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
           normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
@@ -38,7 +37,6 @@ async function main() {
           const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           normDec._id = insertResult.insertedId;
           await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
-          */
           console.log('ok');
         } else {
           console.log('skip');
