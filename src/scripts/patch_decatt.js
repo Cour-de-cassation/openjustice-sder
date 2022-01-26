@@ -80,15 +80,22 @@ async function patch() {
       console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
       missingCount++;
     } else if (hasPreviousDecatt && JSON.stringify(decatt) !== JSON.stringify(rawJurinetDocument._decatt)) {
-      console.log(
-        'Different decatt',
-        JSON.stringify(decatt),
-        'for',
-        rawJurinetDocument._id,
-        ' - previous was: ',
-        JSON.stringify(rawJurinetDocument._decatt),
-      );
-      diffCount++;
+      if (
+        decatt.indexOf(rawJurinetDocument._decatt[0]) !== -1 ||
+        rawJurinetDocument._decatt.indexOf(decatt[0]) !== -1
+      ) {
+        sameCount++;
+      } else {
+        console.log(
+          'Different decatt',
+          JSON.stringify(decatt),
+          'for',
+          rawJurinetDocument._id,
+          ' - previous was: ',
+          JSON.stringify(rawJurinetDocument._decatt),
+        );
+        diffCount++;
+      }
     } else {
       sameCount++;
     }
