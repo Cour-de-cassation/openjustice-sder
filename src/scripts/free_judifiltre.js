@@ -14,7 +14,9 @@ async function main() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const queueDocs = await Judifiltre.GetQueue();
+  // NOP const queueDocs = await Judifiltre.GetQueue();
+
+  const queueDocs = await JudilibreIndex.find('mainIndex', { 'log.msg': /judifiltre/i });
 
   console.log(queueDocs.length);
 
