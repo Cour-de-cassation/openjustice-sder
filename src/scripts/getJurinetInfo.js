@@ -38,7 +38,6 @@ async function getJurinetInfo(id) {
   }
 
   await rs.close();
-  await jurinetSource.close();
 
   console.log(JSON.stringify(rows[0], null, 2));
 
@@ -65,6 +64,7 @@ async function getJurinetInfo(id) {
     console.error(e);
   }
 
+  await jurinetSource.close();
   return true;
 }
 
