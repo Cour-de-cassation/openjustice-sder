@@ -499,7 +499,6 @@ class JuricaOracle {
 
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         let result = [];
-        console.log(decisionResult.rows);
         for (let i = 0; i < decisionResult.rows.length; i++) {
           if (decisionResult.rows.length >= 1) {
             console.log(decisionResult.rows[i]);
@@ -512,6 +511,7 @@ class JuricaOracle {
                 .replace(/[^a-z0-9]/gim, '')
                 .trim()
                 .toLowerCase();
+              console.log(actualFormation, decattFormation);
               if (actualFormation === decattFormation) {
                 result.push(decisionResult.rows[i]['JDEC_ID']);
               }
