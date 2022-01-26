@@ -61,17 +61,21 @@ async function patch() {
       },
     },
   );
+
+  let missingCount = 0;
+
   while ((rawJurinetDocument = await rawJurinetCursor.next())) {
     if (!rawJurinetDocument._decatt) {
       try {
         let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument._id);
         let decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
         console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
-      } catch (e) {
-        // console.log('No missing decatt for', rawJurinetDocument._id, e);
-      }
+        missingCount++;
+      } catch (e) {}
     }
   }
+
+  console.log(`${missingCount} missing decatt.`);
 
   await client.close();
   await jurinetSource.close();
