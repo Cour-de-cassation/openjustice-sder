@@ -14,48 +14,25 @@ async function main() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  // NOP const queueDocs = await Judifiltre.GetQueue();
+  // NOP: const queueDocs = await Judifiltre.GetQueue();
 
   const queueDocs = await JudilibreIndex.find('mainIndex', { 'log.msg': /judifiltre/i });
 
-  console.log(queueDocs.length);
-
-  /*
   for (let i = 0; i < queueDocs.length; i++) {
-    if (queueDocs[i]._id === 'jurica:2483944') {
-      continue;
-    }
-    if (queueDocs[i]._id === 'jurica:2483947') {
-      continue;
-    }
-    console.log(`retry ${queueDocs[i]._id} (${i + 1}/${queueDocs.length})...`);
+    console.log(`free ${queueDocs[i]._id} (${i + 1}/${queueDocs.length})...`);
 
     try {
       let row = await rawJurica.findOne({ _id: parseInt(queueDocs[i]._id.split(':')[1], 10) });
 
       if (row) {
-        const judifiltreResult = await Judifiltre.SendBatch([
-          {
-            sourceId: row._id,
-            sourceDb: 'jurica',
-            decisionDate: row.JDEC_DATE,
-            jurisdictionName: row.JDEC_CODE_JURIDICTION,
-            fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
-            publicityClerkRequest:
-              row.JDEC_IND_DEC_PUB === null
-                ? 'unspecified'
-                : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
-                ? 'public'
-                : 'notPublic',
-          },
-        ]);
-        console.log(judifiltreResult);
+        console.log('ok');
+      } else {
+        console.log('NOK');
       }
     } catch (e) {
       console.error(e);
     }
   }
-  */
 
   await client.close();
 
