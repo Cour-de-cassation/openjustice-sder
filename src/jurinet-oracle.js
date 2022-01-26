@@ -695,7 +695,9 @@ class JurinetOracle {
       const decisionQuery = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-      const decisionResult = await this.connection.execute(decisionQuery, [id]);
+      const decisionResult = await this.connection.execute(decisionQuery, [id], {
+        resultSet: false,
+      });
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         // 2. Get the pourvoi related to the decision:
         const pourvoiQuery = `SELECT *
