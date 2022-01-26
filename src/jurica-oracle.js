@@ -477,6 +477,9 @@ class JuricaOracle {
     } else if (this.connected === true && this.connection !== null) {
       let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
       decattDate1.setHours(decattDate1.getHours() + 2);
+      strDecatt1 +=
+        '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
+      strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
       /*
       decattDate1.setDate(decattDate1.getDate() - 1);
       let strDecatt1 = decattDate1.getFullYear();
