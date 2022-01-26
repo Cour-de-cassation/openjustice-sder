@@ -60,12 +60,40 @@ async function getJurinetInfo(id) {
   try {
     const decattInfo = await jurinetSource.getDecatt(id);
     console.log(JSON.stringify(decattInfo, null, 2));
+
     const { JuricaOracle } = require('../jurica-oracle');
     const juricaSource = new JuricaOracle();
     await juricaSource.connect();
     const decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
-    await juricaSource.close();
     console.log(JSON.stringify(decatt, null, 2));
+
+    let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
+    decattDate1.setDate(decattDate1.getDate() - 1);
+    let strDecatt1 = decattDate1.getFullYear();
+    strDecatt1 +=
+      '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
+    strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
+
+    let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
+    decattDate2.setDate(decattDate2.getDate() + 1);
+    let strDecatt2 = decattDate2.getFullYear();
+    strDecatt2 +=
+      '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
+    strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
+
+    const decisionQuery = `SELECT *
+      FROM ${process.env.DB_TABLE_JURICA}
+      WHERE ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
+      AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
+
+    const decisionResult = await juricaSource.connection.execute(decisionQuery, []);
+
+    if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+      for (let i = 0; i < decisionResult.rows.length; i++) {
+        console.log(decisionResult.rows[i].JDEC_NUM_RG);
+      }
+    }
+    await juricaSource.close();
   } catch (e) {
     console.error(e);
   }
