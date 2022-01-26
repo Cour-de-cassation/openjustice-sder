@@ -95,8 +95,11 @@ async function getJurinetInfo(id) {
 
     if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
       for (let i = 0; i < decisionResult.rows.length; i++) {
-        if (decisionResult.rows[i].JDEC_NUM_RG && /14\/03/.test(decisionResult.rows[i].JDEC_NUM_RG)) {
-          console.log(decisionResult.rows[i].JDEC_ID, decisionResult.rows[i].JDEC_NUM_RG);
+        if (
+          decisionResult.rows[i].JDEC_NUM_RG &&
+          decisionResult.rows[i].JDEC_NUM_RG.indexOf(decattInfo['NUM_RG']) !== -1
+        ) {
+          console.log(decisionResult.rows[i].JDEC_ID, `*${decisionResult.rows[i].JDEC_NUM_RG}*`);
         }
       }
     }
