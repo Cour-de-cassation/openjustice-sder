@@ -89,7 +89,7 @@ async function getJurinetInfo(id) {
       WHERE ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
       AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
 
-    console.log(decisionResult);
+    console.log(decisionQuery);
 
     const decisionResult = await juricaSource.connection.execute(decisionQuery, []);
 
