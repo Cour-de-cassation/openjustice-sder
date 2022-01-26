@@ -81,8 +81,9 @@ async function patch() {
       missingCount++;
     } else if (hasPreviousDecatt && JSON.stringify(decatt) !== JSON.stringify(rawJurinetDocument._decatt)) {
       if (
-        decatt.indexOf(rawJurinetDocument._decatt[0]) !== -1 ||
-        rawJurinetDocument._decatt.indexOf(decatt[0]) !== -1
+        Array.isArray(decatt) &&
+        Array.isArray(rawJurinetDocument._decatt) &&
+        (decatt.indexOf(rawJurinetDocument._decatt[0]) !== -1 || rawJurinetDocument._decatt.indexOf(decatt[0]) !== -1)
       ) {
         sameCount++;
       } else {
