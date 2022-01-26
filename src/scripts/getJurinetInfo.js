@@ -58,6 +58,13 @@ async function getJurinetInfo(id) {
     }
   }
 
+  try {
+    const decattInfo = jurinetSource.getDecatt(id);
+    console.log(JSON.stringify(decattInfo, null, 2));
+  } catch (e) {
+    console.error(e);
+  }
+
   return true;
 }
 
