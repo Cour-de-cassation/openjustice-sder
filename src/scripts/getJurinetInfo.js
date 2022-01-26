@@ -95,7 +95,9 @@ async function getJurinetInfo(id) {
 
     if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
       for (let i = 0; i < decisionResult.rows.length; i++) {
-        console.log(decisionResult.rows[i].JDEC_NUM_RG);
+        if (decisionResult.rows[i].JDEC_NUM_RG && /14\/03/.test(decisionResult.rows[i].JDEC_NUM_RG)) {
+          console.log(decisionResult.rows[i].JDEC_ID, decisionResult.rows[i].JDEC_NUM_RG);
+        }
       }
     }
     await juricaSource.close();
