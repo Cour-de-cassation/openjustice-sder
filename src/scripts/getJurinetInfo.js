@@ -60,6 +60,12 @@ async function getJurinetInfo(id) {
   try {
     const decattInfo = await jurinetSource.getDecatt(id);
     console.log(JSON.stringify(decattInfo, null, 2));
+    const { JuricaOracle } = require('../jurica-oracle');
+    const juricaSource = new JuricaOracle();
+    await juricaSource.connect();
+    const decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
+    await juricaSource.close();
+    console.log(JSON.stringify(decatt, null, 2));
   } catch (e) {
     console.error(e);
   }
