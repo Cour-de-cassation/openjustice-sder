@@ -703,7 +703,9 @@ class JurinetOracle {
         const pourvoiQuery = `SELECT *
           FROM NUMPOURVOI
           WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
-        const pourvoiResult = await this.connection.execute(pourvoiQuery, [id]);
+        const pourvoiResult = await this.connection.execute(pourvoiQuery, [id], {
+          resultSet: false,
+        });
         if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
           // 3. Get the affaire related to the pourvoi:
           const pourvoi = pourvoiResult.rows[0];
@@ -711,7 +713,9 @@ class JurinetOracle {
           const affaireQuery = `SELECT *
             FROM GPCIV.AFF
             WHERE GPCIV.AFF.CODE = :code`;
-          const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
+          const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi], {
+            resultSet: false,
+          });
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
             // 4. Get the contested decision related to the affaire:
             const affaire = affaireResult.rows[0];
@@ -719,7 +723,9 @@ class JurinetOracle {
             const decattQuery = `SELECT *
               FROM GPCIV.DECATT
               WHERE GPCIV.DECATT.ID_AFFAIRE = :id`;
-            const decattResult = await this.connection.execute(decattQuery, [idAffaire]);
+            const decattResult = await this.connection.execute(decattQuery, [idAffaire], {
+              resultSet: false,
+            });
             if (decattResult && decattResult.rows && decattResult.rows.length > 0) {
               return decattResult.rows[0];
             } else {
