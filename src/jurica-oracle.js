@@ -482,12 +482,22 @@ class JuricaOracle {
       strDecatt1 +=
         '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
       strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
+
       let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
       decattDate2.setHours(decattDate2.getHours() + 2);
       let strDecatt2 = decattDate2.getFullYear();
       strDecatt2 +=
         '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
       strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
+
+      let decattDate3 = new Date(Date.parse(info['DT_DECATT']));
+      decattDate3.setHours(decattDate3.getHours() + 2);
+      decattDate3.setDate(decattDate3.getDate() + 1);
+      let strDecatt3 = decattDate3.getFullYear();
+      strDecatt3 +=
+        '-' + (decattDate3.getMonth() + 1 < 10 ? '0' + (decattDate3.getMonth() + 1) : decattDate3.getMonth() + 1);
+      strDecatt3 += '-' + (decattDate3.getDate() < 10 ? '0' + decattDate3.getDate() : decattDate3.getDate());
+
       /*
       decattDate1.setDate(decattDate1.getDate() - 1);
       let strDecatt1 = decattDate1.getFullYear();
@@ -507,10 +517,11 @@ class JuricaOracle {
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
       */
+
       const decisionQuery = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber
-        AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}')`;
+        AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}')`;
 
       const decisionResult = await this.connection.execute(decisionQuery, [`${info.NUM_RG}`.trim()]);
 
