@@ -35,6 +35,8 @@ async function main() {
 }
 
 async function patch() {
+  await JudilibreIndex.createIndex('mainIndex', { dateJudifiltre: -1 });
+
   const result = await JudilibreIndex.find('mainIndex', { 'log.msg': /publicityinfos created/i, _id: /^jurica:/ });
 
   for (let i = 0; i < result.length; i++) {
@@ -43,12 +45,10 @@ async function patch() {
       if (/publicityinfos created/i.test(indexedDoc.log[j].msg)) {
         let dateJudifiltre = DateTime.fromJSDate(indexedDoc.log[j].date);
         console.log(dateJudifiltre.toISODate());
-        /*
-        indexedDoc.lastOperation = lastOperation.toISODate();
+        indexedDoc.dateJudifiltre = dateJudifiltre.toISODate();
         await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
           bypassDocumentValidation: true,
         });
-        */
       }
     }
   }
