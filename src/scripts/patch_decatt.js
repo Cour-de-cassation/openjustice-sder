@@ -77,7 +77,7 @@ async function patch() {
     let hasNewDecatt = decatt && Array.isArray(decatt) && decatt.length > 0;
 
     if (!hasPreviousDecatt && hasNewDecatt) {
-      console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
+      // console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
       missingCount++;
     } else if (hasPreviousDecatt && JSON.stringify(decatt) !== JSON.stringify(rawJurinetDocument._decatt)) {
       if (
