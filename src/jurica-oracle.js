@@ -471,75 +471,75 @@ class JuricaOracle {
    * @returns
    * @throws
    */
-  async getDecisionIdByDecattInfo(info) {
-    if (!info || !info['NUM_RG'] || !info['DT_DECATT'] || !info['FORMATION_DECATT']) {
-      throw new Error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
-    } else if (this.connected === true && this.connection !== null) {
-      let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
-      decattDate1.setHours(decattDate1.getHours() + 2);
-      decattDate1.setDate(decattDate1.getDate() - 1);
-      let strDecatt1 = decattDate1.getFullYear();
-      strDecatt1 +=
-        '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
-      strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
-
-      let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
-      decattDate2.setHours(decattDate2.getHours() + 2);
-      let strDecatt2 = decattDate2.getFullYear();
-      strDecatt2 +=
-        '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
-      strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
-
-      let decattDate3 = new Date(Date.parse(info['DT_DECATT']));
-      decattDate3.setHours(decattDate3.getHours() + 2);
-      decattDate3.setDate(decattDate3.getDate() + 1);
-      let strDecatt3 = decattDate3.getFullYear();
-      strDecatt3 +=
-        '-' + (decattDate3.getMonth() + 1 < 10 ? '0' + (decattDate3.getMonth() + 1) : decattDate3.getMonth() + 1);
-      strDecatt3 += '-' + (decattDate3.getDate() < 10 ? '0' + decattDate3.getDate() : decattDate3.getDate());
-
-      /*
-      decattDate1.setDate(decattDate1.getDate() - 1);
-      let strDecatt1 = decattDate1.getFullYear();
-      strDecatt1 +=
-        '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
-      strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
-
-      let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
-      decattDate2.setDate(decattDate2.getDate() + 1);
-      let strDecatt2 = decattDate2.getFullYear();
-      strDecatt2 +=
-        '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
-      strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
-      const decisionQuery = `SELECT *
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber
-        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
-        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
-      */
-
-      const decisionQuery = `SELECT *
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber
-        AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}')`;
-
-      const decisionResult = await this.connection.execute(decisionQuery, [`${info.NUM_RG}`.trim()]);
-
-      if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
-        let result = [];
-        for (let i = 0; i < decisionResult.rows.length; i++) {
-          result.push(decisionResult.rows[i]['JDEC_ID']);
-        }
-        return result;
-      } else {
-        throw new Error(
-          'Jurica.getDecisionIdByDecattInfo - no decision related to the given "decatt" info:\n' +
-            JSON.stringify(info, null, 2),
-        );
-      }
-    } else {
-      throw new Error('Jurica.getDecisionIdByDecattInfo: not connected.');
+  async getDecisionIdByDecattInfo(infos) {
+    let results = [];
+    if (!Array.isArray(infos)) {
+      infos = [infos];
     }
+    for (let ii = 0; ii < infos.length; ii++) {
+      let info = infos[ii];
+      if (!info || !info['NUM_RG'] || !info['DT_DECATT'] || !info['FORMATION_DECATT']) {
+        throw new Error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
+      } else if (this.connected === true && this.connection !== null) {
+        let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
+        decattDate1.setHours(decattDate1.getHours() + 2);
+        decattDate1.setDate(decattDate1.getDate() - 1);
+        let strDecatt1 = decattDate1.getFullYear();
+        strDecatt1 +=
+          '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
+        strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
+
+        let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
+        decattDate2.setHours(decattDate2.getHours() + 2);
+        let strDecatt2 = decattDate2.getFullYear();
+        strDecatt2 +=
+          '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
+        strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
+
+        let decattDate3 = new Date(Date.parse(info['DT_DECATT']));
+        decattDate3.setHours(decattDate3.getHours() + 2);
+        decattDate3.setDate(decattDate3.getDate() + 1);
+        let strDecatt3 = decattDate3.getFullYear();
+        strDecatt3 +=
+          '-' + (decattDate3.getMonth() + 1 < 10 ? '0' + (decattDate3.getMonth() + 1) : decattDate3.getMonth() + 1);
+        strDecatt3 += '-' + (decattDate3.getDate() < 10 ? '0' + decattDate3.getDate() : decattDate3.getDate());
+
+        const decisionQuery = `SELECT *
+          FROM ${process.env.DB_TABLE_JURICA}
+          WHERE TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber
+          AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}')`;
+
+        const decisionResult = await this.connection.execute(decisionQuery, [`${info.NUM_RG}`.trim()]);
+
+        if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+          let tempResults = [];
+          let hasExpectedDate = false;
+          for (let i = 0; i < decisionResult.rows.length; i++) {
+            tempResults.push({
+              id: decisionResult.rows[i]['JDEC_ID'],
+              expectedDate: decisionResult.rows[i]['JDEC_DATE'] === decattDate2,
+            });
+            if (decisionResult.rows[i]['JDEC_DATE'] === decattDate2) {
+              hasExpectedDate = true;
+            }
+          }
+          for (let k = 0; k < tempResults.length; k++) {
+            if (!hasExpectedDate || (hasExpectedDate && tempResults[k].expectedDate)) {
+              results.push(tempResults[k].id);
+            }
+          }
+        } else {
+          throw new Error(
+            'Jurica.getDecisionIdByDecattInfo - no decision related to the given "decatt" info:\n' +
+              JSON.stringify(info, null, 2),
+          );
+        }
+      } else {
+        throw new Error('Jurica.getDecisionIdByDecattInfo: not connected.');
+      }
+    }
+
+    return results;
   }
 
   /**

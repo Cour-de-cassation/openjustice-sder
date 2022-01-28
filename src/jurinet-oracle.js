@@ -727,7 +727,7 @@ class JurinetOracle {
               resultSet: false,
             });
             if (decattResult && decattResult.rows && decattResult.rows.length > 0) {
-              return decattResult.rows[0];
+              return decattResult.rows;
             } else {
               throw new Error(
                 `Jurinet.getDecatt: contested decision not found in GPVIV.DECATT for affaire '${idAffaire}'.`,
