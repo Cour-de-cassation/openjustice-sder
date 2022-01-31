@@ -481,6 +481,14 @@ class JuricaOracle {
       if (!info || !info['NUM_RG'] || !info['DT_DECATT'] || !info['FORMATION_DECATT']) {
         throw new Error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
       } else if (this.connected === true && this.connection !== null) {
+        let decattDate0 = new Date(Date.parse(info['DT_DECATT']));
+        decattDate0.setHours(decattDate0.getHours() + 2);
+        decattDate0.setDate(decattDate0.getDate() - 2);
+        let strDecatt0 = decattDate0.getFullYear();
+        strDecatt0 +=
+          '-' + (decattDate0.getMonth() + 1 < 10 ? '0' + (decattDate0.getMonth() + 1) : decattDate0.getMonth() + 1);
+        strDecatt0 += '-' + (decattDate0.getDate() < 10 ? '0' + decattDate0.getDate() : decattDate0.getDate());
+
         let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
         decattDate1.setHours(decattDate1.getHours() + 2);
         decattDate1.setDate(decattDate1.getDate() - 1);
@@ -504,29 +512,48 @@ class JuricaOracle {
           '-' + (decattDate3.getMonth() + 1 < 10 ? '0' + (decattDate3.getMonth() + 1) : decattDate3.getMonth() + 1);
         strDecatt3 += '-' + (decattDate3.getDate() < 10 ? '0' + decattDate3.getDate() : decattDate3.getDate());
 
+        let decattDate4 = new Date(Date.parse(info['DT_DECATT']));
+        decattDate4.setHours(decattDate4.getHours() + 2);
+        decattDate4.setDate(decattDate4.getDate() + 2);
+        let strDecatt4 = decattDate4.getFullYear();
+        strDecatt4 +=
+          '-' + (decattDate4.getMonth() + 1 < 10 ? '0' + (decattDate4.getMonth() + 1) : decattDate4.getMonth() + 1);
+        strDecatt4 += '-' + (decattDate4.getDate() < 10 ? '0' + decattDate4.getDate() : decattDate4.getDate());
+
         const decisionQuery = `SELECT *
           FROM ${process.env.DB_TABLE_JURICA}
           WHERE TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber
-          AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}')`;
+          AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt0}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt4}')`;
 
         const decisionResult = await this.connection.execute(decisionQuery, [`${info.NUM_RG}`.trim()]);
 
         if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
-          let tempResults = [];
-          let hasExpectedDate = false;
+          let weightedResults = {
+            delta0: [],
+            delta1: [],
+            delta2: [],
+          };
           for (let i = 0; i < decisionResult.rows.length; i++) {
-            tempResults.push({
-              id: decisionResult.rows[i]['JDEC_ID'],
-              expectedDate: decisionResult.rows[i]['JDEC_DATE'] === decattDate2,
-            });
             if (decisionResult.rows[i]['JDEC_DATE'] === decattDate2) {
-              hasExpectedDate = true;
+              weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
+            } else if (
+              decisionResult.rows[i]['JDEC_DATE'] === decattDate1 ||
+              decisionResult.rows[i]['JDEC_DATE'] === decattDate3
+            ) {
+              weightedResults.delta1.push(decisionResult.rows[i]['JDEC_ID']);
+            } else if (
+              decisionResult.rows[i]['JDEC_DATE'] === decattDate0 ||
+              decisionResult.rows[i]['JDEC_DATE'] === decattDate4
+            ) {
+              weightedResults.delta2.push(decisionResult.rows[i]['JDEC_ID']);
             }
           }
-          for (let k = 0; k < tempResults.length; k++) {
-            if (!hasExpectedDate || (hasExpectedDate && tempResults[k].expectedDate)) {
-              results.push(tempResults[k].id);
-            }
+          if (weightedResults.delta0.length > 0) {
+            results = results.concat(weightedResults.delta0.length);
+          } else if (weightedResults.delta1.length > 0) {
+            results = results.concat(weightedResults.delta1.length);
+          } else if (weightedResults.delta2.length > 0) {
+            results = results.concat(weightedResults.delta2.length);
           }
         } else {
           throw new Error(
@@ -539,7 +566,9 @@ class JuricaOracle {
       }
     }
 
-    return results;
+    return results.filter((value, index, self) => {
+      return self.indexOf(value) === index;
+    });
   }
 
   /**
