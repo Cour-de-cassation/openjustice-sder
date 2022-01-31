@@ -559,13 +559,6 @@ class JuricaUtils {
             row.JDEC_IND_DEC_PUB,
           );
           if (duplicate === false && ShouldBeSentToJudifiltre === true) {
-            /*
-            let normDec = await JuricaUtils.Normalize(row);
-            normDec._version = decisionsVersion;
-            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            normDec._id = insertResult.insertedId;
-            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
-            */
             // XXX TEMP BEGIN
             let normDec = await JuricaUtils.Normalize(row);
             normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
