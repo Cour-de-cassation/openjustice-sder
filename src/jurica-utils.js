@@ -566,6 +566,18 @@ class JuricaUtils {
             normDec._id = insertResult.insertedId;
             await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
             */
+            // XXX TEMP BEGIN
+            let normDec = await JuricaUtils.Normalize(row);
+            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+            normDec._version = decisionsVersion;
+            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normDec._id = insertResult.insertedId;
+            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
+            // XXX TEMP END
+            /* TOO EARLY
             try {
               const judifiltreResult = await Judifiltre.SendBatch([
                 {
@@ -591,6 +603,7 @@ class JuricaUtils {
               console.error(`Jurica import to Judifiltre error processing decision ${row._id} (decatt)`, e);
               await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
             }
+            */
             hasChanges = true;
           }
         } else {
