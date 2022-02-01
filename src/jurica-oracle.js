@@ -549,11 +549,11 @@ class JuricaOracle {
             }
           }
           if (weightedResults.delta0.length > 0) {
-            results = results.concat(weightedResults.delta0.length);
+            results = results.concat(weightedResults.delta0);
           } else if (weightedResults.delta1.length > 0) {
-            results = results.concat(weightedResults.delta1.length);
+            results = results.concat(weightedResults.delta1);
           } else if (weightedResults.delta2.length > 0) {
-            results = results.concat(weightedResults.delta2.length);
+            results = results.concat(weightedResults.delta2);
           }
         } else {
           throw new Error(
