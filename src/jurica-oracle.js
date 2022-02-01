@@ -534,16 +534,16 @@ class JuricaOracle {
             delta2: [],
           };
           for (let i = 0; i < decisionResult.rows.length; i++) {
-            if (decisionResult.rows[i]['JDEC_DATE'] === decattDate2) {
+            if (decisionResult.rows[i]['JDEC_DATE'] === strDecatt2) {
               weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
             } else if (
-              decisionResult.rows[i]['JDEC_DATE'] === decattDate1 ||
-              decisionResult.rows[i]['JDEC_DATE'] === decattDate3
+              decisionResult.rows[i]['JDEC_DATE'] === strDecatt1 ||
+              decisionResult.rows[i]['JDEC_DATE'] === strDecatt3
             ) {
               weightedResults.delta1.push(decisionResult.rows[i]['JDEC_ID']);
             } else if (
-              decisionResult.rows[i]['JDEC_DATE'] === decattDate0 ||
-              decisionResult.rows[i]['JDEC_DATE'] === decattDate4
+              decisionResult.rows[i]['JDEC_DATE'] === strDecatt0 ||
+              decisionResult.rows[i]['JDEC_DATE'] === strDecatt4
             ) {
               weightedResults.delta2.push(decisionResult.rows[i]['JDEC_ID']);
             }
