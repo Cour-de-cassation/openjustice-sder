@@ -525,8 +525,6 @@ class JuricaOracle {
           WHERE TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber
           AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt0}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt4}')`;
 
-        console.log('decatt query:', decisionQuery);
-
         const decisionResult = await this.connection.execute(decisionQuery, [`${info.NUM_RG}`.trim()]);
 
         if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
@@ -550,8 +548,6 @@ class JuricaOracle {
               weightedResults.delta2.push(decisionResult.rows[i]['JDEC_ID']);
             }
           }
-          console.log('weightedResults:', JSON.stringify(weightedResults));
-
           if (weightedResults.delta0.length > 0) {
             results = results.concat(weightedResults.delta0);
           } else if (weightedResults.delta1.length > 0) {
@@ -559,15 +555,11 @@ class JuricaOracle {
           } else if (weightedResults.delta2.length > 0) {
             results = results.concat(weightedResults.delta2);
           }
-
-          console.log('results:', JSON.stringify(results));
         } else {
-          /*
-          throw new Error(
+          console.error(
             'Jurica.getDecisionIdByDecattInfo - no decision related to the given "decatt" info:\n' +
               JSON.stringify(info, null, 2),
           );
-          */
         }
       } else {
         throw new Error('Jurica.getDecisionIdByDecattInfo: not connected.');
