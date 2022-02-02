@@ -707,6 +707,7 @@ class JurinetOracle {
           resultSet: false,
         });
         if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
+          console.log('NUMPOURVOI', pourvoiResult.rows[0]);
           // 3. Get the affaire related to the pourvoi:
           const pourvoi = pourvoiResult.rows[0];
           const codePourvoi = pourvoi['NUMPOURVOICODE'];
@@ -717,6 +718,7 @@ class JurinetOracle {
             resultSet: false,
           });
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
+            console.log('GPCIV.AFF', affaireResult.rows[0]);
             // 4. Get the contested decision related to the affaire:
             const affaire = affaireResult.rows[0];
             const idAffaire = affaire['ID_AFFAIRE'];
