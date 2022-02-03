@@ -534,12 +534,6 @@ class JuricaOracle {
             delta2: [],
           };
           for (let i = 0; i < decisionResult.rows.length; i++) {
-            try {
-              console.log(
-                info['LIB_ELM'].replace(/\W/gim, '').toLowerCase().trim(),
-                decisionResult.rows[i]['JDEC_JURIDICTION'].replace(/\W/gim, '').toLowerCase().trim(),
-              );
-            } catch (ignore) {}
             if (
               !info['LIB_ELM'] ||
               (info['LIB_ELM'] &&
