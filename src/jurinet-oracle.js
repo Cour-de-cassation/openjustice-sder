@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const iconv = require('iconv-lite');
 const oracledb = require('oracledb');
+const e = require('express');
 
 iconv.skipDecodeWarning = true;
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
@@ -719,6 +720,21 @@ class JurinetOracle {
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
             // 4. Get the contested decision related to the affaire:
             const affaire = affaireResult.rows[0];
+
+            try {
+              const { GRCOMOracle } = require('./grcom-oracle');
+              const GRCOMSource = new GRCOMOracle();
+              await GRCOMSource.connect();
+              const GRCOMQuery = `SELECT *
+                FROM ELMSTR
+                WHERE ID_ELMSTR = :code`;
+              const GRCOMResult = await GRCOMSource.connection.execute(GRCOMQuery, [affaire['ID_ELMSTR']]);
+              if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
+                console.log(GRCOMResult.rows[0]);
+              }
+              await GRCOMSource.close();
+            } catch (e) {}
+
             const idAffaire = affaire['ID_AFFAIRE'];
             const decattQuery = `SELECT *
               FROM GPCIV.DECATT
