@@ -479,7 +479,6 @@ class JuricaOracle {
     for (let ii = 0; ii < infos.length; ii++) {
       let info = infos[ii];
       if (!info || !info['NUM_RG'] || !info['DT_DECATT']) {
-        // || !info['FORMATION_DECATT']) {
         console.error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
       } else if (this.connected === true && this.connection !== null) {
         let decattDate0 = new Date(Date.parse(info['DT_DECATT']));
@@ -535,18 +534,31 @@ class JuricaOracle {
             delta2: [],
           };
           for (let i = 0; i < decisionResult.rows.length; i++) {
-            if (decisionResult.rows[i]['JDEC_DATE'] === strDecatt2) {
-              weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
-            } else if (
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt1 ||
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt3
+            try {
+              console.log(
+                info['LIB_ELM'].replace(/\W/gim, '').toLowerCase().trim(),
+                decisionResult.rows[i]['JDEC_JURIDICTION'].replace(/\W/gim, '').toLowerCase().trim(),
+              );
+            } catch (ignore) {}
+            if (
+              !info['LIB_ELM'] ||
+              (info['LIB_ELM'] &&
+                info['LIB_ELM'].replace(/\W/gim, '').toLowerCase().trim() ===
+                  decisionResult.rows[i]['JDEC_JURIDICTION'].replace(/\W/gim, '').toLowerCase().trim())
             ) {
-              weightedResults.delta1.push(decisionResult.rows[i]['JDEC_ID']);
-            } else if (
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt0 ||
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt4
-            ) {
-              weightedResults.delta2.push(decisionResult.rows[i]['JDEC_ID']);
+              if (decisionResult.rows[i]['JDEC_DATE'] === strDecatt2) {
+                weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
+              } else if (
+                decisionResult.rows[i]['JDEC_DATE'] === strDecatt1 ||
+                decisionResult.rows[i]['JDEC_DATE'] === strDecatt3
+              ) {
+                weightedResults.delta1.push(decisionResult.rows[i]['JDEC_ID']);
+              } else if (
+                decisionResult.rows[i]['JDEC_DATE'] === strDecatt0 ||
+                decisionResult.rows[i]['JDEC_DATE'] === strDecatt4
+              ) {
+                weightedResults.delta2.push(decisionResult.rows[i]['JDEC_ID']);
+              }
             }
           }
           if (weightedResults.delta0.length > 0) {
