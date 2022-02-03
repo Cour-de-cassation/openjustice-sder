@@ -720,7 +720,7 @@ class JurinetOracle {
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
             // 4. Get the contested decision related to the affaire:
             const affaire = affaireResult.rows[0];
-
+            let juridiction = null;
             try {
               const { GRCOMOracle } = require('./grcom-oracle');
               const GRCOMSource = new GRCOMOracle();
@@ -730,7 +730,9 @@ class JurinetOracle {
                 WHERE ID_ELMSTR = :code`;
               const GRCOMResult = await GRCOMSource.connection.execute(GRCOMQuery, [affaire['ID_ELMSTR']]);
               if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
-                console.log(GRCOMResult.rows[0]);
+                if (GRCOMResult.rows[0]['LIB_ELM']) {
+                  juridiction = GRCOMResult.rows[0]['LIB_ELM'];
+                }
               }
               await GRCOMSource.close();
             } catch (e) {}
@@ -743,6 +745,9 @@ class JurinetOracle {
               resultSet: false,
             });
             if (decattResult && decattResult.rows && decattResult.rows.length > 0) {
+              for (let jj = 0; jj < decattResult.rows.length; jj++) {
+                decattResult.rows[jj]['LIB_ELM'] = juridiction;
+              }
               return decattResult.rows;
             } else {
               throw new Error(
