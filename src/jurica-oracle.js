@@ -537,8 +537,11 @@ class JuricaOracle {
             if (
               !info['LIB_ELM'] ||
               (info['LIB_ELM'] &&
-                info['LIB_ELM'].replace(/\W/gim, '').toLowerCase().trim() ===
-                  decisionResult.rows[i]['JDEC_JURIDICTION'].replace(/\W/gim, '').toLowerCase().trim())
+                info['LIB_ELM']
+                  .replace(/\W/gim, '')
+                  .toLowerCase()
+                  .trim()
+                  .indexOf(decisionResult.rows[i]['JDEC_JURIDICTION'].replace(/\W/gim, '').toLowerCase().trim()) !== -1)
             ) {
               if (decisionResult.rows[i]['JDEC_DATE'] === strDecatt2) {
                 weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
