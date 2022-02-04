@@ -730,9 +730,8 @@ class JurinetOracle {
                 WHERE ID_ELMSTR = :code`;
               const GRCOMResult = await GRCOMSource.connection.execute(GRCOMQuery, [affaire['ID_ELMSTR']]);
               if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
-                console.log('ELMSTR', GRCOMResult.rows[0]);
-                if (GRCOMResult.rows[0]['LIB_ELM']) {
-                  juridiction = GRCOMResult.rows[0]['LIB_ELM'];
+                if (GRCOMResult.rows[0]['COUR_APPEL_RAT']) {
+                  juridiction = GRCOMResult.rows[0]['COUR_APPEL_RAT'].trim();
                 }
               }
               await GRCOMSource.close();
@@ -747,7 +746,7 @@ class JurinetOracle {
             });
             if (decattResult && decattResult.rows && decattResult.rows.length > 0) {
               for (let jj = 0; jj < decattResult.rows.length; jj++) {
-                decattResult.rows[jj]['LIB_ELM'] = juridiction;
+                decattResult.rows[jj]['COUR_APPEL_RAT'] = juridiction;
               }
               return decattResult.rows;
             } else {
