@@ -478,7 +478,7 @@ class JuricaOracle {
     }
     for (let ii = 0; ii < infos.length; ii++) {
       let info = infos[ii];
-      if (!info || !info['NUM_RG'] || !info['DT_DECATT']) {
+      if (!info || !info['NUM_RG'] || !info['DT_DECATT'] || !info['COUR_APPEL_RAT']) {
         console.error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
       } else if (this.connected === true && this.connection !== null) {
         let decattDate0 = new Date(Date.parse(info['DT_DECATT']));
@@ -535,9 +535,8 @@ class JuricaOracle {
           };
           for (let i = 0; i < decisionResult.rows.length; i++) {
             if (
-              !info['COUR_APPEL_RAT'] ||
               info['COUR_APPEL_RAT'] ===
-                decisionResult.rows[i]['JDEC_ID_JURIDICTION'].replace(/\W/gim, '').toLowerCase().trim()
+              `${decisionResult.rows[i]['JDEC_ID_JURIDICTION']}`.replace(/\W/gim, '').toUpperCase().trim()
             ) {
               if (decisionResult.rows[i]['JDEC_DATE'] === strDecatt2) {
                 weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);

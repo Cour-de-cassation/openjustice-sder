@@ -6,10 +6,13 @@ const { parentPort } = require('worker_threads');
 const { MongoClient } = require('mongodb');
 const { JuricaOracle } = require('../jurica-oracle');
 const { JurinetOracle } = require('../jurinet-oracle');
-
 const ms = require('ms');
 
-let selfKill = setTimeout(cancel, ms('24h'));
+let missingCount = 0;
+let diffCount = 0;
+let sameCount = 0;
+
+let selfKill = setTimeout(cancel, ms('2h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -24,6 +27,9 @@ function cancel() {
 }
 
 function kill(code) {
+  console.log(`${missingCount} missing decatt.`);
+  console.log(`${diffCount} different decatt.`);
+  console.log(`${sameCount} same decatt.`);
   process.exit(code);
 }
 
@@ -62,10 +68,6 @@ async function patch() {
     },
   );
 
-  let missingCount = 0;
-  let diffCount = 0;
-  let sameCount = 0;
-
   while ((rawJurinetDocument = await rawJurinetCursor.next())) {
     let decatt = null;
     try {
@@ -101,10 +103,6 @@ async function patch() {
       sameCount++;
     }
   }
-
-  console.log(`${missingCount} missing decatt.`);
-  console.log(`${diffCount} different decatt.`);
-  console.log(`${sameCount} same decatt.`);
 
   await client.close();
   await jurinetSource.close();
