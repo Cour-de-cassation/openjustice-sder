@@ -9,7 +9,7 @@ const { JurinetOracle } = require('../jurinet-oracle');
 
 const ms = require('ms');
 
-let selfKill = setTimeout(cancel, ms('12h'));
+let selfKill = setTimeout(cancel, ms('24h'));
 
 function end() {
   clearTimeout(selfKill);
