@@ -730,6 +730,7 @@ class JurinetOracle {
                 WHERE ID_ELMSTR = :code`;
               const GRCOMResult = await GRCOMSource.connection.execute(GRCOMQuery, [affaire['ID_ELMSTR']]);
               if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
+                console.log('ELMSTR', GRCOMResult.rows[0]);
                 if (GRCOMResult.rows[0]['LIB_ELM']) {
                   juridiction = GRCOMResult.rows[0]['LIB_ELM'];
                 }
