@@ -536,21 +536,13 @@ class JuricaOracle {
             delta2: [],
           };
           for (let i = 0; i < decisionResult.rows.length; i++) {
-            console.log(
-              info['COUR_APPEL_RAT'].replace(/\D/gim, '.'),
-              `${decisionResult.rows[i]['JDEC_ID_JURIDICTION']}`
-                .replace(/\W/gim, '')
-                .toUpperCase()
-                .trim()
-                .replace(/\D/gim, '.'),
-            );
             if (
-              info['COUR_APPEL_RAT'].replace(/\D/gim, '.') ===
+              info['COUR_APPEL_RAT'].replace(/\D/gim, '0') ===
               `${decisionResult.rows[i]['JDEC_ID_JURIDICTION']}`
                 .replace(/\W/gim, '')
                 .toUpperCase()
                 .trim()
-                .replace(/\D/gim, '.')
+                .replace(/\D/gim, '0')
             ) {
               if (decisionResult.rows[i]['JDEC_DATE'] === strDecatt2) {
                 weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
