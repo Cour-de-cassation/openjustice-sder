@@ -12,7 +12,7 @@ let missingCount = 0;
 let diffCount = 0;
 let sameCount = 0;
 
-let selfKill = setTimeout(cancel, ms('2h'));
+let selfKill = setTimeout(cancel, ms('24h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -57,6 +57,8 @@ async function patch() {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
 
   let rawJurinetDocument;
+  let lines = fs.readFileSync(path.join(__dirname, 'decatt_to_check.txt')).toString().split('\n');
+  /*
   const rawJurinetCursor = await rawJurinet.find(
     { TYPE_ARRET: 'CC' },
     {
@@ -69,38 +71,46 @@ async function patch() {
   );
 
   while ((rawJurinetDocument = await rawJurinetCursor.next())) {
-    let decatt = null;
-    try {
-      let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument._id);
-      decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
-    } catch (e) {}
-    let hasPreviousDecatt =
-      rawJurinetDocument._decatt && Array.isArray(rawJurinetDocument._decatt) && rawJurinetDocument._decatt.length > 0;
-    let hasNewDecatt = decatt && Array.isArray(decatt) && decatt.length > 0;
-
-    if (!hasPreviousDecatt && hasNewDecatt) {
-      // console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
-      missingCount++;
-    } else if (hasPreviousDecatt && JSON.stringify(decatt) !== JSON.stringify(rawJurinetDocument._decatt)) {
-      if (
-        Array.isArray(decatt) &&
+  */
+  for (let i = 0; i < lines.length; i++) {
+    if (/different decatt .* for \d+/i.test(lines[i])) {
+      let id = parseInt(/different decatt .* for (\d+)/i.exec(lines[i])[1], 10);
+      rawJurinetDocument = await rawJurinet.findOne({ _id: id });
+      let decatt = null;
+      try {
+        let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument._id);
+        decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
+      } catch (e) {}
+      let hasPreviousDecatt =
+        rawJurinetDocument._decatt &&
         Array.isArray(rawJurinetDocument._decatt) &&
-        (decatt.indexOf(rawJurinetDocument._decatt[0]) !== -1 || rawJurinetDocument._decatt.indexOf(decatt[0]) !== -1)
-      ) {
-        sameCount++;
+        rawJurinetDocument._decatt.length > 0;
+      let hasNewDecatt = decatt && Array.isArray(decatt) && decatt.length > 0;
+
+      if (!hasPreviousDecatt && hasNewDecatt) {
+        // console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
+        missingCount++;
+      } else if (hasPreviousDecatt && JSON.stringify(decatt) !== JSON.stringify(rawJurinetDocument._decatt)) {
+        if (
+          Array.isArray(decatt) &&
+          Array.isArray(rawJurinetDocument._decatt) &&
+          (decatt.indexOf(rawJurinetDocument._decatt[0]) !== -1 || rawJurinetDocument._decatt.indexOf(decatt[0]) !== -1)
+        ) {
+          sameCount++;
+        } else {
+          console.log(
+            'Different decatt',
+            JSON.stringify(decatt),
+            'for',
+            rawJurinetDocument._id,
+            ' - previous was: ',
+            JSON.stringify(rawJurinetDocument._decatt),
+          );
+          diffCount++;
+        }
       } else {
-        console.log(
-          'Different decatt',
-          JSON.stringify(decatt),
-          'for',
-          rawJurinetDocument._id,
-          ' - previous was: ',
-          JSON.stringify(rawJurinetDocument._decatt),
-        );
-        diffCount++;
+        sameCount++;
       }
-    } else {
-      sameCount++;
     }
   }
 
