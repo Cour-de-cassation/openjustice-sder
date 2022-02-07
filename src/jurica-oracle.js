@@ -538,7 +538,15 @@ class JuricaOracle {
               weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
             } else if (
               info['COUR_APPEL_RAT'] &&
-              info['COUR_APPEL_RAT'] === `${decisionResult.rows[i]['JDEC_ID_JURIDICTION']}`.toUpperCase().trim()
+              info['COUR_APPEL_RAT']
+                .replace(/\D/gim, '0')
+                .indexOf(
+                  `${decisionResult.rows[i]['JDEC_ID_JURIDICTION']}`
+                    .replace(/\W/gim, '')
+                    .toUpperCase()
+                    .trim()
+                    .replace(/\D/gim, '0'),
+                ) === 0
             ) {
               if (
                 decisionResult.rows[i]['JDEC_DATE'] === strDecatt1 ||
