@@ -536,8 +536,9 @@ class JuricaOracle {
             delta2: [],
           };
           for (let i = 0; i < decisionResult.rows.length; i++) {
-            if (
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt2 &&
+            if (decisionResult.rows[i]['JDEC_DATE'] === strDecatt2) {
+              weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
+            } else if (
               info['COUR_APPEL_RAT']
                 .replace(/\D/gim, '0')
                 .indexOf(
@@ -548,17 +549,17 @@ class JuricaOracle {
                     .replace(/\D/gim, '0'),
                 ) === 0
             ) {
-              weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
-            } else if (
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt1 ||
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt3
-            ) {
-              weightedResults.delta1.push(decisionResult.rows[i]['JDEC_ID']);
-            } else if (
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt0 ||
-              decisionResult.rows[i]['JDEC_DATE'] === strDecatt4
-            ) {
-              weightedResults.delta2.push(decisionResult.rows[i]['JDEC_ID']);
+              if (
+                decisionResult.rows[i]['JDEC_DATE'] === strDecatt1 ||
+                decisionResult.rows[i]['JDEC_DATE'] === strDecatt3
+              ) {
+                weightedResults.delta1.push(decisionResult.rows[i]['JDEC_ID']);
+              } else if (
+                decisionResult.rows[i]['JDEC_DATE'] === strDecatt0 ||
+                decisionResult.rows[i]['JDEC_DATE'] === strDecatt4
+              ) {
+                weightedResults.delta2.push(decisionResult.rows[i]['JDEC_ID']);
+              }
             }
           }
           if (weightedResults.delta0.length > 0) {
