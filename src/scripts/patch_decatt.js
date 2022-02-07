@@ -11,6 +11,7 @@ const ms = require('ms');
 let missingCount = 0;
 let diffCount = 0;
 let sameCount = 0;
+let noneCount = 0;
 
 let selfKill = setTimeout(cancel, ms('24h'));
 
@@ -30,6 +31,7 @@ function kill(code) {
   console.log(`${missingCount} missing decatt.`);
   console.log(`${diffCount} different decatt.`);
   console.log(`${sameCount} same decatt.`);
+  console.log(`${noneCount} no decatt.`);
   process.exit(code);
 }
 
@@ -82,6 +84,10 @@ async function patch() {
     let hasPreviousDecatt =
       rawJurinetDocument._decatt && Array.isArray(rawJurinetDocument._decatt) && rawJurinetDocument._decatt.length > 0;
     let hasNewDecatt = decatt && Array.isArray(decatt) && decatt.length > 0;
+
+    if (!decatt || (Array.isArray(decatt) && decatt.length === 0)) {
+      noneCount++;
+    }
 
     if (!hasPreviousDecatt && hasNewDecatt) {
       // console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
