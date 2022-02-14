@@ -281,8 +281,8 @@ class JuricaUtils {
     try {
       const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
       const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
-      const public = JuricaUtils.IsPublic(nac, np, publicCheckbox);
-      return nonPublic && !public && !partiallyPublic;
+      const isPublic = JuricaUtils.IsPublic(nac, np, publicCheckbox);
+      return nonPublic && !isPublic && !partiallyPublic;
     } catch (anomaly) {
       return false;
     }
@@ -296,18 +296,18 @@ class JuricaUtils {
       }
       const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
       const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
-      const public = JuricaUtils.IsPublic(nac, np, publicCheckbox);
+      const isPublic = JuricaUtils.IsPublic(nac, np, publicCheckbox);
       if (nonPublic === public) {
         throw new Error(
-          `contradictory public status #1 (public: ${public}, non-public: ${nonPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
+          `contradictory public status #1 (public: ${isPublic}, non-public: ${nonPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
         );
       } else if (nonPublic && partiallyPublic) {
         throw new Error(
           `contradictory public status #2 (non-public: ${nonPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
         );
-      } else if (public && !partiallyPublic) {
+      } else if (isPublic && !partiallyPublic) {
         throw new Error(
-          `contradictory public status #3 (public: ${public}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
+          `contradictory public status #3 (public: ${isPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
         );
       }
       /* TEMP
@@ -319,7 +319,7 @@ class JuricaUtils {
       if (partiallyPublic) {
         return true;
       }
-      if (public || nonPublic) {
+      if (isPublic || nonPublic) {
         return false;
       }
       return true;
