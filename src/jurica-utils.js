@@ -297,7 +297,7 @@ class JuricaUtils {
       const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
       const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
       const isPublic = JuricaUtils.IsPublic(nac, np, publicCheckbox);
-      if (nonPublic === public) {
+      if (nonPublic === isPublic) {
         throw new Error(
           `contradictory public status #1 (public: ${isPublic}, non-public: ${nonPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
         );
