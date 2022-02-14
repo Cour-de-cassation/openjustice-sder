@@ -109,7 +109,7 @@ async function importDecatt() {
 
   // 2. (re)Import every decatt...
   for (let i = 0; i < allDecatt.length; i++) {
-    await JuricaUtils.ImportDecatt(allDecatt[i], juricaSource, rawJurica, decisions);
+    // not anymore await JuricaUtils.ImportDecatt(allDecatt[i], juricaSource, rawJurica, decisions);
   }
 
   await juricaSource.close();

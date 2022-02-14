@@ -9,6 +9,7 @@ const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const { Judifiltre } = require('../judifiltre');
+const { Juritools } = require('../juritools');
 
 const ms = require('ms');
 
@@ -100,11 +101,13 @@ async function importJurinet() {
               wincicaCount++;
             }
             newCount++;
+            /*
             if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
               for (let d = 0; d < row._decatt.length; d++) {
                 await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
               }
             }
+            */
           }
         } catch (e) {
           console.error(`Jurinet import error processing decision ${row._id}`, e);
@@ -163,62 +166,173 @@ async function importJurica() {
           } catch (e) {
             duplicate = false;
           }
-          await rawJurica.insertOne(row, { bypassDocumentValidation: true });
-          await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
-          const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+          const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,
           );
-          if (duplicate === false && ShouldBeSentToJudifiltre === true) {
-            // XXX TEMP BEGIN
-            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-            if (normalized === null) {
-              let normDec = await JuricaUtils.Normalize(row);
-              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-              normDec._version = decisionsVersion;
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normDec._id = insertResult.insertedId;
-              await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
-              await juricaSource.markAsImported(row._id);
-              newCount++;
-            }
-            // XXX TEMP END
-            /* TOO EARLY
+          if (ShouldBeRejected === false && duplicate === false) {
+            let partiallyPublic = false;
             try {
-              const judifiltreResult = await Judifiltre.SendBatch([
-                {
-                  sourceId: row._id,
-                  sourceDb: 'jurica',
-                  decisionDate: row.JDEC_DATE,
-                  jurisdictionName: row.JDEC_CODE_JURIDICTION,
-                  fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
-                  publicityClerkRequest:
-                    row.JDEC_IND_DEC_PUB === null
-                      ? 'unspecified'
-                      : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
-                      ? 'public'
-                      : 'notPublic',
-                },
-              ]);
-              await JudilibreIndex.updateJuricaDocument(
-                row,
-                duplicateId,
-                `submitted to Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+              partiallyPublic = JuricaUtils.IsPartiallyPublic(
+                row.JDEC_CODNAC,
+                row.JDEC_CODNACPART,
+                row.JDEC_IND_DEC_PUB,
               );
-              await juricaSource.markAsImported(row._id);
-              newCount++;
-            } catch (e) {
-              console.error(`Jurica import to Judifiltre error processing decision ${row._id}`, e);
-              await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
-              errorCount++;
+            } catch (ignore) {}
+            if (partiallyPublic) {
+              let trimmedText;
+              let zoning;
+              try {
+                trimmedText = JuricaUtils.CleanHTML(row.JDEC_HTML_SOURCE);
+                trimmedText = trimmedText
+                  .replace(/\*DEB[A-Z]*/gm, '')
+                  .replace(/\*FIN[A-Z]*/gm, '')
+                  .trim();
+              } catch (e) {
+                throw new Error(
+                  `Cannot process partially-public decision ${
+                    row._id
+                  } because its text is empty or invalid: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}.`,
+                );
+              }
+              try {
+                zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
+                if (!zoning || zoning.detail) {
+                  throw new Error(
+                    `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                      zoning,
+                      Object.getOwnPropertyNames(zoning),
+                    )}.`,
+                  );
+                }
+              } catch (e) {
+                throw new Error(
+                  `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                    e,
+                    Object.getOwnPropertyNames(e),
+                  )}.`,
+                );
+              }
+              if (!zoning.zones) {
+                throw new Error(
+                  `Cannot process partially-public decision ${row._id} because it has no zone: ${JSON.stringify(
+                    zoning,
+                    Object.getOwnPropertyNames(zoning),
+                  )}.`,
+                );
+              }
+              if (!zoning.zones.introduction) {
+                throw new Error(
+                  `Cannot process partially-public decision ${row._id} because it has no introduction: ${JSON.stringify(
+                    zoning.zones,
+                    Object.getOwnPropertyNames(zoning.zones),
+                  )}.`,
+                );
+              }
+              if (!zoning.zones.dispositif) {
+                throw new Error(
+                  `Cannot process partially-public decision ${row._id} because it has no dispositif: ${JSON.stringify(
+                    zoning.zones,
+                    Object.getOwnPropertyNames(zoning.zones),
+                  )}.`,
+                );
+              }
+              let parts = [];
+              if (Array.isArray(zoning.zones.introduction)) {
+                for (let ii = 0; ii < zoning.zones.introduction.length; ii++) {
+                  parts.push(
+                    trimmedText
+                      .substring(zoning.zones.introduction[ii].start, zoning.zones.introduction[ii].end)
+                      .trim(),
+                  );
+                }
+              } else {
+                parts.push(
+                  trimmedText.substring(zoning.zones.introduction.start, zoning.zones.introduction.end).trim(),
+                );
+              }
+              if (Array.isArray(zoning.zones.dispositif)) {
+                for (let ii = 0; ii < zoning.zones.dispositif.length; ii++) {
+                  parts.push(
+                    trimmedText.substring(zoning.zones.dispositif[ii].start, zoning.zones.dispositif[ii].end).trim(),
+                  );
+                }
+              } else {
+                parts.push(trimmedText.substring(zoning.zones.dispositif.start, zoning.zones.dispositif.end).trim());
+              }
+              row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
-            */
+            await rawJurica.insertOne(row, { bypassDocumentValidation: true });
+            await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
+            const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+              row.JDEC_CODNAC,
+              row.JDEC_CODNACPART,
+              row.JDEC_IND_DEC_PUB,
+            );
+            if (ShouldBeSentToJudifiltre === true) {
+              try {
+                const judifiltreResult = await Judifiltre.SendBatch([
+                  {
+                    sourceId: row._id,
+                    sourceDb: 'jurica',
+                    decisionDate: row.JDEC_DATE,
+                    jurisdictionName: row.JDEC_CODE_JURIDICTION,
+                    fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
+                    publicityClerkRequest:
+                      row.JDEC_IND_DEC_PUB === null
+                        ? 'unspecified'
+                        : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
+                        ? 'public'
+                        : 'notPublic',
+                  },
+                ]);
+                await JudilibreIndex.updateJuricaDocument(
+                  row,
+                  duplicateId,
+                  `submitted to Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+                );
+                await juricaSource.markAsImported(row._id);
+                newCount++;
+              } catch (e) {
+                console.error(`Jurica import to Judifiltre error processing decision ${row._id}`, e);
+                await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
+                await juricaSource.markAsErroneous(row._id);
+                errorCount++;
+              }
+            } else {
+              let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+              if (normalized === null) {
+                let normDec = await JuricaUtils.Normalize(row);
+                normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+                normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+                normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+                normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+                normDec._version = decisionsVersion;
+                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                normDec._id = insertResult.insertedId;
+                await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+                await juricaSource.markAsImported(row._id);
+                newCount++;
+              } else {
+                console.warn(
+                  `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
+                );
+                await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
+                await juricaSource.markAsImported(row._id);
+                errorCount++;
+              }
+            }
           } else {
-            await juricaSource.markAsImported(row._id);
+            console.warn(
+              `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
+            );
+            await juricaSource.markAsErroneous(row._id);
+            await JudilibreIndex.updateJuricaDocument(
+              row,
+              duplicateId,
+              duplicate ? `duplicate of ${duplicateId}` : 'non-public',
+            );
             if (duplicate) {
               duplicateCount++;
             } else {

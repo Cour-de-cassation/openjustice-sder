@@ -102,6 +102,7 @@ async function syncJurinet() {
           console.error(e);
           errorCount++;
         }
+        /*
         try {
           if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
             for (let d = 0; d < row._decatt.length; d++) {
@@ -112,6 +113,7 @@ async function syncJurinet() {
           console.error(e);
           errorCount++;
         }
+        */
       } else {
         const diff = [
           'XML',
@@ -163,7 +165,7 @@ async function syncJurinet() {
             updated = true;
           }
         });
-
+        /*
         try {
           if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
             for (let d = 0; d < row._decatt.length; d++) {
@@ -177,7 +179,7 @@ async function syncJurinet() {
           console.error(e);
           errorCount++;
         }
-
+        */
         if (updated === true) {
           try {
             row._indexed = null;

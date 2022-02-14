@@ -123,11 +123,13 @@ async function reimportJurinet(n) {
             updateCount++;
           }
           await jurinetSource.markAsImported(row._id);
+          /*
           if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
             for (let d = 0; d < row._decatt.length; d++) {
               await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
             }
           }
+          */
         } catch (e) {
           console.error(e);
           await jurinetSource.markAsErroneous(row._id);
@@ -170,11 +172,13 @@ async function reimportJurinet(n) {
             await JudilibreIndex.updateDecisionDocument(normDec, null, 'update in decisions (reimport)');
             normalizedCount++;
           }
+          /*
           if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
             for (let d = 0; d < row._decatt.length; d++) {
               await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
             }
           }
+          */
         } catch (e) {
           console.error(e);
           await jurinetSource.markAsErroneous(row._id);

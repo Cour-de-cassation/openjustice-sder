@@ -81,11 +81,13 @@ async function processJurinet(status) {
         const decattInfo = await jurinetSource.getDecatt(document.sourceId);
         const decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
         newDecatt = decatt;
+        /*
         if (decatt && Array.isArray(decatt) && decatt.length > 0) {
           for (let d = 0; d < decatt.length; d++) {
             await JuricaUtils.ImportDecatt(decatt[d], juricaSource, rawJurica, decisions);
           }
         }
+        */
       } catch (e) {
         newDecatt = null;
       }
