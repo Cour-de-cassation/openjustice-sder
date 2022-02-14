@@ -148,7 +148,7 @@ async function getJuricaInfo(id) {
         } else {
           parts.push(trimmedText.substring(zoning.zones.dispositif.start, zoning.zones.dispositif.end).trim());
         }
-        row.JDEC_HTML_SOURCE = parts.join('\n[...]\n');
+        row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
         console.log(row.JDEC_HTML_SOURCE);
       }
 
