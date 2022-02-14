@@ -25,11 +25,8 @@ const parserOptions = {
 };
 
 class JuricaUtils {
-  static ShouldBeSentToJudifiltre(nac, np, publicCheckbox) {
-    nac = `${nac}`.toUpperCase().trim();
-    np = `${np}`.toUpperCase().trim();
-    publicCheckbox = parseInt(`${publicCheckbox}`, 10);
-    const nonPublicNAC = [
+  static GetUnconditionalNonPublicNAC() {
+    return [
       '11A',
       '11B',
       '11D',
@@ -155,21 +152,187 @@ class JuricaUtils {
       '97G',
       '97P',
     ];
-    const requirePublicCheckboxNAC = ['70J', '78S', '78T', '78U', '97A'];
-    const requireNPCheck = ['00A'];
-    if (nonPublicNAC.indexOf(nac) !== -1) {
+  }
+
+  static GetConditionalNonPublicNAC() {
+    return [
+      '4AA',
+      '4AB',
+      '4AC',
+      '4AD',
+      '4AE',
+      '4AF',
+      '4AL',
+      '4AM',
+      '4AN',
+      '4AO',
+      '4AP',
+      '4EA',
+      '4EC',
+      '70J',
+      '78S',
+      '78T',
+      '78U',
+      '97A',
+    ];
+  }
+
+  static GetNonPublicNACWithAdditionalCheck(all) {
+    if (!all) {
+      return ['00A'];
+    } else {
+      return ['0', '000', '00A', '00X'];
+    }
+  }
+
+  static GetAdditionalCheck(code) {
+    return /^9[0-9a-t]$/i.test(code) === true;
+  }
+
+  static GetPartiallyPublicNAC() {
+    return [
+      '20A',
+      '20B',
+      '20C',
+      '20D',
+      '20E',
+      '20F',
+      '20I',
+      '20J',
+      '20K',
+      '20X',
+      '21A',
+      '21B',
+      '21C',
+      '21D',
+      '21E',
+      '21H',
+      '21I',
+      '21J',
+      '21X',
+      '64D',
+    ];
+  }
+
+  static IsNonPublic(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    const cleanedNp = `${np}`.replace(/\W/gim, '').toUpperCase().trim();
+    publicCheckbox = parseInt(`${publicCheckbox}`, 10);
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      throw new Error(`invalid NAC code (${nac})`);
+    } else if (JuricaUtils.GetUnconditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
+      if (publicCheckbox === 1) {
+        throw new Error(`non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is set to 1`);
+      }
+      return true;
+    } else if (JuricaUtils.GetConditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
+      if (publicCheckbox === 0) {
+        return true;
+      } else if (publicCheckbox === 1) {
+        return false;
+      } else {
+        throw new Error(`public or non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set`);
+      }
+    } else if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true /* TEMP */).indexOf(cleanedNac) !== -1) {
+      if (publicCheckbox === 1) {
+        throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
+      }
+      return true;
+      /* TEMP
+      if (!cleanedNp || cleanedNp === 'NULL' || !np) {
+        throw new Error(`invalid NP code (${np})`);
+      } else if (JuricaUtils.GetAdditionalCheck(cleanedNp) === true) {
+        if (publicCheckbox === 1) {
+          throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
+        }
+        return true;
+      } else {
+        return false;
+      }
+      */
+    }
+    return false;
+  }
+
+  static IsPartiallyPublic(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      throw new Error(`invalid NAC code (${nac})`);
+    } else if (JuricaUtils.GetPartiallyPublicNAC().indexOf(cleanedNac) !== -1) {
+      return true;
+    }
+  }
+
+  static IsPublic(nac, np, publicCheckbox) {
+    const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+    const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+    publicCheckbox = parseInt(`${publicCheckbox}`, 10);
+    if (!nonPublic && !partiallyPublic) {
+      if (publicCheckbox !== 1) {
+        throw new Error(`public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set to 1`);
+      }
+      return true;
+    } else {
       return false;
     }
-    if (requirePublicCheckboxNAC.indexOf(nac) !== -1 && publicCheckbox !== 1) {
+  }
+
+  static ShouldBeRejected(nac, np, publicCheckbox) {
+    try {
+      const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+      const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+      const public = JuricaUtils.IsPublic(nac, np, publicCheckbox);
+      return nonPublic && !public && !partiallyPublic;
+    } catch (anomaly) {
       return false;
     }
-    if (requireNPCheck.indexOf(nac) !== -1 && /^9[0-9A-T]$/.test(np) === true) {
-      return false;
+  }
+
+  static ShouldBeSentToJudifiltre(nac, np, publicCheckbox) {
+    try {
+      const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+      if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+        throw new Error(`invalid NAC code (${nac})`);
+      }
+      const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+      const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+      const public = JuricaUtils.IsPublic(nac, np, publicCheckbox);
+      if (nonPublic === public) {
+        throw new Error(
+          `contradictory public status #1 (public: ${public}, non-public: ${nonPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
+        );
+      } else if (nonPublic && partiallyPublic) {
+        throw new Error(
+          `contradictory public status #2 (non-public: ${nonPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
+        );
+      } else if (public && !partiallyPublic) {
+        throw new Error(
+          `contradictory public status #3 (public: ${public}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
+        );
+      }
+      /* TEMP
+      if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true).indexOf(cleanedNac) !== -1) {
+        throw new Error(`NAC code requires manual check (${nac})`);
+      }
+      */
+      // @FIXME TEMPORARY:
+      if (partiallyPublic) {
+        return true;
+      }
+      if (public || nonPublic) {
+        return false;
+      }
+      return true;
+    } catch (anomaly) {
+      console.error(anomaly);
+      return true;
     }
-    return true;
   }
 
   static CleanHTML(html) {
+    if (/<html/i.test(html) === false) {
+      return html;
+    }
     // Remove HTML tags:
     html = html.replace(/<\/?[^>]+(>|$)/gm, '');
 
@@ -518,6 +681,7 @@ class JuricaUtils {
     return found;
   }
 
+  /* should not be needed anymore
   static async ImportDecatt(id, juricaSource, rawJurica, decisions) {
     const { JudilibreIndex } = require('./judilibre-index');
 
@@ -527,7 +691,6 @@ class JuricaUtils {
       if (row && row._id && row.IND_ANO === 0) {
         let duplicate = false;
         let duplicateId = null;
-
         try {
           duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
           if (duplicateId !== null) {
@@ -539,13 +702,13 @@ class JuricaUtils {
         } catch (e) {
           duplicate = false;
         }
-
         let raw = await rawJurica.findOne({ _id: row._id });
         if (raw === null) {
           row._indexed = null;
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica (decatt)');
           hasChanges = true;
+          // import stuff
         } else {
           row._indexed = null;
           await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
@@ -570,7 +733,7 @@ class JuricaUtils {
             normDec._id = insertResult.insertedId;
             await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
             // XXX TEMP END
-            /* TOO EARLY
+            TOO EARLY
             try {
               const judifiltreResult = await Judifiltre.SendBatch([
                 {
@@ -596,7 +759,6 @@ class JuricaUtils {
               console.error(`Jurica import to Judifiltre error processing decision ${row._id} (decatt)`, e);
               await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
             }
-            */
             hasChanges = true;
           }
         } else {
@@ -619,6 +781,7 @@ class JuricaUtils {
 
     return hasChanges;
   }
+  */
 }
 
 function ConvertOccultationBlockInCategoriesToOmit(occultationBlock) {
