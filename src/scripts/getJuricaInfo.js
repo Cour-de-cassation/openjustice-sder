@@ -69,7 +69,8 @@ async function getJuricaInfo(id) {
       try {
         partiallyPublic = JuricaUtils.IsPartiallyPublic(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
       } catch (ignore) {}
-      if (partiallyPublic) {
+      if (true) {
+        // partiallyPublic) {
         let trimmedText;
         let zoning;
         try {
