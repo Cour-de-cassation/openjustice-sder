@@ -261,6 +261,7 @@ class JuricaUtils {
     } else if (JuricaUtils.GetPartiallyPublicNAC().indexOf(cleanedNac) !== -1) {
       return true;
     }
+    return false;
   }
 
   static IsPublic(nac, np, publicCheckbox) {
