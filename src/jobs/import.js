@@ -292,6 +292,13 @@ async function importJurica() {
                   duplicateId,
                   `submitted to Judifiltre: ${JSON.stringify(judifiltreResult)}`,
                 );
+                const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+                if (existingDoc !== null) {
+                  existingDoc.dateJudifiltre = new Date().toISODate();
+                  await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
+                    bypassDocumentValidation: true,
+                  });
+                }
                 await juricaSource.markAsImported(row._id);
                 newCount++;
               } catch (e) {

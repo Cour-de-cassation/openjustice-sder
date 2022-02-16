@@ -54,6 +54,13 @@ async function main() {
                 : 'notPublic',
           },
         ]);
+        const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+        if (existingDoc !== null) {
+          existingDoc.dateJudifiltre = new Date().toISODate();
+          await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
+            bypassDocumentValidation: true,
+          });
+        }
         console.log(judifiltreResult);
       }
     } catch (e) {
