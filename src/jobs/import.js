@@ -10,6 +10,7 @@ const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const { Judifiltre } = require('../judifiltre');
 const { Juritools } = require('../juritools');
+const { DateTime } = require('luxon');
 
 const ms = require('ms');
 
@@ -294,7 +295,8 @@ async function importJurica() {
                 );
                 const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
                 if (existingDoc !== null) {
-                  existingDoc.dateJudifiltre = new Date().toISODate();
+                  let dateJudifiltre = DateTime.now();
+                  existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
                   await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
                     bypassDocumentValidation: true,
                   });

@@ -46,6 +46,11 @@ async function patch() {
         let dateJudifiltre = DateTime.fromJSDate(indexedDoc.log[j].date);
         console.log(dateJudifiltre.toISODate());
         indexedDoc.dateJudifiltre = dateJudifiltre.toISODate();
+        if (/toISODate/.test(indexedDoc.error)) {
+          console.log(indexedDoc.error);
+          indexedDoc.error = null;
+          indexedDoc.dateError = null;
+        }
         await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
           bypassDocumentValidation: true,
         });

@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { MongoClient } = require('mongodb');
 const { Judifiltre } = require('../judifiltre');
 const { JudilibreIndex } = require('../judilibre-index');
+const { DateTime } = require('luxon');
 
 async function main() {
   const client = new MongoClient(process.env.MONGO_URI, {
@@ -56,7 +57,8 @@ async function main() {
         ]);
         const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
         if (existingDoc !== null) {
-          existingDoc.dateJudifiltre = new Date().toISODate();
+          let dateJudifiltre = DateTime.now();
+          existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
           await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
             bypassDocumentValidation: true,
           });
