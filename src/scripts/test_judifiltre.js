@@ -17,9 +17,13 @@ async function main() {
   ]);
   */
 
-  const result = await Judifiltre.GetBatch();
+  const batch = await Judifiltre.GetBatch();
 
-  console.log(result);
+  console.log(batch);
+
+  const queue = await Judifiltre.GetQueue();
+
+  console.log(queue);
 
   return true;
 }
