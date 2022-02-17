@@ -309,29 +309,29 @@ async function importJurica() {
                 await juricaSource.markAsErroneous(row._id);
                 errorCount++;
               }
+            } // else {
+            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+            if (normalized === null) {
+              let normDec = await JuricaUtils.Normalize(row);
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec._version = decisionsVersion;
+              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              normDec._id = insertResult.insertedId;
+              await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+              await juricaSource.markAsImported(row._id);
+              newCount++;
             } else {
-              let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-              if (normalized === null) {
-                let normDec = await JuricaUtils.Normalize(row);
-                normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-                normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-                normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-                normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-                normDec._version = decisionsVersion;
-                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-                normDec._id = insertResult.insertedId;
-                await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
-                await juricaSource.markAsImported(row._id);
-                newCount++;
-              } else {
-                console.warn(
-                  `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
-                );
-                await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
-                await juricaSource.markAsImported(row._id);
-                errorCount++;
-              }
+              console.warn(
+                `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
+              );
+              await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
+              await juricaSource.markAsImported(row._id);
+              errorCount++;
             }
+            // }
           } else {
             console.warn(
               `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
