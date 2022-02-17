@@ -2,6 +2,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const { Judifiltre } = require('../judifiltre');
+const { JuricaUtils } = require('../jurica-utils');
 const { MongoClient } = require('mongodb');
 
 async function main() {
@@ -11,6 +12,7 @@ async function main() {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+  /*
 
   let doc;
   let count = 0;
@@ -18,12 +20,29 @@ async function main() {
   while ((doc = await cursor.next())) {
     console.log({
       id: doc._id,
+      date: doc.JDEC_DATE,
       pub: doc.JDEC_IND_DEC_PUB,
     });
     count++;
   }
 
   console.log(count);
+  */
+
+  const row = await rawJurica.findOne({ _id: 2497063 });
+
+  try {
+    const ShouldBeRejected = JuricaUtils.ShouldBeRejected(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+    const partiallyPublic = JuricaUtils.IsPartiallyPublic(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+    const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+      row.JDEC_CODNAC,
+      row.JDEC_CODNACPART,
+      row.JDEC_IND_DEC_PUB,
+    );
+    console.log(ShouldBeRejected, partiallyPublic, ShouldBeSentToJudifiltre);
+  } catch (e) {
+    console.error(e);
+  }
 
   await client.close();
 
