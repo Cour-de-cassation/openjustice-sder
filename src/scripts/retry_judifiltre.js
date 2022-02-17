@@ -55,11 +55,9 @@ async function main() {
           normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
           normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
           normDec._version = decisionsVersion;
-          /*
           const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
           normDec._id = insertResult.insertedId;
           await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
-          */
           console.log(`${row._id} done.`);
         } else {
           console.log(`${row._id} skipped (already in decisions).`);
@@ -98,6 +96,7 @@ async function main() {
     }
   }
   await client.close();
+  console.log(`DONE.`);
   return true;
 }
 
