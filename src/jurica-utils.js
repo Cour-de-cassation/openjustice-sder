@@ -306,7 +306,7 @@ class JuricaUtils {
         throw new Error(
           `contradictory public status #2 (non-public: ${nonPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
         );
-      } else if (isPublic && !partiallyPublic) {
+      } else if (isPublic && partiallyPublic) {
         throw new Error(
           `contradictory public status #3 (public: ${isPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
         );
