@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { Judifiltre } = require('../judifiltre');
 
 async function main() {
+  /*
   const result = await Judifiltre.SendBatch([
     {
       // sourceId: Integer,
@@ -14,6 +15,9 @@ async function main() {
       publicityClerkRequest: 'unspecified',
     },
   ]);
+  */
+
+  const result = await Judifiltre.GetBatch();
 
   console.log(result);
 
