@@ -111,7 +111,12 @@ class JudilibreIndex {
       }
       indexedDoc.dateError = this.getDateString();
     }
-    await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+    const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
+    if (existingDoc !== null) {
+      await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
+    } else {
+      await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+    }
   }
 
   async updateJurinetDocument(doc, duplicateId, msg, err) {
@@ -277,7 +282,12 @@ class JudilibreIndex {
       }
       indexedDoc.dateError = this.getDateString();
     }
-    await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+    const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
+    if (existingDoc !== null) {
+      await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
+    } else {
+      await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+    }
   }
 
   async updateJuricaDocument(doc, duplicateId, msg, err) {
