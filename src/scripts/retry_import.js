@@ -124,7 +124,6 @@ async function retryImportJurinet() {
         }
       } else {
         skipRawCount++;
-        /*
         try {
           row._indexed = null;
           await rawJurinet.replaceOne({ _id: row._id }, row, {
@@ -148,6 +147,8 @@ async function retryImportJurinet() {
             }
             newCount++;
           } else {
+            skipCount++;
+            /*
             let normDec = await JurinetUtils.Normalize(row);
             normDec._id = normalized._id;
             normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
@@ -164,6 +165,7 @@ async function retryImportJurinet() {
               wincicaCount++;
             }
             newCount++;
+            */
           }
         } catch (e) {
           console.error(`Jurinet retry import error processing decision ${row._id} #2`, e);
@@ -171,7 +173,6 @@ async function retryImportJurinet() {
           await JudilibreIndex.updateJurinetDocument(row, null, null, e);
           errorCount++;
         }
-        */
       }
     }
   }
