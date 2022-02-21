@@ -258,7 +258,14 @@ async function syncJurinet() {
             date: new Date(),
             msg: 'index Jurinet stock (sync2)',
           });
-          await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+          const existingDocAgain = await JudilibreIndex.findOne('mainIndex', { _id: indexedDoc._id });
+          if (existingDocAgain !== null) {
+            await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
+              bypassDocumentValidation: true,
+            });
+          } else {
+            await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+          }
         }
       }
 
@@ -457,7 +464,14 @@ async function syncJurica() {
             date: new Date(),
             msg: 'index Jurica stock (sync2)',
           });
-          await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+          const existingDocAgain = await JudilibreIndex.findOne('mainIndex', { _id: indexedDoc._id });
+          if (existingDocAgain !== null) {
+            await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
+              bypassDocumentValidation: true,
+            });
+          } else {
+            await JudilibreIndex.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
+          }
         }
       }
 
