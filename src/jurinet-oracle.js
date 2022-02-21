@@ -377,6 +377,40 @@ class JurinetOracle {
     }
   }
 
+  async getFaulty() {
+    if (this.connected === true && this.connection !== null) {
+      const query = `SELECT *
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
+        AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 4
+        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} DESC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        if (this.filter(resultRow)) {
+          rows.push(await this.buildRawData(resultRow, true));
+        }
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurinet.getFaulty: not connected.');
+    }
+  }
+
   /**
    * Get all decisions from Jurinet that have been modified since the given date.
    *
