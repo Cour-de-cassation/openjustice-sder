@@ -202,6 +202,39 @@ class JuricaOracle {
     }
   }
 
+  async getFaulty() {
+    if (this.connected === true && this.connection !== null) {
+      const query = `SELECT *
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+        AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 4
+        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} DESC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        const data = await this.buildRawData(resultRow, true);
+        rows.push(data);
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurica.getFaulty: not connected.');
+    }
+  }
+
   /**
    * Get all decisions from Jurica that have been modified since the given date.
    *

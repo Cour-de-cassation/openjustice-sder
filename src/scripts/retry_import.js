@@ -42,7 +42,7 @@ async function main() {
     console.error('Jurinet retry import error', e);
   }
   try {
-    // await retryImportJurica();
+    await retryImportJurica();
   } catch (e) {
     console.error('Jurica retry import error', e);
   }
@@ -97,24 +97,6 @@ async function retryImportJurinet() {
             newCount++;
           } else {
             skipCount++;
-            /*
-            let normDec = await JurinetUtils.Normalize(row);
-            normDec._id = normalized._id;
-            normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
-            normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
-            normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
-            normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
-            normDec._version = decisionsVersion;
-            await decisions.replaceOne({ _id: normDec._id }, normDec, {
-              bypassDocumentValidation: true,
-            });
-            await JudilibreIndex.indexDecisionDocument(normDec, null, 'retry import in decisions #2');
-            await jurinetSource.markAsImported(row._id);
-            if (row['TYPE_ARRET'] !== 'CC') {
-              wincicaCount++;
-            }
-            newCount++;
-            */
           }
         } catch (e) {
           console.error(`Jurinet retry import error processing decision ${row._id} #1`, e);
@@ -148,24 +130,6 @@ async function retryImportJurinet() {
             newCount++;
           } else {
             skipCount++;
-            /*
-            let normDec = await JurinetUtils.Normalize(row);
-            normDec._id = normalized._id;
-            normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
-            normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
-            normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
-            normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
-            normDec._version = decisionsVersion;
-            await decisions.replaceOne({ _id: normDec._id }, normDec, {
-              bypassDocumentValidation: true,
-            });
-            await JudilibreIndex.indexDecisionDocument(normDec, null, 'retry import in decisions #4');
-            await jurinetSource.markAsImported(row._id);
-            if (row['TYPE_ARRET'] !== 'CC') {
-              wincicaCount++;
-            }
-            newCount++;
-            */
           }
         } catch (e) {
           console.error(`Jurinet retry import error processing decision ${row._id} #2`, e);
@@ -192,7 +156,6 @@ async function retryImportJurica() {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
-
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION); // XXX TEMP
 
   const juricaSource = new JuricaOracle();
@@ -202,8 +165,10 @@ async function retryImportJurica() {
   let errorCount = 0;
   let duplicateCount = 0;
   let nonPublicCount = 0;
+  let skipRawCount = 0;
+  let skipCount = 0;
 
-  const juricaResult = await juricaSource.getNew();
+  const juricaResult = await juricaSource.getFaulty();
 
   if (juricaResult) {
     for (let i = 0; i < juricaResult.length; i++) {
@@ -323,7 +288,7 @@ async function retryImportJurica() {
               row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
-            await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
+            await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica # 1');
             const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
@@ -378,10 +343,11 @@ async function retryImportJurica() {
               normDec._version = decisionsVersion;
               const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
               normDec._id = insertResult.insertedId;
-              await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+              await JudilibreIndex.indexDecisionDocument(normDec, null, 'retry import in decisions #1');
               await juricaSource.markAsImported(row._id);
               newCount++;
             } else {
+              skipCount++;
               console.warn(
                 `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
               );
@@ -407,7 +373,37 @@ async function retryImportJurica() {
             }
           }
         } catch (e) {
-          console.error(`Jurica import error processing decision ${row._id}`, e);
+          console.error(`Jurica retry import error processing decision ${row._id}#1`, e);
+          await juricaSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJuricaDocument(row, null, null, e);
+          errorCount++;
+        }
+      } else {
+        skipRawCount++;
+        try {
+          row._indexed = null;
+          await rawJurica.replaceOne({ _id: row._id }, row, {
+            bypassDocumentValidation: true,
+          });
+          await JudilibreIndex.indexJuricaDocument(row, null, 'retry import in rawJurica #2');
+          let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+          if (normalized === null) {
+            let normDec = await JuricaUtils.Normalize(row);
+            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+            normDec._version = decisionsVersion;
+            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normDec._id = insertResult.insertedId;
+            await JudilibreIndex.indexDecisionDocument(normDec, null, 'retry import in decisions #3');
+            await juricaSource.markAsImported(row._id);
+            newCount++;
+          } else {
+            skipCount++;
+          }
+        } catch (e) {
+          console.error(`Jurica retry import error processing decision ${row._id} #2`, e);
           await juricaSource.markAsErroneous(row._id);
           await JudilibreIndex.updateJuricaDocument(row, null, null, e);
           errorCount++;
@@ -417,7 +413,7 @@ async function retryImportJurica() {
   }
 
   console.log(
-    `Done Importing Jurica - New: ${newCount}, Non-public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
+    `Done Importing Jurica - New: ${newCount}, Non-public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}, Skip Raw: ${skipRawCount}, Skip SDER: ${skipCount}.`,
   );
   await client.close();
   await juricaSource.close();
