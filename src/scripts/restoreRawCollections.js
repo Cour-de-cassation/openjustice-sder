@@ -6,7 +6,6 @@ const { JurinetOracle } = require('../jurinet-oracle');
 const { JurinetUtils } = require('../jurinet-utils');
 const { JuricaOracle } = require('../jurica-oracle');
 const { JuricaUtils } = require('../jurica-utils');
-const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -90,13 +89,11 @@ async function restoreJurinet(n, resetContent) {
           row._indexed = false;
         }
         await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
-        await JudilibreIndex.indexJurinetDocument(row, null, 'restore in rawJurinet');
         await jurinetSource.markAsImported(row._id);
         restoreCount++;
       } catch (e) {
         console.error(e);
         await jurinetSource.markAsErroneous(row._id);
-        await JudilibreIndex.updateJurinetDocument(row, null, null, e);
         errorCount++;
       }
     }
@@ -150,13 +147,11 @@ async function restoreJurica() {
       try {
         row._indexed = null;
         await rawJurica.insertOne(row, { bypassDocumentValidation: true });
-        await JudilibreIndex.indexJuricaDocument(row, null, 'restore in rawJurica');
         await juricaSource.markAsImported(row._id);
         restoreCount++;
       } catch (e) {
         console.error(e);
         await juricaSource.markAsErroneous(row._id);
-        await JudilibreIndex.updateJuricaDocument(row, null, null, e);
         errorCount++;
       }
     }
