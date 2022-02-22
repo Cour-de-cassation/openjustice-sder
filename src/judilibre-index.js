@@ -111,6 +111,9 @@ class JudilibreIndex {
       }
       indexedDoc.dateError = this.getDateString();
     }
+    if (/non-public/i.test(msg)) {
+      indexedDoc.public = false;
+    }
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
@@ -177,6 +180,9 @@ class JudilibreIndex {
           indexedDoc.error = err;
         }
         indexedDoc.dateError = this.getDateString();
+      }
+      if (/non-public/i.test(msg)) {
+        indexedDoc.public = false;
       }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
@@ -282,6 +288,9 @@ class JudilibreIndex {
       }
       indexedDoc.dateError = this.getDateString();
     }
+    if (/non-public/i.test(msg)) {
+      indexedDoc.public = false;
+    }
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
@@ -331,6 +340,9 @@ class JudilibreIndex {
         }
         indexedDoc.dateError = this.getDateString();
       }
+      if (/non-public/i.test(msg)) {
+        indexedDoc.public = false;
+      }
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
       const lastOperation = DateTime.fromJSDate(new Date());
@@ -348,6 +360,9 @@ class JudilibreIndex {
           indexedDoc.error = err;
         }
         indexedDoc.dateError = this.getDateString();
+      }
+      if (/non-public/i.test(msg)) {
+        indexedDoc.public = false;
       }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
@@ -387,6 +402,9 @@ class JudilibreIndex {
       if (msg && typeof msg === 'string' && msg.indexOf('import in decisions') === 0 && !existingDoc.dateImport) {
         existingDoc.dateImport = this.getDateString();
       }
+      if (/non-public/i.test(msg)) {
+        existingDoc.public = false;
+      }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }
   }
@@ -420,6 +438,9 @@ class JudilibreIndex {
           existingDoc.error = err;
         }
         existingDoc.dateError = this.getDateString();
+      }
+      if (/non-public/i.test(msg)) {
+        existingDoc.public = false;
       }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }
