@@ -8,10 +8,12 @@ const { JuricaOracle } = require('../jurica-oracle');
 const { JurinetOracle } = require('../jurinet-oracle');
 const ms = require('ms');
 
-let missingCount = 0;
+let moreCount = 0;
 let diffCount = 0;
 let sameCount = 0;
 let noneCount = 0;
+let noDataCount = 0;
+let lessCount = 0;
 
 let selfKill = setTimeout(cancel, ms('24h'));
 
@@ -28,10 +30,10 @@ function cancel() {
 }
 
 function kill(code) {
-  console.log(`${missingCount} missing decatt.`);
-  console.log(`${diffCount} different decatt.`);
+  console.log(`${moreCount} more decatt (that were missing before).`);
+  console.log(`${diffCount} different decatt (including ${lessCount} that no longer have decatt).`);
   console.log(`${sameCount} same decatt.`);
-  console.log(`${noneCount} no decatt.`);
+  console.log(`${noneCount} no decatt (including ${noDataCount} without decatt info).`);
   process.exit(code);
 }
 
@@ -77,8 +79,9 @@ async function patch() {
     // let id = parseInt(/different decatt .* for (\d+)/i.exec(lines[i])[1], 10);
     // rawJurinetDocument = await rawJurinet.findOne({ _id: id });
     let decatt = null;
+    let decattInfo = null;
     try {
-      let decattInfo = await jurinetSource.getDecatt(rawJurinetDocument._id);
+      decattInfo = await jurinetSource.getDecatt(rawJurinetDocument._id);
       decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
     } catch (e) {}
     let hasPreviousDecatt =
@@ -87,11 +90,16 @@ async function patch() {
 
     if (!decatt || (Array.isArray(decatt) && decatt.length === 0)) {
       noneCount++;
+      if (decattInfo) {
+        console.log('no decatt for', rawJurinetDocument._id, ' - info is: ', JSON.stringify(decattInfo));
+      } else {
+        noDataCount++;
+      }
     }
 
     if (!hasPreviousDecatt && hasNewDecatt) {
       // console.log('Missing decatt', decatt, 'for', rawJurinetDocument._id);
-      missingCount++;
+      moreCount++;
     } else if (hasPreviousDecatt && JSON.stringify(decatt) !== JSON.stringify(rawJurinetDocument._decatt)) {
       if (
         Array.isArray(decatt) &&
@@ -100,6 +108,7 @@ async function patch() {
       ) {
         sameCount++;
       } else {
+        /*
         console.log(
           'Different decatt',
           JSON.stringify(decatt),
@@ -108,7 +117,11 @@ async function patch() {
           ' - previous was: ',
           JSON.stringify(rawJurinetDocument._decatt),
         );
+        */
         diffCount++;
+        if (decatt.length === 0) {
+          lessCount++;
+        }
       }
     } else {
       sameCount++;
