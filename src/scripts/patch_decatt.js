@@ -18,18 +18,21 @@ let lessCount = 0;
 let selfKill = setTimeout(cancel, ms('24h'));
 
 function end() {
+  console.log('end');
   clearTimeout(selfKill);
   if (parentPort) parentPort.postMessage('done');
   kill(0);
 }
 
 function cancel() {
+  console.log('cancel');
   clearTimeout(selfKill);
   if (parentPort) parentPort.postMessage('cancelled');
   kill(1);
 }
 
 function kill(code) {
+  console.log('kill', code);
   console.log(`${moreCount} more decatt (that were missing before).`);
   console.log(`${diffCount} different decatt (including ${lessCount} that no longer have decatt).`);
   console.log(`${sameCount} same decatt.`);
@@ -132,6 +135,7 @@ async function patch() {
   await client.close();
   await jurinetSource.close();
   await juricaSource.close();
+  kill(-1);
   return true;
 }
 
