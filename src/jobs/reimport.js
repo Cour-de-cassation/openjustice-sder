@@ -30,27 +30,31 @@ function kill(code) {
   process.exit(code);
 }
 
-async function main(n) {
+async function main(kind, n, resetContent) {
+  console.log(`kind: ${kind}, id/n: ${n}, reset: ${resetContent}`);
   console.log('OpenJustice - Start "reimport" job:', new Date().toLocaleString());
-  /*
-  try {
-    await reimportJurinet(n);
-  } catch (e) {
-    console.error('Jurinet reimport error', e);
+
+  if (kind === 'jurinet') {
+    try {
+      await reimportJurinet(n, resetContent);
+    } catch (e) {
+      console.error('Jurinet reimport error', e);
+    }
   }
-  */
-  /*
-  try {
-    await reimportJurica(n);
-  } catch (e) {
-    console.error('Jurica reimport error', e);
+
+  if (kind === 'jurica') {
+    try {
+      await reimportJurica(n, resetContent);
+    } catch (e) {
+      console.error('Jurica reimport error', e);
+    }
   }
-  */
+
   console.log('OpenJustice - End "reimport" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
 }
 
-async function reimportJurinet(n) {
+async function reimportJurinet(n, resetContent) {
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
@@ -58,14 +62,14 @@ async function reimportJurinet(n) {
 
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
-  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+  // const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
-  const juricaSource = new JuricaOracle();
-  await juricaSource.connect();
+  // const juricaSource = new JuricaOracle();
+  // await juricaSource.connect();
 
   let newCount = 0;
   let updateCount = 0;
@@ -85,10 +89,23 @@ async function reimportJurinet(n) {
   if (jurinetResult) {
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
+      let indexDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id}` });
+      if (indexDoc && resetContent) {
+        await JudilibreIndex.deleteOne('mainIndex', { _id: `jurinet:${row._id}` });
+      }
       let raw = await rawJurinet.findOne({ _id: row._id });
       if (raw === null) {
         try {
           row._indexed = null;
+          if (resetContent === true) {
+            row.XMLA = null;
+            row.IND_ANO = 0;
+            row.AUT_ANO = null;
+            row.DT_ANO = null;
+            row.DT_MODIF = null;
+            row.DT_MODIF_ANO = null;
+            row.DT_ENVOI_DILA = null;
+          }
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJurinetDocument(row, null, 'import in rawJurinet');
           newCount++;
@@ -108,7 +125,12 @@ async function reimportJurinet(n) {
             await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (reimport)');
             normalizedCount++;
           } else {
-            let normDec = await JurinetUtils.Normalize(row, normalized, true);
+            let normDec;
+            if (resetContent === true) {
+              normDec = await JurinetUtils.Normalize(row);
+            } else {
+              normDec = await JurinetUtils.Normalize(row, normalized, true);
+            }
             normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
             normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
@@ -139,6 +161,15 @@ async function reimportJurinet(n) {
       } else {
         try {
           row._indexed = null;
+          if (resetContent === true) {
+            row.XMLA = null;
+            row.IND_ANO = 0;
+            row.AUT_ANO = null;
+            row.DT_ANO = null;
+            row.DT_MODIF = null;
+            row.DT_MODIF_ANO = null;
+            row.DT_ENVOI_DILA = null;
+          }
           await rawJurinet.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
           updateCount++;
           if (row['TYPE_ARRET'] !== 'CC') {
@@ -158,7 +189,12 @@ async function reimportJurinet(n) {
             await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (reimport)');
             normalizedCount++;
           } else {
-            let normDec = await JurinetUtils.Normalize(row, normalized, true);
+            let normDec;
+            if (resetContent === true) {
+              normDec = await JurinetUtils.Normalize(row);
+            } else {
+              normDec = await JurinetUtils.Normalize(row, normalized, true);
+            }
             normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
             normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
@@ -217,12 +253,13 @@ async function reimportJurinet(n) {
   );
 
   await client.close();
-  await juricaSource.close();
+  // await juricaSource.close();
   await jurinetSource.close();
   return true;
 }
 
-async function reimportJurica(n) {
+async function reimportJurica(n, resetContent) {
+  // @TODO resetContent
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
@@ -406,4 +443,4 @@ async function reimportJurica(n) {
   return true;
 }
 
-main(/*862302*/);
+main(process.argv[2], parseInt(process.argv[3], 10), process.argv[4] === 'reset');
