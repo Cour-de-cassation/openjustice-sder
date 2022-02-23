@@ -68,7 +68,8 @@ async function restoreJurinet(n, resetContent) {
   const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
-        ORDER BY ${process.env.DB_TABLE}.ID_DOCUMENT ASC`;
+        AND ${process.env.DB_TABLE}.ID_DOCUMENT > 65011
+        ORDER BY ${process.env.DB_TABLE}.ID_DOCUMENT DESC`;
 
   const result = await jurinetSource.connection.execute(query, [], {
     resultSet: true,
@@ -129,7 +130,7 @@ async function restoreJurica() {
   const query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
-        ORDER BY ${process.env.DB_TABLE_JURICA}.JDEC_ID ASC`;
+        ORDER BY ${process.env.DB_TABLE_JURICA}.JDEC_ID DESC`;
 
   const result = await juricaSource.connection.execute(query, [], {
     resultSet: true,
