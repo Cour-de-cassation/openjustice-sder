@@ -436,6 +436,9 @@ class JurinetUtils {
       }
     }
 
+    if (typeof document.OCCULTATION_SUPPLEMENTAIRE === 'string') {
+      document.OCCULTATION_SUPPLEMENTAIRE = document.OCCULTATION_SUPPLEMENTAIRE.trim();
+    }
     if (!!document.OCCULTATION_SUPPLEMENTAIRE) {
       normalizedDecision.occultation.additionalTerms = document.OCCULTATION_SUPPLEMENTAIRE;
     }
