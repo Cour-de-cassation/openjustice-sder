@@ -65,16 +65,18 @@ async function patch() {
 
   let rawJurinetDocument;
   // let lines = fs.readFileSync(path.join(__dirname, 'decatt_to_check.txt')).toString().split('\n');
-  const rawJurinetCursor = await rawJurinet.find(
-    { TYPE_ARRET: 'CC' },
-    {
-      allowDiskUse: true,
-      fields: {
-        _id: 1,
-        _decatt: 1,
+  const rawJurinetCursor = await rawJurinet
+    .find(
+      { TYPE_ARRET: 'CC' },
+      {
+        allowDiskUse: true,
+        fields: {
+          _id: 1,
+          _decatt: 1,
+        },
       },
-    },
-  );
+    )
+    .sort({ _id: -1 });
 
   while ((rawJurinetDocument = await rawJurinetCursor.next())) {
     //   for (let i = 0; i < lines.length; i++) {
