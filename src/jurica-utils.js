@@ -234,9 +234,11 @@ class JuricaUtils {
         throw new Error(`public or non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set`);
       }
     } else if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true /* TEMP */).indexOf(cleanedNac) !== -1) {
+      /* Finalement non...
       if (publicCheckbox === 1) {
         throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
       }
+      */
       return true;
       /* TEMP
       if (!cleanedNp || cleanedNp === 'NULL' || !np) {
