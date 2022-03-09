@@ -52,4 +52,4 @@ Pour toute décision provenant de JuriCA :
       - **NON** dans les autres cas (décision explicitement publique ou non-publique).
 
    1. Si la décision n'est pas soumise à Judifiltre (décision explicitement publique et sans anomalie), alors elle est directement intégrée dans la base SDER (`decisions`) et rendue disponible pour un traitement par Label.
-   1. Ultérieurement, les décisions soumises à Judifiltre et ayant été validées comme étant publiques (ou partiellement publiques) sont intégrées dans la base SDER (`decisions`) et rendues disponibles pour un traitement par Label.
+   1. Ultérieurement, les décisions soumises à Judifiltre et ayant été validées comme étant publiques (ou partiellement publiques) sont intégrées dans la base SDER (`decisions`) et rendues disponibles pour un traitement par Label. Les décisions invalidées par Judifiltre (considérées donc comme étant non-publiques _a posteriori_) sont quant à elles supprimées de la base de travail "brute" (`rawJurica`).
