@@ -448,6 +448,8 @@ class JuricaUtils {
       dateCreation = document.JDEC_DATE_CREATION;
     }
 
+    const now = new Date();
+
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
       _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
@@ -461,7 +463,7 @@ class JuricaUtils {
       registerNumber: `${document.JDEC_NUM_RG} ${document.JDEC_NUM_REGISTRE}`,
       pubCategory: document.JDEC_NOTICE_FORMAT,
       dateDecision: dateDecision,
-      dateCreation: dateCreation,
+      dateCreation: now.toISOString(),
       solution: document.JDEC_LIBELLE,
       originalText: originalText
         ? originalText

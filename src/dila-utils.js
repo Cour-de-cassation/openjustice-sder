@@ -197,6 +197,8 @@ class DilaUtils {
   }
 
   static async Normalize(document, previousVersion) {
+    const now = new Date();
+
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
       _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
@@ -209,8 +211,8 @@ class DilaUtils {
       chamberName: undefined,
       registerNumber: document.NUMERO,
       pubCategory: document.PUB ? 'P' : 'N',
-      dateDecision: new Date(Date.parse(document.DATE_DEC)),
-      dateCreation: new Date(),
+      dateDecision: new Date(Date.parse(document.DATE_DEC)).toISOString(),
+      dateCreation: now.toISOString(),
       solution: document.SOLUTION,
       originalText: undefined,
       pseudoText: document.TEXTE,

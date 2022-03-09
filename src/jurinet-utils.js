@@ -223,6 +223,8 @@ class JurinetUtils {
       }
     }
 
+    const now = new Date();
+
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
       _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
@@ -236,7 +238,7 @@ class JurinetUtils {
       registerNumber: document.NUM_DECISION,
       pubCategory: document.CAT_PUB,
       dateDecision: document.DT_DECISION ? document.DT_DECISION.toISOString() : undefined,
-      dateCreation: document.DT_CREATION ? document.DT_CREATION.toISOString() : undefined,
+      dateCreation: now.toISOString(),
       solution: document.ID_SOLUTION,
       originalText: originalText
         ? originalText
