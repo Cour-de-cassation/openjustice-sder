@@ -4,6 +4,8 @@
 
 **Objectif** : en partant d'une décision de la Cour de cassation, récupérer la décisions de la Cour d'appel qu'elle attaque (nécessairement antérieure).
 
+**Limitations** : le transfert des décisions de cours d'appel vers la Cour de cassation côté WinCiCA n'est pas systématique ni automatisé (en tout cas il est moins systématique que la saisie de la référence de décisions attaquées via NOMOS), de sorte que nous ne disposons pas dans JuriCA de toutes les décisions de CA qui peuvent être référencées par la table `GPCIV.DECATT` via NOMOS !
+
 **Algorithme**, d'après un mail de Richard ANGER daté du 03/03/2021 :
 
 1. Point de départ : identifiant de la décision CC dans Jurinet (`DOCUMENT.ID_DOCUMENT`, par exemple : `1727146`)
