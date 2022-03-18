@@ -757,6 +757,7 @@ class JurinetOracle {
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
             // 4. Get the contested decision related to the affaire:
             const affaire = affaireResult.rows[0];
+            let id_elmstr = affaire['ID_ELMSTR'];
             let juridiction = null;
             const GRCOMQuery = `SELECT *
                 FROM ELMSTR
@@ -778,6 +779,7 @@ class JurinetOracle {
               for (let jj = 0; jj < decattResult.rows.length; jj++) {
                 decattResult.rows[jj]['ID_DOCUMENT'] = id;
                 decattResult.rows[jj]['COUR_APPEL_RAT'] = juridiction;
+                decattResult.rows[jj]['ID_ELMSTR'] = id_elmstr;
               }
               await GRCOMSource.close();
               return decattResult.rows;
