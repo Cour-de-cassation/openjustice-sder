@@ -555,10 +555,13 @@ class JuricaOracle {
 
         const decisionQuery = `SELECT *
           FROM ${process.env.DB_TABLE_JURICA}
-          WHERE TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber
+          WHERE (TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber OR TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumberShort)
           AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt0}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt4}')`;
 
-        const decisionResult = await this.connection.execute(decisionQuery, [`${info.NUM_RG}`.trim()]);
+        const decisionResult = await this.connection.execute(decisionQuery, [
+          `${info.NUM_RG}`.trim(),
+          `${info.NUM_RG}`.replace(/\/0+/, '/').trim(),
+        ]);
 
         if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
           let weightedResults = {
