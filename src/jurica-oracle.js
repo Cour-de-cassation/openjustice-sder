@@ -555,10 +555,23 @@ class JuricaOracle {
 
         const decisionQuery = `SELECT *
           FROM ${process.env.DB_TABLE_JURICA}
-          WHERE (TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumber OR TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumberShort)
+          WHERE (TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumberLonger OR TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumberGiven OR TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumberShorter)
           AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt0}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt4}')`;
 
+        let rgNumberLonger = `${info.NUM_RG}`.trim();
+        if (rgNumberLonger.length < 8 && rgNumberLonger.indexOf('/') !== -1) {
+          let RGTerms = rgNumberLonger.split('/');
+          while (RGTerms[0].length < 2) {
+            RGTerms[0] = `0${RGTerms[0]}`;
+          }
+          while (RGTerms[1].length < 5) {
+            RGTerms[1] = `0${RGTerms[1]}`;
+          }
+          rgNumberLonger = `${RGTerms[0]}/${RGTerms[1]}`;
+        }
+
         const decisionResult = await this.connection.execute(decisionQuery, [
+          rgNumberLonger,
           `${info.NUM_RG}`.trim(),
           `${info.NUM_RG}`.replace(/\/0+/, '/').trim(),
         ]);
