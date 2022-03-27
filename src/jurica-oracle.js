@@ -498,7 +498,6 @@ class JuricaOracle {
    * {
    *   NUM_RG: '17/20421',
    *   DT_DECATT: 2019-02-13T22:00:00.000Z,
-   *   FORMATION_DECATT: 'pôle 2, chambre 2',
    * }
    * @param {object} info
    * @returns
@@ -514,108 +513,27 @@ class JuricaOracle {
       if (!info || !info['NUM_RG'] || !info['DT_DECATT']) {
         console.error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
       } else if (this.connected === true && this.connection !== null) {
-        let decattDate0 = new Date(Date.parse(info['DT_DECATT']));
-        decattDate0.setHours(decattDate0.getHours() + 2);
-        decattDate0.setDate(decattDate0.getDate() - 2);
-        let strDecatt0 = decattDate0.getFullYear();
-        strDecatt0 +=
-          '-' + (decattDate0.getMonth() + 1 < 10 ? '0' + (decattDate0.getMonth() + 1) : decattDate0.getMonth() + 1);
-        strDecatt0 += '-' + (decattDate0.getDate() < 10 ? '0' + decattDate0.getDate() : decattDate0.getDate());
+        let decattDate = new Date(Date.parse(info['DT_DECATT']));
+        decattDate.setHours(decattDate.getHours() + 2);
+        let strDecatt = decattDate.getFullYear();
+        strDecatt +=
+          '-' + (decattDate.getMonth() + 1 < 10 ? '0' + (decattDate.getMonth() + 1) : decattDate.getMonth() + 1);
+        strDecatt += '-' + (decattDate.getDate() < 10 ? '0' + decattDate.getDate() : decattDate.getDate());
 
-        let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
-        decattDate1.setHours(decattDate1.getHours() + 2);
-        decattDate1.setDate(decattDate1.getDate() - 1);
-        let strDecatt1 = decattDate1.getFullYear();
-        strDecatt1 +=
-          '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
-        strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
-
-        let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
-        decattDate2.setHours(decattDate2.getHours() + 2);
-        let strDecatt2 = decattDate2.getFullYear();
-        strDecatt2 +=
-          '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
-        strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
-
-        let decattDate3 = new Date(Date.parse(info['DT_DECATT']));
-        decattDate3.setHours(decattDate3.getHours() + 2);
-        decattDate3.setDate(decattDate3.getDate() + 1);
-        let strDecatt3 = decattDate3.getFullYear();
-        strDecatt3 +=
-          '-' + (decattDate3.getMonth() + 1 < 10 ? '0' + (decattDate3.getMonth() + 1) : decattDate3.getMonth() + 1);
-        strDecatt3 += '-' + (decattDate3.getDate() < 10 ? '0' + decattDate3.getDate() : decattDate3.getDate());
-
-        let decattDate4 = new Date(Date.parse(info['DT_DECATT']));
-        decattDate4.setHours(decattDate4.getHours() + 2);
-        decattDate4.setDate(decattDate4.getDate() + 2);
-        let strDecatt4 = decattDate4.getFullYear();
-        strDecatt4 +=
-          '-' + (decattDate4.getMonth() + 1 < 10 ? '0' + (decattDate4.getMonth() + 1) : decattDate4.getMonth() + 1);
-        strDecatt4 += '-' + (decattDate4.getDate() < 10 ? '0' + decattDate4.getDate() : decattDate4.getDate());
+        let RGTerms = `${info.NUM_RG}`.split('/');
+        RGTerms[0] = RGTerms[0].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+        RGTerms[1] = RGTerms[1].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
 
         const decisionQuery = `SELECT *
           FROM ${process.env.DB_TABLE_JURICA}
-          WHERE (TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumberLonger OR TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumberGiven OR TRIM(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG) = :rgNumberShorter)
-          AND (${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt0}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt1}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt2}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt3}' OR ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt4}')`;
+          WHERE REGEXP_LIKE(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG, '^0*${RGTerms[0]}/0*${RGTerms[1]} *$')
+          AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt}'`;
 
-        let rgNumberLonger = `${info.NUM_RG}`.trim();
-        if (rgNumberLonger.length < 8 && rgNumberLonger.indexOf('/') !== -1) {
-          let RGTerms = rgNumberLonger.split('/');
-          while (RGTerms[0].length < 2) {
-            RGTerms[0] = `0${RGTerms[0]}`;
-          }
-          while (RGTerms[1].length < 5) {
-            RGTerms[1] = `0${RGTerms[1]}`;
-          }
-          rgNumberLonger = `${RGTerms[0]}/${RGTerms[1]}`;
-        }
-
-        const decisionResult = await this.connection.execute(decisionQuery, [
-          rgNumberLonger,
-          `${info.NUM_RG}`.trim(),
-          `${info.NUM_RG}`.replace(/\/0+/, '/').trim(),
-        ]);
+        const decisionResult = await this.connection.execute(decisionQuery, []);
 
         if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
-          let weightedResults = {
-            delta0: [],
-            delta1: [],
-            delta2: [],
-          };
           for (let i = 0; i < decisionResult.rows.length; i++) {
-            if (decisionResult.rows[i]['JDEC_DATE'] === strDecatt2) {
-              weightedResults.delta0.push(decisionResult.rows[i]['JDEC_ID']);
-            } else if (
-              info['COUR_APPEL_RAT'] &&
-              info['COUR_APPEL_RAT']
-                .replace(/\D/gim, '0')
-                .indexOf(
-                  `${decisionResult.rows[i]['JDEC_ID_JURIDICTION']}`
-                    .replace(/\W/gim, '')
-                    .toUpperCase()
-                    .trim()
-                    .replace(/\D/gim, '0'),
-                ) === 0
-            ) {
-              if (
-                decisionResult.rows[i]['JDEC_DATE'] === strDecatt1 ||
-                decisionResult.rows[i]['JDEC_DATE'] === strDecatt3
-              ) {
-                weightedResults.delta1.push(decisionResult.rows[i]['JDEC_ID']);
-              } else if (
-                decisionResult.rows[i]['JDEC_DATE'] === strDecatt0 ||
-                decisionResult.rows[i]['JDEC_DATE'] === strDecatt4
-              ) {
-                weightedResults.delta2.push(decisionResult.rows[i]['JDEC_ID']);
-              }
-            }
-          }
-          if (weightedResults.delta0.length > 0) {
-            results = results.concat(weightedResults.delta0);
-          } else if (weightedResults.delta1.length > 0) {
-            results = results.concat(weightedResults.delta1);
-          } else if (weightedResults.delta2.length > 0) {
-            results = results.concat(weightedResults.delta2);
+            results.push(decisionResult.rows[i]['JDEC_ID']);
           }
         } else {
           console.error(
