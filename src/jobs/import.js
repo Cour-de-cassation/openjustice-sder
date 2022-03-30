@@ -47,9 +47,9 @@ async function main() {
     console.error('Jurica import error', e);
   }
   try {
-    // await importJudifiltre();
+    await importJudifiltre();
   } catch (e) {
-    console.error('Jurica import error', e);
+    console.error('Judifiltre import error', e);
   }
   console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
@@ -392,6 +392,8 @@ async function importJudifiltre() {
           try {
             row = await rawJurica.findOne({ _id: batch.releasableDecisions[i].sourceId });
             if (row) {
+              console.log(row);
+              /*
               let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
               if (normalized === null) {
                 let normDec = await JuricaUtils.Normalize(row);
@@ -421,6 +423,7 @@ async function importJudifiltre() {
                   errorCount++;
                 }
               }
+              */
             } else {
               console.error(
                 `Judifiltre import error: decision ${batch.releasableDecisions[i].sourceId} not found in rawJurica`,
