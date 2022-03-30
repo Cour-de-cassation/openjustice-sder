@@ -377,6 +377,7 @@ async function importJudifiltre() {
 
   let row;
   let newCount = 0;
+  let updateCount = 0;
   let skipCount = 0;
   let errorCount = 0;
 
@@ -392,8 +393,6 @@ async function importJudifiltre() {
           try {
             row = await rawJurica.findOne({ _id: batch.releasableDecisions[i].sourceId });
             if (row) {
-              console.log(batch.releasableDecisions[i]);
-              /*
               let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
               if (normalized === null) {
                 let normDec = await JuricaUtils.Normalize(row);
@@ -424,8 +423,34 @@ async function importJudifiltre() {
                   errorCount++;
                 }
               } else {
+                let normDec = await JuricaUtils.Normalize(row, normalized);
+                normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+                normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+                normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+                normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+                normDec._version = decisionsVersion;
+                normDec.public = true;
+                normDec._id = normalized._id;
+                await decisions.replaceOne({ _id: normDec._id }, normDec, { bypassDocumentValidation: true });
+                await JudilibreIndex.indexDecisionDocument(normDec, null, 'is-public, update in decisions');
+                updateCount++;
+                try {
+                  const judifiltreResult = await Judifiltre.DeleteBatch([
+                    {
+                      sourceId: batch.releasableDecisions[i].sourceId,
+                      sourceName: batch.releasableDecisions[i].sourceName,
+                    },
+                  ]);
+                  await JudilibreIndex.updateJuricaDocument(
+                    row,
+                    null,
+                    `is-public, deleted from Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+                  );
+                } catch (e) {
+                  console.error(`Judifiltre delete error`, e);
+                  errorCount++;
+                }
               }
-              */
             } else {
               console.error(
                 `Judifiltre import error: decision ${batch.releasableDecisions[i].sourceId} not found in rawJurica`,
@@ -450,7 +475,9 @@ async function importJudifiltre() {
     errorCount++;
   }
 
-  console.log(`Done Importing Judifiltre - New: ${newCount}, Skip: ${skipCount}, Error: ${errorCount}.`);
+  console.log(
+    `Done Importing Judifiltre - New: ${newCount}, Update: ${updateCount}, Skip: ${skipCount}, Error: ${errorCount}.`,
+  );
   await client.close();
   return true;
 }
