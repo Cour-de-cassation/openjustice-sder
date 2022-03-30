@@ -113,6 +113,8 @@ class JudilibreIndex {
     }
     if (/non-public/i.test(msg)) {
       indexedDoc.public = false;
+    } else if (/is-public/i.test(msg)) {
+      indexedDoc.public = true;
     }
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
@@ -183,6 +185,8 @@ class JudilibreIndex {
       }
       if (/non-public/i.test(msg)) {
         indexedDoc.public = false;
+      } else if (/is-public/i.test(msg)) {
+        indexedDoc.public = true;
       }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
@@ -290,6 +294,8 @@ class JudilibreIndex {
     }
     if (/non-public/i.test(msg)) {
       indexedDoc.public = false;
+    } else if (/is-public/i.test(msg)) {
+      indexedDoc.public = true;
     }
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
@@ -342,6 +348,8 @@ class JudilibreIndex {
       }
       if (/non-public/i.test(msg)) {
         indexedDoc.public = false;
+      } else if (/is-public/i.test(msg)) {
+        indexedDoc.public = true;
       }
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
@@ -363,6 +371,8 @@ class JudilibreIndex {
       }
       if (/non-public/i.test(msg)) {
         indexedDoc.public = false;
+      } else if (/is-public/i.test(msg)) {
+        indexedDoc.public = true;
       }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
@@ -404,6 +414,8 @@ class JudilibreIndex {
       }
       if (/non-public/i.test(msg)) {
         existingDoc.public = false;
+      } else if (/is-public/i.test(msg)) {
+        existingDoc.public = true;
       }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }
@@ -441,6 +453,8 @@ class JudilibreIndex {
       }
       if (/non-public/i.test(msg)) {
         existingDoc.public = false;
+      } else if (/is-public/i.test(msg)) {
+        existingDoc.public = true;
       }
       await this.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, { bypassDocumentValidation: true });
     }

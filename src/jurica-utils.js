@@ -512,6 +512,9 @@ class JuricaUtils {
           : parseInt(document.JDEC_IND_DEC_PUB, 10) === 0
           ? false
           : null,
+      natureAffaireCivil: null,
+      natureAffairePenal: null,
+      codeMatiereCivil: null,
     };
 
     try {

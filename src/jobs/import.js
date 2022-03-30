@@ -392,7 +392,7 @@ async function importJudifiltre() {
           try {
             row = await rawJurica.findOne({ _id: batch.releasableDecisions[i].sourceId });
             if (row) {
-              console.log(row);
+              console.log(batch.releasableDecisions[i]);
               /*
               let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
               if (normalized === null) {
@@ -402,9 +402,10 @@ async function importJudifiltre() {
                 normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
                 normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
                 normDec._version = decisionsVersion;
+                normDec.public = true;
                 const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
                 normDec._id = insertResult.insertedId;
-                await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+                await JudilibreIndex.indexDecisionDocument(normDec, null, 'is-public, import in decisions');
                 newCount++;
                 try {
                   const judifiltreResult = await Judifiltre.DeleteBatch([
@@ -416,12 +417,13 @@ async function importJudifiltre() {
                   await JudilibreIndex.updateJuricaDocument(
                     row,
                     null,
-                    `deleted from Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+                    `is-public, deleted from Judifiltre: ${JSON.stringify(judifiltreResult)}`,
                   );
                 } catch (e) {
                   console.error(`Judifiltre delete error`, e);
                   errorCount++;
                 }
+              } else {
               }
               */
             } else {
