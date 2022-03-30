@@ -46,7 +46,7 @@ async function getJuricaInfo(id) {
 
   if (normalizedDecision.originalText) {
     try {
-      const zoning = await Juritools.GetZones(normalizedDecision.sourceId, 'ca', normalizedDecision.originalTexts);
+      const zoning = await Juritools.GetZones(normalizedDecision.sourceId, 'ca', normalizedDecision.originalText);
       console.log(JSON.stringify(zoning, null, 2));
     } catch (e) {
       console.error(e);
