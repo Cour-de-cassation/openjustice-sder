@@ -520,10 +520,12 @@ class JuricaOracle {
           '-' + (decattDate.getMonth() + 1 < 10 ? '0' + (decattDate.getMonth() + 1) : decattDate.getMonth() + 1);
         strDecatt += '-' + (decattDate.getDate() < 10 ? '0' + decattDate.getDate() : decattDate.getDate());
 
-        let RGTerms = `${info.NUM_RG}`.split('/');
-        RGTerms[0] = RGTerms[0].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
-        RGTerms[1] = RGTerms[1].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
-
+        let RGTerms = ['', ''];
+        try {
+          RGTerms = `${info.NUM_RG}`.split('/');
+          RGTerms[0] = RGTerms[0].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+          RGTerms[1] = RGTerms[1].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+        } catch (ignore) {}
         const decisionQuery = `SELECT *
           FROM ${process.env.DB_TABLE_JURICA}
           WHERE REGEXP_LIKE(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG, '^0*${RGTerms[0]}/0*${RGTerms[1]} *$')
