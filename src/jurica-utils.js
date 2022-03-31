@@ -219,7 +219,7 @@ class JuricaUtils {
     const cleanedNp = `${np}`.replace(/\W/gim, '').toUpperCase().trim();
     publicCheckbox = parseInt(`${publicCheckbox}`, 10);
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
-      throw new Error(`invalid NAC code (${nac})`);
+      return true;
     } else if (JuricaUtils.GetUnconditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
       if (publicCheckbox === 1) {
         throw new Error(`non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is set to 1`);
@@ -259,7 +259,7 @@ class JuricaUtils {
   static IsPartiallyPublic(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
-      throw new Error(`invalid NAC code (${nac})`);
+      return false;
     } else if (JuricaUtils.GetPartiallyPublicNAC().indexOf(cleanedNac) !== -1) {
       return true;
     }
@@ -267,6 +267,10 @@ class JuricaUtils {
   }
 
   static IsPublic(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      return false;
+    }
     const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
     const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
     publicCheckbox = parseInt(`${publicCheckbox}`, 10);
@@ -281,6 +285,10 @@ class JuricaUtils {
   }
 
   static ShouldBeRejected(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      return true;
+    }
     try {
       const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
       const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
@@ -292,11 +300,11 @@ class JuricaUtils {
   }
 
   static ShouldBeSentToJudifiltre(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      return false;
+    }
     try {
-      const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
-      if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
-        throw new Error(`invalid NAC code (${nac})`);
-      }
       const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
       const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
       const isPublic = JuricaUtils.IsPublic(nac, np, publicCheckbox);
