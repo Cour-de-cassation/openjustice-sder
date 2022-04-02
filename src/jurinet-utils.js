@@ -5,6 +5,7 @@ const { JudilibreIndex } = require('./judilibre-index');
 const { JuricaUtils } = require('./jurica-utils');
 const { Juritools } = require('./juritools');
 const { DateTime } = require('luxon');
+const { ObjectID } = require('mongodb');
 
 const parserOptions = {
   attributeNamePrefix: '$',

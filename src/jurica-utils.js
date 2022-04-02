@@ -9,6 +9,7 @@ const { JudilibreIndex } = require('./judilibre-index');
 const { Juritools } = require('./juritools');
 const { Judifiltre } = require('./judifiltre');
 const { DateTime } = require('luxon');
+const { ObjectID } = require('mongodb');
 
 const parserOptions = {
   attributeNamePrefix: '',
