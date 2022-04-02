@@ -5,6 +5,7 @@ const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JurinetUtils } = require('../jurinet-utils');
 const { JuricaOracle } = require('../jurica-oracle');
+const { GRCOMOracle } = require('../grcom-oracle');
 const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
@@ -65,6 +66,17 @@ async function importJurinet() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
+    useUnifiedTopology: true,
+  });
+  await jIndexConnection.connect();
+  const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
+  const jIndexMain = jIndexClient.collection('mainIndex');
+  const jIndexAffaires = jIndexClient.collection('affaires');
+
+  const GRCOMSource = new GRCOMOracle();
+  await GRCOMSource.connect();
+
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
@@ -86,6 +98,16 @@ async function importJurinet() {
           row._indexed = null;
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJurinetDocument(row, null, 'import in rawJurinet');
+          if (row['TYPE_ARRET'] === 'CC') {
+            await JurinetUtils.IndexAffaire(
+              row,
+              jIndexMain,
+              jIndexAffaires,
+              rawJurica,
+              jurinetSource.connection,
+              GRCOMSource.connection,
+            );
+          }
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
             let normDec = await JurinetUtils.Normalize(row);
@@ -122,8 +144,10 @@ async function importJurinet() {
 
   console.log(`Done Importing Jurinet - New: ${newCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`);
   await client.close();
+  await jIndexConnection.close();
   await jurinetSource.close();
   await juricaSource.close();
+  await GRCOMSource.close();
   return true;
 }
 
@@ -136,6 +160,17 @@ async function importJurica() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
 
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION); // XXX TEMP
+
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
+    useUnifiedTopology: true,
+  });
+  await jIndexConnection.connect();
+  const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
+  const jIndexMain = jIndexClient.collection('mainIndex');
+  const jIndexAffaires = jIndexClient.collection('affaires');
+
+  const jurinetSource = new JurinetOracle();
+  await jurinetSource.connect();
 
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
@@ -266,6 +301,7 @@ async function importJurica() {
             }
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
+            await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
             const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
@@ -362,7 +398,9 @@ async function importJurica() {
     `Done Importing Jurica - New: ${newCount}, Non-public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
   );
   await client.close();
+  await jIndexConnection.close();
   await juricaSource.close();
+  await jurinetSource.close();
   return true;
 }
 
