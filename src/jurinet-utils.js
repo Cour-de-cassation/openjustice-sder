@@ -1,6 +1,7 @@
 const parser = require('fast-xml-parser');
 const he = require('he');
 
+const { JudilibreIndex } = require('./judilibre-index');
 const { JuricaUtils } = require('./jurica-utils');
 const { Juritools } = require('./juritools');
 const { DateTime } = require('luxon');
@@ -335,7 +336,6 @@ class JurinetUtils {
       } else {
         res = 'no-affaire';
       }
-      const { JudilibreIndex } = require('./judilibre-index');
       for (let jj = 0; jj < objToStore.ids.length; jj++) {
         if (objToStore.ids[jj] === `jurinet:${doc._id}`) {
           const found = await jIndexMain.findOne({ _id: objToStore.ids[jj] });
@@ -348,7 +348,7 @@ class JurinetUtils {
         }
       }
     } else {
-      res = 'no-date';
+      res = 'no-data';
     }
     return res;
   }
