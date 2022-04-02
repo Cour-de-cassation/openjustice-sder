@@ -214,6 +214,168 @@ class JuricaUtils {
     ];
   }
 
+  static GetELMSTRLocationFromJuricaLocation(juricaLocation) {
+    let ELMSTRLocation = null;
+    juricaLocation = `${juricaLocation}`.toLowerCase().trim();
+
+    if (/agen/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Agen";
+    } else if (/aix/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Aix-en-Provence";
+    } else if (/amiens/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Amiens";
+    } else if (/angers/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Angers";
+    } else if (/basse/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Basse-Terre";
+    } else if (/bastia/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Bastia";
+    } else if (/besan/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Besançon";
+    } else if (/bordeaux/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Bordeaux";
+    } else if (/bourges/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Bourges";
+    } else if (/caen/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Caen";
+    } else if (/cayenne/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Cayenne";
+    } else if (/chamb/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Chambéry";
+    } else if (/colmar/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Colmar";
+    } else if (/dijon/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Dijon";
+    } else if (/douai/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Douai";
+    } else if (/fort/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Fort-de-France";
+    } else if (/grenoble/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Grenoble";
+    } else if (/limoges/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Limoges";
+    } else if (/lyon/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Lyon";
+    } else if (/metz/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Metz";
+    } else if (/montpellier/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Montpellier";
+    } else if (/nancy/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Nancy";
+    } else if (/mes/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Nîmes";
+    } else if (/noum/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Noumea";
+    } else if (/orl/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Orléans";
+    } else if (/papeete/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Papeete";
+    } else if (/paris/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Paris";
+    } else if (/pau/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Pau";
+    } else if (/poitiers/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Poitiers";
+    } else if (/reims/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Reims";
+    } else if (/rennes/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Rennes";
+    } else if (/riom/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Riom";
+    } else if (/rouen/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Rouen";
+    } else if (/denis/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Saint-Denis de la Réunion";
+    } else if (/toulouse/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Toulouse";
+    } else if (/versailles/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Versailles";
+    }
+
+    return ELMSTRLocation;
+  }
+
+  static GetJuricaLocationFromELMSTRLocation(ELMSTRLocation) {
+    let juricaLocation = null;
+    ELMSTRLocation = `${ELMSTRLocation}`.toLowerCase().trim();
+
+    if (/agen/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Agen";
+    } else if (/aix/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Aix en Provence";
+    } else if (/amiens/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Amiens";
+    } else if (/angers/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Angers";
+    } else if (/basse/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Basse Terre";
+    } else if (/bastia/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Bastia";
+    } else if (/besan/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Besançon";
+    } else if (/bordeaux/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Bordeaux";
+    } else if (/bourges/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Bourges";
+    } else if (/caen/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Caen";
+    } else if (/cayenne/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Cayenne";
+    } else if (/chamb/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Chambéry";
+    } else if (/colmar/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Colmar";
+    } else if (/dijon/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Dijon";
+    } else if (/douai/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Douai";
+    } else if (/fort/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Fort de France";
+    } else if (/grenoble/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Grenoble";
+    } else if (/limoges/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Limoges";
+    } else if (/lyon/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Lyon";
+    } else if (/metz/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Metz";
+    } else if (/montpellier/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Montpellier";
+    } else if (/nancy/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Nancy";
+    } else if (/mes/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Nimes";
+    } else if (/noum/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Noumea";
+    } else if (/orl/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Orléans";
+    } else if (/papeete/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Papeete";
+    } else if (/paris/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Paris";
+    } else if (/pau/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Pau";
+    } else if (/poitiers/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Poitiers";
+    } else if (/reims/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Reims";
+    } else if (/rennes/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Rennes";
+    } else if (/riom/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Riom";
+    } else if (/rouen/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Rouen";
+    } else if (/denis/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Saint Denis de la Réunion";
+    } else if (/toulouse/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Toulouse";
+    } else if (/versailles/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Versailles";
+    }
+
+    return juricaLocation;
+  }
+
   static IsNonPublic(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
     const cleanedNp = `${np}`.replace(/\W/gim, '').toUpperCase().trim();

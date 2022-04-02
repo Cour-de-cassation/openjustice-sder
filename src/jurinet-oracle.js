@@ -759,19 +759,7 @@ class JurinetOracle {
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
             // 4. Get the contested decision related to the affaire:
             const affaire = affaireResult.rows[0];
-            let id_elmstr = affaire['ID_ELMSTR'];
-            /*
-            let juridiction = null;
-            const GRCOMQuery = `SELECT *
-                FROM ELMSTR
-                WHERE ID_ELMSTR = :code`;
-            const GRCOMResult = await GRCOMSource.connection.execute(GRCOMQuery, [affaire['ID_ELMSTR']]);
-            if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
-              if (GRCOMResult.rows[0]['COUR_APPEL_RAT']) {
-                juridiction = `${GRCOMResult.rows[0]['COUR_APPEL_RAT']}`.replace(/\W/gim, '').toUpperCase().trim();
-              }
-            }
-            */
+            const id_elmstr = affaire['ID_ELMSTR'];
             const idAffaire = affaire['ID_AFFAIRE'];
             const decattQuery = `SELECT *
               FROM GPCIV.DECATT
@@ -782,27 +770,21 @@ class JurinetOracle {
             if (decattResult && decattResult.rows && decattResult.rows.length > 0) {
               for (let jj = 0; jj < decattResult.rows.length; jj++) {
                 decattResult.rows[jj]['ID_DOCUMENT'] = id;
-                // decattResult.rows[jj]['COUR_APPEL_RAT'] = juridiction;
                 decattResult.rows[jj]['ID_ELMSTR'] = id_elmstr;
               }
-              // await GRCOMSource.close();
               return decattResult.rows;
             } else {
-              // await GRCOMSource.close();
               throw new Error(
                 `Jurinet.getDecatt: contested decision not found in GPVIV.DECATT for affaire '${idAffaire}'.`,
               );
             }
           } else {
-            // await GRCOMSource.close();
             throw new Error(`Jurinet.getDecatt: affaire not found in GPVIV.AFF for pourvoi '${codePourvoi}'.`);
           }
         } else {
-          // await GRCOMSource.close();
           throw new Error(`Jurinet.getDecatt: pourvoi not found in NUMPOURVOI for decision '${id}'.`);
         }
       } else {
-        // await GRCOMSource.close();
         throw new Error(`Jurinet.getDecatt: decision '${id}' not found.`);
       }
     } else {

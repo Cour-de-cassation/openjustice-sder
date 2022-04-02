@@ -481,6 +481,55 @@ class JurinetUtils {
     return normalizedDecision;
   }
 
+  static ParseMonth(str) {
+    str = str.toLowerCase();
+    let month = 0;
+    switch (str.substring(0, 3)) {
+      case 'jan':
+        month = 1;
+        break;
+      case 'fev':
+      case 'fév':
+        month = 2;
+        break;
+      case 'mar':
+        month = 3;
+        break;
+      case 'avr':
+        month = 4;
+        break;
+      case 'mai':
+        month = 5;
+        break;
+      case 'jui':
+      case 'jul':
+        if (str.indexOf('l') !== -1) {
+          month = 7;
+        } else {
+          month = 6;
+        }
+        break;
+      case 'aou':
+      case 'aoû':
+        month = 8;
+        break;
+      case 'sep':
+        month = 9;
+        break;
+      case 'oct':
+        month = 10;
+        break;
+      case 'nov':
+        month = 11;
+        break;
+      case 'dec':
+      case 'déc':
+        month = 12;
+        break;
+    }
+    return month;
+  }
+
   static GetDecisionNumberForIndexing(decision, zoning) {
     let number = null;
     if (
