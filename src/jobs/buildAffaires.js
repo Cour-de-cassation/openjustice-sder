@@ -29,9 +29,6 @@ async function main() {
   console.log('OpenJustice - Start "buildAffaires" job:', new Date().toLocaleString());
   const path = require('path');
   const fs = require('fs');
-  const { DateTime } = require('luxon');
-  const { Juritools } = require('../juritools');
-  const { JudilibreIndex } = require('../judilibre-index');
   const { JuricaUtils } = require('../jurica-utils');
   const { JurinetUtils } = require('../jurinet-utils');
   const oracledb = require('oracledb');
@@ -55,7 +52,7 @@ async function main() {
     connectString: process.env.DB_HOST,
   });
 
-  const { MongoClient, ObjectID } = require('mongodb');
+  const { MongoClient } = require('mongodb');
 
   const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
     useUnifiedTopology: true,
