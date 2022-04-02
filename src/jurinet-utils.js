@@ -1,7 +1,6 @@
 const parser = require('fast-xml-parser');
 const he = require('he');
 
-const { JudilibreIndex } = require('./judilibre-index');
 const { JuricaUtils } = require('./jurica-utils');
 const { Juritools } = require('./juritools');
 const { DateTime } = require('luxon');
@@ -178,6 +177,7 @@ class JurinetUtils {
   }
 
   static async IndexAffaire(doc, jIndexMain, jIndexAffaires, rawJurica, jurinetConnection, grcomConnection) {
+    const { JudilibreIndex } = require('./judilibre-index');
     let res = 'done';
     if (doc.DT_DECISION) {
       let objAlreadyStored = await jIndexAffaires.findOne({ ids: `jurinet:${doc._id}` });

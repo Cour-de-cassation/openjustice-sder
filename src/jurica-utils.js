@@ -5,7 +5,6 @@ const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 const parser = require('fast-xml-parser');
 const he = require('he');
 
-const { JudilibreIndex } = require('./judilibre-index');
 const { Juritools } = require('./juritools');
 const { Judifiltre } = require('./judifiltre');
 const { DateTime } = require('luxon');
@@ -380,6 +379,7 @@ class JuricaUtils {
   }
 
   static async IndexAffaire(doc, jIndexMain, jIndexAffaires, jurinetConnection) {
+    const { JudilibreIndex } = require('./judilibre-index');
     let res = 'done';
     if (
       doc.JDEC_HTML_SOURCE &&
