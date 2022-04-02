@@ -104,7 +104,6 @@ async function main() {
   // First pass : Jurinet
   let total = 0;
   let incompleteCount = 0;
-  let doneCount = 0;
   let noAffaire = 0;
   let skipCount = 0;
   let noDecatt = 0;
@@ -122,183 +121,30 @@ async function main() {
   while ((doc = await cursor.next())) {
     offset++;
     total++;
-    if (doc.DT_DECISION) {
-      let objAlreadyStored = await jIndexAffaires.findOne({ ids: `jurinet:${doc._id}` });
-      let objToStore = {
-        _id: objAlreadyStored !== null ? objAlreadyStored._id : new ObjectID(),
-        numbers: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers)) : [],
-        ids: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.ids)) : [],
-        affaires: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.affaires)) : [],
-        dates: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates)) : [],
-        jurisdictions: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.jurisdictions)) : [],
-        numbers_ids: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_ids)) : {},
-        numbers_dates: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_dates)) : {},
-        numbers_affaires:
-          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_affaires)) : {},
-        numbers_jurisdictions:
-          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_jurisdictions)) : {},
-        dates_jurisdictions:
-          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates_jurisdictions)) : {},
-      };
-      let date = new Date(Date.parse(doc.DT_DECISION.toISOString()));
-      date.setHours(date.getHours() + 2);
-      let dateForIndexing = date.getFullYear() + '-';
-      dateForIndexing += (date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
-      dateForIndexing += date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
-      if (objToStore.ids.indexOf(`jurinet:${doc._id}`) === -1) {
-        objToStore.ids.push(`jurinet:${doc._id}`);
-      }
-      if (objToStore.dates.indexOf(dateForIndexing) === -1) {
-        objToStore.dates.push(dateForIndexing);
-      }
-      if (objToStore.jurisdictions.indexOf('Cour de cassation') === -1) {
-        objToStore.jurisdictions.push('Cour de cassation');
-      }
-      objToStore.dates_jurisdictions[dateForIndexing] = 'Cour de cassation';
-      const pourvoiQuery = `SELECT LIB
-        FROM NUMPOURVOI
-        WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
-      const pourvoiResult = await jurinetConnection.execute(pourvoiQuery, [doc._id]);
-      if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
-        for (let ii = 0; ii < pourvoiResult.rows.length; ii++) {
-          if (objToStore.numbers.indexOf(pourvoiResult.rows[ii]['LIB']) === -1) {
-            objToStore.numbers.push(pourvoiResult.rows[ii]['LIB']);
-          }
-          objToStore.numbers_ids[pourvoiResult.rows[ii]['LIB']] = `jurinet:${doc._id}`;
-          objToStore.numbers_dates[pourvoiResult.rows[ii]['LIB']] = dateForIndexing;
-          objToStore.numbers_jurisdictions[pourvoiResult.rows[ii]['LIB']] = 'Cour de cassation';
-          const affaireQuery = `SELECT GPCIV.AFF.ID_AFFAIRE
-            FROM GPCIV.AFF
-            WHERE CONCAT(GPCIV.AFF.CLE, GPCIV.AFF.CODE) = :pourvoi`;
-          const affaireResult = await jurinetConnection.execute(affaireQuery, [pourvoiResult.rows[ii]['LIB']]);
-          if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
-            if (objToStore.affaires.indexOf(affaireResult.rows[0]['ID_AFFAIRE']) === -1) {
-              objToStore.affaires.push(affaireResult.rows[0]['ID_AFFAIRE']);
-            }
-            objToStore.numbers_affaires[pourvoiResult.rows[ii]['LIB']] = affaireResult.rows[0]['ID_AFFAIRE'];
-          }
-        }
-      }
-      if (objToStore.affaires.length > 0) {
-        for (let i = 0; i < objToStore.affaires.length; i++) {
-          const decattQuery = `SELECT GPCIV.AFF.ID_ELMSTR, GPCIV.DECATT.NUM_RG, GPCIV.DECATT.DT_DECATT
-            FROM GPCIV.DECATT, GPCIV.AFF
-            WHERE GPCIV.DECATT.ID_AFFAIRE = GPCIV.AFF.ID_AFFAIRE AND GPCIV.DECATT.ID_AFFAIRE = :id_affaire`;
-          const decattResult = await jurinetConnection.execute(decattQuery, [objToStore.affaires[i]]);
-          if (
-            decattResult &&
-            decattResult.rows &&
-            decattResult.rows.length > 0 &&
-            decattResult.rows[0]['ID_ELMSTR'] &&
-            decattResult.rows[0]['NUM_RG'] &&
-            decattResult.rows[0]['DT_DECATT']
-          ) {
-            let decattDate = new Date(Date.parse(decattResult.rows[0]['DT_DECATT']));
-            decattDate.setHours(decattDate.getHours() + 2);
-            let strDecatt = decattDate.getFullYear();
-            strDecatt +=
-              '-' + (decattDate.getMonth() + 1 < 10 ? '0' + (decattDate.getMonth() + 1) : decattDate.getMonth() + 1);
-            strDecatt += '-' + (decattDate.getDate() < 10 ? '0' + decattDate.getDate() : decattDate.getDate());
-            const GRCOMQuery = `SELECT LIB_ELM
-              FROM ELMSTR
-              WHERE ID_ELMSTR = :id_elmstr`;
-            const GRCOMResult = await grcomConnection.execute(GRCOMQuery, [decattResult.rows[0]['ID_ELMSTR']]);
-            if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
-              let decatt = null;
-              let RGTerms = ['', ''];
-              try {
-                RGTerms = `${decattResult.rows[0]['NUM_RG']}`.split('/');
-                RGTerms[0] = RGTerms[0].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
-                RGTerms[1] = RGTerms[1].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
-              } catch (ignore) {}
-              decatt = await rawJurica.findOne({
-                JDEC_NUM_RG: { $regex: `^0*${RGTerms[0]}/0*${RGTerms[1]}$` },
-                JDEC_JURIDICTION: JuricaUtils.GetJuricaLocationFromELMSTRLocation(GRCOMResult.rows[0]['LIB_ELM']),
-                JDEC_DATE: strDecatt,
-              });
-              if (decatt !== null) {
-                if (decatt.JDEC_NUM_RG !== decattResult.rows[0]['NUM_RG']) {
-                  decattResult.rows[0]['NUM_RG'] = decatt.JDEC_NUM_RG;
-                }
-                if (objToStore.numbers.indexOf(decattResult.rows[0]['NUM_RG']) === -1) {
-                  objToStore.numbers.push(decattResult.rows[0]['NUM_RG']);
-                }
-                if (objToStore.ids.indexOf(`jurica:${decatt._id}`) === -1) {
-                  objToStore.ids.push(`jurica:${decatt._id}`);
-                }
-                if (objToStore.dates.indexOf(strDecatt) === -1) {
-                  objToStore.dates.push(strDecatt);
-                }
-                if (objToStore.jurisdictions.indexOf(GRCOMResult.rows[0]['LIB_ELM']) === -1) {
-                  objToStore.jurisdictions.push(GRCOMResult.rows[0]['LIB_ELM']);
-                }
-                objToStore.numbers_ids[decattResult.rows[0]['NUM_RG']] = `jurica:${decatt._id}`;
-                objToStore.numbers_dates[decattResult.rows[0]['NUM_RG']] = strDecatt;
-                objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
-                objToStore.dates_jurisdictions[strDecatt] = GRCOMResult.rows[0]['LIB_ELM'];
-                objToStore.numbers_jurisdictions[decattResult.rows[0]['NUM_RG']] = GRCOMResult.rows[0]['LIB_ELM'];
-                decattFound++;
-              } else {
-                if (objToStore.numbers.indexOf(decattResult.rows[0]['NUM_RG']) === -1) {
-                  objToStore.numbers.push(decattResult.rows[0]['NUM_RG']);
-                }
-                if (objToStore.dates.indexOf(strDecatt) === -1) {
-                  objToStore.dates.push(strDecatt);
-                }
-                if (objToStore.jurisdictions.indexOf(GRCOMResult.rows[0]['LIB_ELM']) === -1) {
-                  objToStore.jurisdictions.push(GRCOMResult.rows[0]['LIB_ELM']);
-                }
-                objToStore.numbers_dates[decattResult.rows[0]['NUM_RG']] = strDecatt;
-                objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
-                objToStore.dates_jurisdictions[strDecatt] = GRCOMResult.rows[0]['LIB_ELM'];
-                objToStore.numbers_jurisdictions[decattResult.rows[0]['NUM_RG']] = GRCOMResult.rows[0]['LIB_ELM'];
-                decattNotFound++;
-              }
-            } else {
-              if (objToStore.numbers.indexOf(decattResult.rows[0]['NUM_RG']) === -1) {
-                objToStore.numbers.push(decattResult.rows[0]['NUM_RG']);
-              }
-              if (objToStore.dates.indexOf(strDecatt) === -1) {
-                objToStore.dates.push(strDecatt);
-              }
-              objToStore.numbers_dates[decattResult.rows[0]['NUM_RG']] = strDecatt;
-              objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
-              decattNotFound++;
-            }
-          } else {
-            noDecatt++;
-          }
-        }
-        objToStore.dates.sort();
-        if (objAlreadyStored === null) {
-          await jIndexAffaires.insertOne(objToStore, { bypassDocumentValidation: true });
-          console.log('Insert', objToStore);
-        } else if (JSON.stringify(objToStore) !== JSON.stringify(objAlreadyStored)) {
-          await jIndexAffaires.replaceOne({ _id: objAlreadyStored._id }, objToStore, {
-            bypassDocumentValidation: true,
-          });
-          console.log('Update', objToStore);
-        } else {
-          skipCount++;
-        }
-        doneCount++;
-      } else {
+    const res = await JurinetUtils.IndexAffaire(
+      doc,
+      jIndexMain,
+      jIndexAffaires,
+      rawJurica,
+      jurinetConnection,
+      grcomConnection,
+    );
+    switch (res) {
+      case 'decatt-found':
+        decattFound++;
+        break;
+      case 'decatt-not-found':
+        decattNotFound++;
+        break;
+      case 'no-decatt':
+        noDecatt++;
+        break;
+      case 'no-affaire':
         noAffaire++;
-      }
-      for (let jj = 0; jj < objToStore.ids.length; jj++) {
-        if (objToStore.ids[jj] === `jurinet:${doc._id}`) {
-          const found = await jIndexMain.findOne({ _id: objToStore.ids[jj] });
-          if (found === null) {
-            const indexedDoc = await JudilibreIndex.buildJurinetDocument(doc);
-            const lastOperation = DateTime.fromJSDate(new Date());
-            indexedDoc.lastOperation = lastOperation.toISODate();
-            await jIndexMain.insertOne(indexedDoc, { bypassDocumentValidation: true });
-            console.log('Index', objToStore.ids[jj]);
-          }
-        }
-      }
-    } else {
-      incompleteCount++;
+        break;
+      case 'no-date':
+        incompleteCount++;
+        break;
     }
   }
 
@@ -309,7 +155,6 @@ async function main() {
     source: 'jurinet',
     total: total,
     incompleteCount: incompleteCount,
-    doneCount: doneCount,
     noAffaire: noAffaire,
     skipCount: skipCount,
     noDecatt: noDecatt,
@@ -321,7 +166,6 @@ async function main() {
 
   total = 0;
   incompleteCount = 0;
-  doneCount = 0;
   noAffaire = 0;
   skipCount = 0;
   noDecatt = 0;
@@ -615,7 +459,6 @@ async function main() {
         } else {
           skipCount++;
         }
-        doneCount++;
       } else {
         noAffaire++;
       }
@@ -643,7 +486,6 @@ async function main() {
     source: 'jurica',
     total: total,
     incompleteCount: incompleteCount,
-    doneCount: doneCount,
     noPreced: noAffaire,
     skipCount: skipCount,
     noDecatt: noDecatt,
