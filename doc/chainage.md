@@ -27,7 +27,16 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
   - `numbers_jurisdictions` : mapping clé/valeur entre `numbers` et `jurisdictions` - par exemple : `{ "09/01206": "Cour d'appel de Caen" }` ;
   - `dates_jurisdictions` : mapping clé/valeur entre `dates` et `jurisdictions` - par exemple `{ "2018-07-12" : "Conseil de prud'hommes de Caen" }` (note : requis car certaines décisions détectées via le zonage n'ont pas de `number` et ne correspondent doc à rien dans nos base de données).
 
-### API (@TODO)
+### API
+
+- **Point d'entrée** : `GET <judilibre-index-URL>/affaires?<param>=<value>[&timeline=1]`
+- `param` :
+  - `id` : recherche par identifiant Jurinet ou Jurica (format `sourceName:sourceId`, par exemple : `?id=jurinet:1784323`) ;
+  - `number` : recherche par "numéro" (RG, pourvoi, etc., par exemple : `?number=U8121289`) **@TODO : accepter des numéros incomplets (pourvoi sans clé, RG mal saisi, etc.)** ;
+  - `affaire` : recherche par identifiant d'affaire Nomos (par exemple : `?affaire=11122154`) ;
+  - `date` : recherche par date au format ISO-8601 (par exemple : `?date=2018-07-12`) **@TODO : accepter des dates partielles (année, année-mois) voire un intervalle de dates...** ;
+  - `jurisdiction` : recherche par nom de juridiction/siège (par exemple : `?jurisdiction=Cour%20de%20cassation`) **@TODO : accepter des noms partiels, gérer les divergences Jurica/Nomos, etc.** ;
+- Si `timeline` est défini, alors la requête retourne pour chaque résultat un objet `timeline` contenant une frise chronologique pré-remplie.
 
 ### Exemples
 
