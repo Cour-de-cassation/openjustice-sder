@@ -78,7 +78,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
     numbers_affaires: { P8910948: 163199, '86/14882': 163199 },
     numbers_jurisdictions: { P8910948: 'Cour de cassation', '86/14882': "Cour d'appel de Paris" },
     dates_jurisdictions: { '1992-01-07': 'Cour de cassation', '1988-10-28': "Cour d'appel de Paris" },
-    timelines: [
+    timeline: [
       {
         date: '1988-10-28',
         jurisdiction: "Cour d'appel de Paris",
