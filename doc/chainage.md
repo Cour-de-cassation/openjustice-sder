@@ -1,6 +1,33 @@
 # Chaînage des décisions
 
-## Chaînage arrière CC -> CA
+## Nouveau système `judilibre-index/affaires`
+
+**Problématiques** : le système d'information actuel n'est pas structuré pour résoudre le chaînage des décisions de manière fiable et efficace (tables disjointes, références hétérogènes et sous-optimales, en termes d'indexation comme de requêtage). Il en résulte des traitements longs, lourds et imprécis.
+
+**Objectifs** : regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en relation entre elles (d'après Nomos et d'après l'API de zonage), à la fois pour résoudre rapidement leur chaînage — quel que soit le point de départ et quel que soit le sens du chaînage (Index), pour simplifier la publication de frises chronologiques (Judilibre) et enfin pour envisager l'homogénéisation de la pseudonymisation des décisions associées (Label).
+
+- Base : `judilibre-index`
+- Collection : `affaires`
+- Modèle de données :
+  - `_id` (_indexé_) : identifiant interne du "groupe" de décisions (`ObjectId(...)`)
+  - `numbers` (_indexé_) : liste des "numéros" des décisions (RG, pourvoi, etc.), tels que Nomos les référencie majoritairement — par exemple : `U8121289` (CC), `09/01206` (CA)
+  - `ids` (_indexé_) : liste des identifiants internes (Jurinet, Jurica) des décisions connues, suivant le même format que celui utilisé par la collection `mainIndex` — par exemple : `jurinet:1784323` (CC), `jurica:2435122` (CA)
+  - `affaires` (_indexé_) : liste de `ID_AFFAIRE` connus (identifiant utilisé notamment par les tables Oracle `GPCIV.AFF` et `GPCIV.DECATT`) - par exemple : `11122154`
+  - `dates` (_indexé_) : liste des dates des décisions, au format ISO-8601 — par exemple : `2018-07-12` (note: le contenu de cette liste est trié par ordre chronologique)
+  - `jurisdictions`(_indexé_): liste des noms des juridictions associées aux décisions — par exemple : `Conseil de prud'hommes de Caen`, `Cour de cassation` (note : on utilise les intitulés référencés dans la table Oracle `ELMSTR`, qui peuvent diverger de ceux présents dans Jurica, c'est pour ça qu'il existe les méthodes `JuricaUtils.GetJuricaLocationFromELMSTRLocation()` et `JuricaUtils.GetELMSTRLocationFromJuricaLocation()`)
+  - `numbers_ids` : mapping clé/valeur entre `numbers` et `ìds` — par exemple : `{ "U8121289": "jurinet:1784323" }` (note : s'il n'existe aucun `id` pour un `number`donné, c'est que la décision correspondante n'a pas été trouvée dans Jurinet ou Jurica)
+  - `numbers_affaires` : mapping clé/valeur entre `numbers` et `affaires` - par exemple `{ "U8121289": 11122154 }` (note : s'il n'existe aucune `affaire` pour un `number` donné, c'est qu'il s'agit d'un chaînage non référencé dans Nomos et probablement résolu via le zonage)
+  - `numbers_dates` : mapping clé/valeur entre `numbers` et `dates` - par exemple : `{ "U8121289": "2018-07-12" }` (note : on ne référencie que les décisions dont on connait la date)
+  - `numbers_jurisdictions` : mapping clé/valeur entre `numbers` et `jurisdictions` - par exemple : `{ "09/01206": "Cour d'appel de Caen" }`
+  - `dates_jurisdictions` : mapping clé/valeur entre `dates` et `jurisdictions` - par exemple `{ "2018-07-12" : "Conseil de prud'hommes de Caen" }` (note : requis car certaines décisions détectées via le zonage n'ont pas de `number` et ne correspondent à rien dans nos base de données)
+
+**Exemple d'usage pour Label (homogénéisation de la pseudonymisation)** : soit une décision Jurinet d'identifiant `1784323` (correspond à `_id` dans `rawJurinet` et à `sourceId` dans `decisions`), il suffit de faire une requête `db.getCollection('affaires').findOne({ _id: 'jurinet:1784323'})` pour récupérer le groupe de décisions qui lui sont associées et dont il faudrait homogénéiser la pseudonymisation, leurs identifiants étant listés dans la propriété `ids` du résultat.
+
+**Exemple d'usage pour l'Index (chaînage)** : soit une décision Jurinet d'identifiant `1784323`, il suffit de faire une requête `db.getCollection('affaires').findOne({ _id: 'jurinet:1784323'})` pour récupérer le groupe de décisions qui lui sont associées. En itérant sur la propriété `dates` du résultat (laquelle est censée être triée par ordre chronologique), on peut facilement extraire le chaînage arrière (décisions ayant une date antérieure à celle de la décision ciblée) et le chaînage avant (décisions ayant une date postérieure à celle de la décision ciblée). L'utilisation du format ISO-8601 permet de directement trier les dates via `sort()` (chronologique) ou `sort().reverse()` (antéchronologiques).
+
+**Exemple d'usage pour Judilibre (frise chronologique)** : soit une décision Jurinet d'identifiant `1784323`, il suffit de faire une requête `db.getCollection('affaires').findOne({ _id: 'jurinet:1784323'})` pour récupérer le groupe de décisions qui lui sont associées et dont il faut afficher la frise chronologique, celle-ci étant construite directement à partir de la propriété `dates` du résultat. Pour chaque date on récupère la ou les décisions correspondantes (via `numbers_dates`, puis `numbers_ids` pour vérifier leur disponibilité en base) et en absence de décision référencée en base on peut toujours afficher la juridiction (via `dates_jurisdictions`).
+
+## Chaînage arrière CC -> CA (ancien chaînage)
 
 **Objectif** : en partant d'une décision de la Cour de cassation, récupérer la décisions de la Cour d'appel qu'elle attaque (nécessairement antérieure).
 
