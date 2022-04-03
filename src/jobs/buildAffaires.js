@@ -112,6 +112,7 @@ async function main() {
       offset = 0;
     }
   } catch (ignore) {}
+  const countJurinet = await rawJurinet.count({ TYPE_ARRET: 'CC' });
   let doc;
   let cursor = await rawJurinet.find({ TYPE_ARRET: 'CC' }).sort({ _id: sort }).skip(offset).limit(limit);
   while ((doc = await cursor.next())) {
@@ -147,14 +148,15 @@ async function main() {
   fs.writeFileSync(path.join(__dirname, '.buildAffaires.jurinet.offset'), `${offset}`);
 
   console.log({
-    range: `${offset - limit}-${offset}`,
     source: 'jurinet',
-    total: total,
-    incompleteCount: incompleteCount,
-    decattNotFound: decattNotFound,
-    decattFound: decattFound,
-    noAffaire: noAffaire,
-    noDecatt: noDecatt,
+    range: `${offset - limit}-${offset} / ${countJurinet}`,
+    progress: `${((offset / countJurinet) * 100).toFixed(1)}%`,
+    processed: total,
+    incomplete: `${incompleteCount} (${((incompleteCount / total) * 100).toFixed(1)}%)`,
+    decattNotFound: `${decattNotFound} (${((decattNotFound / total) * 100).toFixed(1)}%)`,
+    decattFound: `${decattFound} (${((decattFound / total) * 100).toFixed(1)}%)`,
+    noAffaire: `${noAffaire} (${((noAffaire / total) * 100).toFixed(1)}%)`,
+    noDecatt: `${noDecatt} (${((noDecatt / total) * 100).toFixed(1)}%)`,
   });
 
   // Second pass : Jurica
@@ -170,6 +172,7 @@ async function main() {
       offset = 0;
     }
   } catch (ignore) {}
+  const countJurica = await rawJurica.count({});
   doc = null;
   cursor = await rawJurica.find({}).sort({ _id: sort }).skip(offset).limit(limit);
   while ((doc = await cursor.next())) {
@@ -192,12 +195,13 @@ async function main() {
   fs.writeFileSync(path.join(__dirname, '.buildAffaires.jurica.offset'), `${offset}`);
 
   console.log({
-    range: `${offset - limit}-${offset}`,
     source: 'jurica',
-    total: total,
-    incompleteCount: incompleteCount,
-    decattFound: decattFound,
-    noDecatt: noDecatt,
+    range: `${offset - limit}-${offset} / ${countJurica}`,
+    progress: `${((offset / countJurica) * 100).toFixed(1)}%`,
+    processed: total,
+    incomplete: `${incompleteCount} (${((incompleteCount / total) * 100).toFixed(1)}%)`,
+    decattFound: `${decattFound} (${((decattFound / total) * 100).toFixed(1)}%)`,
+    noDecatt: `${noDecatt} (${((noDecatt / total) * 100).toFixed(1)}%)`,
   });
 
   await jurinetConnection.close();
