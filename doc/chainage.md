@@ -27,7 +27,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
   - `numbers_jurisdictions` : mapping clé/valeur entre `numbers` et `jurisdictions` - par exemple : `{ "09/01206": "Cour d'appel de Caen" }` ;
   - `dates_jurisdictions` : mapping clé/valeur entre `dates` et `jurisdictions` - par exemple `{ "2018-07-12" : "Conseil de prud'hommes de Caen" }` (note : requis car certaines décisions détectées via le zonage n'ont pas de `number` et ne correspondent doc à rien dans nos base de données).
 
-### API
+### API REST
 
 - **Point d'entrée** : `GET <judilibre-index-URL>/affaires?<param>=<value>[&timeline=1]`
 - `param` :
@@ -39,6 +39,60 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
 - Si `timeline` est défini, alors la requête retourne pour chaque résultat un objet `timeline` contenant une frise chronologique pré-remplie.
 
 ### Exemples
+
+**Exemple d'utilisation de l'API REST**
+
+- `GET https://label.cour-de-cassation.justice.fr/index/affaires?number=P8910948` :
+
+```
+[
+  {
+    _id: '6249476cb255b22dc3d6fb25',
+    numbers: ['P8910948', '86/14882'],
+    ids: ['jurinet:15732'],
+    affaires: [163199],
+    dates: ['1988-10-28', '1992-01-07'],
+    jurisdictions: ['Cour de cassation', "Cour d'appel de Paris"],
+    numbers_ids: { P8910948: 'jurinet:15732' },
+    numbers_dates: { P8910948: '1992-01-07', '86/14882': '1988-10-28' },
+    numbers_affaires: { P8910948: 163199, '86/14882': 163199 },
+    numbers_jurisdictions: { P8910948: 'Cour de cassation', '86/14882': "Cour d'appel de Paris" },
+    dates_jurisdictions: { '1992-01-07': 'Cour de cassation', '1988-10-28': "Cour d'appel de Paris" },
+  },
+]
+```
+
+- `GET https://label.cour-de-cassation.justice.fr/index/affaires?number=P8910948&timeline=1` (ajout de la timeline) :
+
+```
+[
+  {
+    _id: '6249476cb255b22dc3d6fb25',
+    numbers: ['P8910948', '86/14882'],
+    ids: ['jurinet:15732'],
+    affaires: [163199],
+    dates: ['1988-10-28', '1992-01-07'],
+    jurisdictions: ['Cour de cassation', "Cour d'appel de Paris"],
+    numbers_ids: { P8910948: 'jurinet:15732' },
+    numbers_dates: { P8910948: '1992-01-07', '86/14882': '1988-10-28' },
+    numbers_affaires: { P8910948: 163199, '86/14882': 163199 },
+    numbers_jurisdictions: { P8910948: 'Cour de cassation', '86/14882': "Cour d'appel de Paris" },
+    dates_jurisdictions: { '1992-01-07': 'Cour de cassation', '1988-10-28': "Cour d'appel de Paris" },
+    timelines: [
+      {
+        date: '1988-10-28',
+        jurisdiction: "Cour d'appel de Paris",
+        decisions: [{ number: '86/14882', affaire: 163199 }],
+      },
+      {
+        date: '1992-01-07',
+        jurisdiction: 'Cour de cassation',
+        decisions: [{ id: 'jurinet:15732', number: 'P8910948', affaire: 163199 }],
+      },
+    ],
+  },
+]
+```
 
 **Exemple de document de la collection `affaires`** (ici l'on n'a pas trouvé dans Jurica la décision de cour d'appel attaquée, ce qui n'empêche pas de produire une frise chronologique informative) :
 
