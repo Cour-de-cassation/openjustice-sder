@@ -27,7 +27,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
   - `numbers_affaires` : mapping clé/valeur entre `numbers` et `affaires` - par exemple `{ "U8121289": 11122154 }` (note : s'il n'existe aucune `affaire` pour un `number` listé, c'est qu'il s'agit d'un chaînage non référencé dans Nomos et probablement résolu via le zonage) ;
   - `numbers_dates` : mapping clé/valeur entre `numbers` et `dates` - par exemple : `{ "U8121289": "2018-07-12" }` (note : on ne référencie dans la collection `affaires` que les décisions dont on connait la date) ;
   - `numbers_jurisdictions` : mapping clé/valeur entre `numbers` et `jurisdictions` - par exemple : `{ "09/01206": "Cour d'appel de Caen" }` ;
-  - `dates_jurisdictions` : mapping clé/valeur entre `dates` et `jurisdictions` - par exemple `{ "2018-07-12" : "Conseil de prud'hommes de Caen" }` (note : requis car certaines décisions détectées via le zonage n'ont pas de `number` et ne correspondent doc à rien dans nos base de données).
+  - `dates_jurisdictions` : mapping clé/valeur entre `dates` et `jurisdictions` - par exemple `{ "2018-07-12" : "Conseil de prud'hommes de Caen" }` (note : requis car certaines décisions détectées via le zonage n'ont pas de `number` et ne correspondent donc à rien dans nos bases de données).
 
 ### API REST
 
@@ -45,7 +45,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
 
 **Exemple d'utilisation de l'API REST**
 
-- `GET https://label.cour-de-cassation.justice.fr/index/affaires?number=P8910948` :
+- `GET https://label.cour-de-cassation.justice.fr/index/affaires?number=P8910948` (ou `?number=8910948`, `?number=89-10.948`...):
 
 ```
 [
