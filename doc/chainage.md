@@ -4,7 +4,7 @@
 
 ### Problématiques
 
-Le système d'information actuel n'est pas structuré pour résoudre le chaînage des décisions de manière fiable et efficace (tables disjointes, références hétérogènes et sous-optimales, en termes d'indexation comme de requêtage). Il en résulte des traitements longs, lourds et imprécis.
+Le système d'information actuel n'est pas assez structuré pour résoudre le chaînage des décisions de manière fiable et efficace (tables disjointes, références hétérogènes et sous-optimales, en termes d'indexation comme de requêtage). Il en résulte des traitements longs, lourds et imprécis.
 
 ### Objectifs
 
