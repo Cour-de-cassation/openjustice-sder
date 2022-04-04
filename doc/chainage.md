@@ -128,7 +128,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
 
 L'alimentation de cette collection est un processus extrêmement long ! Aujourd'hui cette alimentation est accomplie en parallèle par deux processus :
 
-1. Par le job `buildAffaires` du projet `openjustice-sder`, qui parcourt l'intégralité du stock Jurinet et Jurica en partant des décisions les plus anciennes (job exécuté en boucle tous les jours entre 3h et 23h depuis le samedi 2 avril) ;
+1. Par le job `buildAffaires` du projet `openjustice-sder`, qui parcourt l'intégralité du stock Jurinet et Jurica en partant des décisions les plus récentes (job exécuté en boucle tous les jours entre 3h et 23h depuis le samedi 2 avril) ;
 2. Via le job `import` du projet `openjustice-sder`, qui recherche et référencie le chaînage pour toutes les nouvelles décisions issues du flux (chaque jour entre 8h et 12h).
 
 ## Chaînage arrière CC -> CA (ancien chaînage, obsolète)

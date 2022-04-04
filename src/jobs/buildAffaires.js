@@ -1,5 +1,5 @@
 const limit = 500;
-const sort = 1;
+const sort = -1;
 
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
