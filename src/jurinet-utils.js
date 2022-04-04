@@ -4,7 +4,7 @@ const he = require('he');
 const { JuricaUtils } = require('./jurica-utils');
 const { Juritools } = require('./juritools');
 const { DateTime } = require('luxon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 const parserOptions = {
   attributeNamePrefix: '$',
@@ -182,7 +182,7 @@ class JurinetUtils {
     if (doc.DT_DECISION) {
       let objAlreadyStored = await jIndexAffaires.findOne({ ids: `jurinet:${doc._id}` });
       let objToStore = {
-        _id: objAlreadyStored !== null ? objAlreadyStored._id : new ObjectID(),
+        _id: objAlreadyStored !== null ? objAlreadyStored._id : new ObjectId(),
         numbers: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers)) : [],
         ids: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.ids)) : [],
         affaires: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.affaires)) : [],

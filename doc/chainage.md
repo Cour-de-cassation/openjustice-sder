@@ -10,6 +10,8 @@ Le système d'information actuel n'est pas structuré pour résoudre le chaînag
 
 Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en relation entre elles (d'après Nomos et d'après l'API de zonage), à la fois pour résoudre rapidement leur chaînage — quel que soit le point de départ et quel que soit le sens du chaînage (Index), pour simplifier la publication de frises chronologiques (Judilibre) et enfin pour envisager l'homogénéisation de la pseudonymisation des décisions associées (Label).
 
+**_En conséquence, la propriété `decatt` des documents de la collection `decisions` est obsolète et ne sera bientôt plus alimentée ni utilisée. La propriété `ids` des documents de la base `judilibre-index/affaires` la remplace._**
+
 ### Implémentation
 
 - Base : `judilibre-index` ;
@@ -31,11 +33,12 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
 
 - **Point d'entrée** : `GET <judilibre-index-URL>/affaires?<param>=<value>[&timeline=1]`
 - `param` :
-  - `id` : recherche par identifiant Jurinet ou Jurica (format `sourceName:sourceId`, par exemple : `?id=jurinet:1784323`) ;
-  - `number` : recherche par "numéro" (RG, pourvoi, etc., par exemple : `?number=U8121289`) **@TODO : accepter des numéros incomplets (pourvoi sans clé, RG mal saisi, etc.)** ;
+  - `id` : recherche par identifiant SDER/Judilibre, Jurinet ou Jurica (format `sourceName:sourceId` pour Jurinet et Jurica, par exemple : `?id=jurinet:1784323`, ou simplement `?id=5fca2aeba73772b5776cb72b` pour SDER/Judilibre) ;
+  - `number` : recherche par "numéro" plus ou moins normalisé (RG, pourvoi, etc., par exemple : `?number=U8121289`, `?number=81-21.289`, `?number=86/00182`, `?number=86/182`, etc.) ;
   - `affaire` : recherche par identifiant d'affaire Nomos (par exemple : `?affaire=11122154`) ;
-  - `date` : recherche par date au format ISO-8601 (par exemple : `?date=2018-07-12`) **@TODO : accepter des dates partielles (année, année-mois) voire un intervalle de dates...** ;
-  - `jurisdiction` : recherche par nom de juridiction/siège (par exemple : `?jurisdiction=Cour%20de%20cassation`) **@TODO : accepter des noms partiels, gérer les divergences Jurica/Nomos, etc.** ;
+  - `date` : recherche par date au format ISO-8601 ou par date partielle (par exemple : `?date=2018-07-12` pour une date précise, `?date=2018-07` pour une recherche sur un mois donné, `?date=2018` pour une recherche sur une année entière) ;
+  - `jurisdiction` : recherche par nom complet ou partiel de juridiction/siège (par exemple : `?jurisdiction=%22Cour%20de%20cassation%22` — autrement dit une recherche sur `"Cour de cassation"` — pour une recherche exacte, `?jurisdiction=orleans` pour une recherche comprenant la cour d'appel et autres tribunaux d'Orléans, etc.) ;
+- Lorsqu'il y a plusieurs paramètres de recherche, ceux-ci sont combinés avec l'opérateur logique **ET** ;
 - Si `timeline` est défini, alors la requête retourne pour chaque résultat un objet `timeline` contenant une frise chronologique pré-remplie.
 
 ### Exemples
