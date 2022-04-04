@@ -112,7 +112,7 @@ async function main() {
       offset = 0;
     }
   } catch (ignore) {}
-  const countJurinet = await rawJurinet.count({ TYPE_ARRET: 'CC' });
+  const countJurinet = await rawJurinet.estimatedDocumentCount({ TYPE_ARRET: 'CC' });
   let doc;
   let cursor = await rawJurinet.find({ TYPE_ARRET: 'CC' }).sort({ _id: sort }).skip(offset).limit(limit);
   while ((doc = await cursor.next())) {
@@ -172,7 +172,7 @@ async function main() {
       offset = 0;
     }
   } catch (ignore) {}
-  const countJurica = await rawJurica.count({});
+  const countJurica = await rawJurica.estimatedDocumentCount({});
   doc = null;
   cursor = await rawJurica.find({}).sort({ _id: sort }).skip(offset).limit(limit);
   while ((doc = await cursor.next())) {
