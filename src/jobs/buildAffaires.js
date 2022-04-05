@@ -1,4 +1,4 @@
-const limit = 500;
+const limit = 10;
 const sort = -1;
 
 const path = require('path');
@@ -117,38 +117,43 @@ async function main() {
     }
   } catch (ignore) {}
   const countJurinet = await rawJurinet.estimatedDocumentCount({ TYPE_ARRET: 'CC' });
-  let doc;
-  let cursor = await rawJurinet.find({ TYPE_ARRET: 'CC' }).sort({ _id: sort }).skip(offset).limit(limit);
-  while ((doc = await cursor.next())) {
-    offset++;
-    total++;
-    console.log(`(buildAffaires) processing Jurinet ${doc._id}...`);
-    const res = await JurinetUtils.IndexAffaire(
-      doc,
-      jIndexMain,
-      jIndexAffaires,
-      rawJurica,
-      jurinetConnection,
-      grcomConnection,
-    );
-    console.log(`(buildAffaires) Jurinet ${doc._id} done: ${res}.`);
-    switch (res) {
-      case 'decatt-found':
-        decattFound++;
-        break;
-      case 'decatt-not-found':
-        decattNotFound++;
-        break;
-      case 'no-decatt':
-        noDecatt++;
-        break;
-      case 'no-affaire':
-        noAffaire++;
-        break;
-      case 'no-data':
-        incompleteCount++;
-        break;
+
+  try {
+    let doc;
+    let cursor = await rawJurinet.find({ TYPE_ARRET: 'CC' }).sort({ _id: sort }).skip(offset).limit(limit);
+    while ((doc = await cursor.next())) {
+      offset++;
+      total++;
+      console.log(`(buildAffaires) processing Jurinet ${doc._id}...`);
+      const res = await JurinetUtils.IndexAffaire(
+        doc,
+        jIndexMain,
+        jIndexAffaires,
+        rawJurica,
+        jurinetConnection,
+        grcomConnection,
+      );
+      console.log(`(buildAffaires) Jurinet ${doc._id} done: ${res}.`);
+      switch (res) {
+        case 'decatt-found':
+          decattFound++;
+          break;
+        case 'decatt-not-found':
+          decattNotFound++;
+          break;
+        case 'no-decatt':
+          noDecatt++;
+          break;
+        case 'no-affaire':
+          noAffaire++;
+          break;
+        case 'no-data':
+          incompleteCount++;
+          break;
+      }
     }
+  } catch (e) {
+    console.error(e);
   }
 
   fs.writeFileSync(path.join(__dirname, '.buildAffaires.jurinet.offset'), `${offset}`);
@@ -179,25 +184,29 @@ async function main() {
     }
   } catch (ignore) {}
   const countJurica = await rawJurica.estimatedDocumentCount({});
-  doc = null;
-  cursor = await rawJurica.find({}).sort({ _id: sort }).skip(offset).limit(limit);
-  while ((doc = await cursor.next())) {
-    offset++;
-    total++;
-    console.log(`(buildAffaires) processing Jurica ${doc._id}...`);
-    const res = await JuricaUtils.IndexAffaire(doc, jIndexMain, jIndexAffaires, jurinetConnection);
-    console.log(`(buildAffaires) Jurica ${doc._id} done: ${res}.`);
-    switch (res) {
-      case 'decatt-found':
-        decattFound++;
-        break;
-      case 'no-decatt':
-        noDecatt++;
-        break;
-      case 'no-data':
-        incompleteCount++;
-        break;
+  try {
+    let doc = null;
+    let cursor = await rawJurica.find({}).sort({ _id: sort }).skip(offset).limit(limit);
+    while ((doc = await cursor.next())) {
+      offset++;
+      total++;
+      console.log(`(buildAffaires) processing Jurica ${doc._id}...`);
+      const res = await JuricaUtils.IndexAffaire(doc, jIndexMain, jIndexAffaires, jurinetConnection);
+      console.log(`(buildAffaires) Jurica ${doc._id} done: ${res}.`);
+      switch (res) {
+        case 'decatt-found':
+          decattFound++;
+          break;
+        case 'no-decatt':
+          noDecatt++;
+          break;
+        case 'no-data':
+          incompleteCount++;
+          break;
+      }
     }
+  } catch (e) {
+    console.error(e);
   }
 
   fs.writeFileSync(path.join(__dirname, '.buildAffaires.jurica.offset'), `${offset}`);
