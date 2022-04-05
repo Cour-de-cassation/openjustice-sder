@@ -7,7 +7,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { parentPort } = require('worker_threads');
 const ms = require('ms');
 
-let selfKill = setTimeout(cancel, ms('1h'));
+let selfKill = setTimeout(cancel, ms('12h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -63,6 +63,7 @@ async function main() {
   const jIndexAffaires = jIndexClient.collection('affaires');
 
   // Ensure indexes:
+  /*
   await jIndexAffaires.createIndex({ numbers: 1 });
   await jIndexAffaires.createIndex({ ids: 1 });
   await jIndexAffaires.createIndex({ affaires: 1 });
@@ -73,6 +74,7 @@ async function main() {
   await jIndexAffaires.createIndex({ _id: 1, affaires: 1 });
   await jIndexAffaires.createIndex({ _id: 1, dates: 1 });
   await jIndexAffaires.createIndex({ _id: 1, jurisdictions: 1 });
+  */
 
   // _id : specific ID (mongo ObjectId())
   // numbers: array of numbers (RG, pourvoi, etc.)
@@ -95,8 +97,10 @@ async function main() {
   const rawJurica = DBSDERClient.collection('rawJurica');
 
   // Ensure more indexes:
+  /*
   await rawJurinet.createIndex({ IND_ANO: 1, TYPE_ARRET: -1 });
   await rawJurica.createIndex({ JDEC_NUM_RG: 1, JDEC_JURIDICTION: 1, JDEC_DATE: -1 });
+  */
 
   // First pass : Jurinet
   let total = 0;
@@ -118,6 +122,7 @@ async function main() {
   while ((doc = await cursor.next())) {
     offset++;
     total++;
+    console.log(`(buildAffaires) processing Jurinet ${doc._id}...`);
     const res = await JurinetUtils.IndexAffaire(
       doc,
       jIndexMain,
@@ -126,6 +131,7 @@ async function main() {
       jurinetConnection,
       grcomConnection,
     );
+    console.log(`(buildAffaires) Jurinet ${doc._id} done: ${res}.`);
     switch (res) {
       case 'decatt-found':
         decattFound++;
@@ -178,7 +184,9 @@ async function main() {
   while ((doc = await cursor.next())) {
     offset++;
     total++;
+    console.log(`(buildAffaires) processing Jurica ${doc._id}...`);
     const res = await JuricaUtils.IndexAffaire(doc, jIndexMain, jIndexAffaires, jurinetConnection);
+    console.log(`(buildAffaires) Jurica ${doc._id} done: ${res}.`);
     switch (res) {
       case 'decatt-found':
         decattFound++;
