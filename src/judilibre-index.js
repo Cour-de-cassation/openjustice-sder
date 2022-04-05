@@ -40,6 +40,7 @@ class JudilibreIndex {
         dateImport: null,
         dateExport: null,
         dateError: null,
+        dateJudifiltre: null,
       };
     } catch (e) {
       let dateDecision = null;
@@ -65,6 +66,7 @@ class JudilibreIndex {
         dateImport: null,
         dateExport: null,
         dateError: this.getDateString(),
+        dateJudifiltre: null,
       };
     }
     let newRef = [];
@@ -139,6 +141,7 @@ class JudilibreIndex {
       indexedDoc.dateImport = existingDoc.dateImport;
       indexedDoc.dateExport = existingDoc.dateExport;
       indexedDoc.dateError = existingDoc.dateError;
+      indexedDoc.dateJudifiltre = existingDoc.dateJudifiltre;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
@@ -217,6 +220,7 @@ class JudilibreIndex {
         dateImport: null,
         dateExport: null,
         dateError: null,
+        dateJudifiltre: null,
       };
     } catch (e) {
       let dateDecision = null;
@@ -251,6 +255,7 @@ class JudilibreIndex {
         dateImport: null,
         dateExport: null,
         dateError: this.getDateString(),
+        dateJudifiltre: null,
       };
     }
     let newRef = [];
@@ -320,6 +325,7 @@ class JudilibreIndex {
       indexedDoc.dateImport = existingDoc.dateImport;
       indexedDoc.dateExport = existingDoc.dateExport;
       indexedDoc.dateError = existingDoc.dateError;
+      indexedDoc.dateJudifiltre = existingDoc.dateJudifiltre;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
