@@ -86,18 +86,19 @@ async function main() {
       }
     }
     if (hasStuff === true) {
-      data.push({
-        affaire: doc,
-        jurinet: jurinetDocs,
-        jurica: juricaDocs,
-      });
+      fs.writeFileSync(
+        `judilibre_data/dataFromAffaires_${doc._id}.json`,
+        JSON.stringify({
+          affaire: doc,
+          jurinet: jurinetDocs,
+          jurica: juricaDocs,
+        }),
+      );
     }
   }
 
   await cursor.close();
   await jIndexConnection.close();
-
-  fs.writeFileSync('dataFromAffaires.json', JSON.stringify(data));
 
   console.log('jurinet', jurinetIds.length);
   console.log('jurica', juricaIds.length);

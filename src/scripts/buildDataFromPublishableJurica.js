@@ -46,12 +46,15 @@ async function main() {
         );
       } catch (ignore) {}
       if (isPublic || isPartiallyPublic) {
-        data.push({
-          raw: rawJuricaDoc,
-          decision: doc,
-          isPublic: isPublic,
-          isPartiallyPublic: isPartiallyPublic,
-        });
+        fs.writeFileSync(
+          `judilibre_data/dataFromJuricaPub_${doc.sourceId}.json`,
+          JSON.stringify({
+            raw: rawJuricaDoc,
+            decision: doc,
+            isPublic: isPublic,
+            isPartiallyPublic: isPartiallyPublic,
+          }),
+        );
         console.log(`add jurica:${doc.sourceId}`);
       }
     }
@@ -59,8 +62,6 @@ async function main() {
 
   await cursor.close();
   await jIndexConnection.close();
-
-  fs.writeFileSync('dataFromJurica.json', JSON.stringify(data));
 
   console.log('jurica', juricaIds.length);
 }
