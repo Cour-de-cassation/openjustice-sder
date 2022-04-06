@@ -73,14 +73,14 @@ async function main() {
                 rawJuricaDoc.JDEC_IND_DEC_PUB,
               );
             } catch (ignore) {}
-            if (isPublic === true || isPartiallyPublic === true) {
-              juricaDoc.push({
-                raw: rawJuricaDoc,
-                decision: juricaDoc,
-              });
-              hasStuff = true;
-              console.log(`add ${doc.ids[i]}`);
-            }
+            juricaDoc.push({
+              raw: rawJuricaDoc,
+              decision: juricaDoc,
+              isPublic: isPublic,
+              isPartiallyPublic: isPartiallyPublic,
+            });
+            hasStuff = true;
+            console.log(`add ${doc.ids[i]}`);
           }
         }
       }
