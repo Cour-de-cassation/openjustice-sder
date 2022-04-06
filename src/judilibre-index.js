@@ -574,6 +574,7 @@ class JudilibreIndex {
     while ((doc = await cursor.next())) {
       result.push(doc);
     }
+    await cursor.close();
     return result;
   }
 

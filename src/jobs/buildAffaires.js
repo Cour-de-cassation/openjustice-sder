@@ -152,6 +152,7 @@ async function main() {
           break;
       }
     }
+    await cursor.close();
   } catch (e) {
     console.error(e);
   }
@@ -205,6 +206,7 @@ async function main() {
           break;
       }
     }
+    await cursor.close();
   } catch (e) {
     console.error(e);
   }

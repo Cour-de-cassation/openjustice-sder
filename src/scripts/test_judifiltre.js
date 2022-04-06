@@ -25,7 +25,7 @@ async function main() {
     });
     count++;
   }
-
+  await cursor.close();
   console.log(count);
   */
 

@@ -1155,6 +1155,7 @@ class JuricaUtils {
         found = jurinetDoc._id;
       }
     }
+    await cursor.close();
     await client.close();
     return found;
   }
