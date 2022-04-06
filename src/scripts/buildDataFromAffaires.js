@@ -95,6 +95,9 @@ async function main() {
   await jIndexConnection.close();
 
   fs.writeFileSync('dataFromAffaires.json', JSON.stringify(data));
+
+  console.log('jurinet', jurinetIds.length);
+  console.log('jurica', juricaIds.length);
 }
 
 main();
