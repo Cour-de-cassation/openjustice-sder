@@ -36,7 +36,7 @@ async function main() {
             sourceName: 'jurinet',
             sourceId: parseInt(doc.ids[i].split(':')[1]),
           });
-          if (jurinetDoc !== null && (jurinetDoc.labelStatus === 'done' || jurinetDoc.labelStatus === 'exported')) {
+          if (jurinetDoc !== null && jurinetDoc.labelStatus === 'exported') {
             const rawJurinetDoc = await rawJurinet.findOne({
               _id: parseInt(doc.ids[i].split(':')[1]),
             });
@@ -53,7 +53,7 @@ async function main() {
             sourceName: 'jurica',
             sourceId: parseInt(doc.ids[i].split(':')[1]),
           });
-          if (juricaDoc !== null && (juricaDoc.labelStatus === 'done' || juricaDoc.labelStatus === 'exported')) {
+          if (juricaDoc !== null && juricaDoc.labelStatus === 'exported') {
             const rawJuricaDoc = await rawJurica.findOne({
               _id: parseInt(doc.ids[i].split(':')[1]),
             });
