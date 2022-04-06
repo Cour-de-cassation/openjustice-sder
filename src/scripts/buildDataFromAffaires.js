@@ -73,7 +73,7 @@ async function main() {
                 rawJuricaDoc.JDEC_IND_DEC_PUB,
               );
             } catch (ignore) {}
-            juricaDoc.push({
+            juricaDocs.push({
               raw: rawJuricaDoc,
               decision: juricaDoc,
               isPublic: isPublic,
