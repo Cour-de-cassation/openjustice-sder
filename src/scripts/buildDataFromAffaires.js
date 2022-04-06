@@ -28,8 +28,7 @@ async function main() {
             sourceName: 'jurinet',
             sourceId: parseInt(doc.ids[i].split(':')[1]),
           });
-          if (jurinetDoc !== null) {
-            // && (jurinetDoc.labelStatus === 'done' || jurinetDoc.labelStatus === 'exported')) {
+          if (jurinetDoc !== null && (jurinetDoc.labelStatus === 'done' || jurinetDoc.labelStatus === 'exported')) {
             console.log(`add ${doc.ids[i]}`);
             jurinetIds.push(doc.ids[i]);
           }
@@ -38,8 +37,7 @@ async function main() {
             sourceName: 'jurica',
             sourceId: parseInt(doc.ids[i].split(':')[1]),
           });
-          if (juricaDoc !== null) {
-            // && (juricaDoc.labelStatus === 'done' || juricaDoc.labelStatus === 'exported')) {
+          if (juricaDoc !== null && (juricaDoc.labelStatus === 'done' || juricaDoc.labelStatus === 'exported')) {
             console.log(`add ${doc.ids[i]}`);
             juricaIds.push(doc.ids[i]);
           }
