@@ -57,27 +57,30 @@ async function main() {
             const rawJuricaDoc = await rawJurica.findOne({
               _id: parseInt(doc.ids[i].split(':')[1]),
             });
+            let isPublic = false;
+            let isPartiallyPublic = false;
             try {
-              if (
-                JuricaUtils.IsPublic(
-                  rawJuricaDoc.JDEC_CODNAC,
-                  rawJuricaDoc.JDEC_CODNACPART,
-                  rawJuricaDoc.JDEC_IND_DEC_PUB,
-                ) ||
-                JuricaUtils.IsPartiallyPublic(
-                  rawJuricaDoc.JDEC_CODNAC,
-                  rawJuricaDoc.JDEC_CODNACPART,
-                  rawJuricaDoc.JDEC_IND_DEC_PUB,
-                )
-              ) {
-                juricaDoc.push({
-                  raw: rawJuricaDoc,
-                  decision: juricaDoc,
-                });
-                hasStuff = true;
-                console.log(`add ${doc.ids[i]}`);
-              }
+              isPublic = JuricaUtils.IsPublic(
+                rawJuricaDoc.JDEC_CODNAC,
+                rawJuricaDoc.JDEC_CODNACPART,
+                rawJuricaDoc.JDEC_IND_DEC_PUB,
+              );
             } catch (ignore) {}
+            try {
+              isPartiallyPublic = JuricaUtils.IsPartiallyPublic(
+                rawJuricaDoc.JDEC_CODNAC,
+                rawJuricaDoc.JDEC_CODNACPART,
+                rawJuricaDoc.JDEC_IND_DEC_PUB,
+              );
+            } catch (ignore) {}
+            if (isPublic === true || isPartiallyPublic === true) {
+              juricaDoc.push({
+                raw: rawJuricaDoc,
+                decision: juricaDoc,
+              });
+              hasStuff = true;
+              console.log(`add ${doc.ids[i]}`);
+            }
           }
         }
       }
