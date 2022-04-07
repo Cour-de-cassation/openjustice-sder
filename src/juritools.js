@@ -46,12 +46,18 @@ class Juritools {
     data = {
       metadata: data,
     };
-    const response = await needle('post', `${host}/meta-jurinet`, data, {
-      json: true,
-      rejectUnauthorized: false,
-    });
+    let response = null;
+    try {
+      response = await needle('post', `${host}/meta-jurinet`, data, {
+        json: true,
+        rejectUnauthorized: false,
+      });
+    } catch (e) {
+      console.error(e);
+    }
     if (!response || !response.body) {
       console.warn('GetMetaJurinet failed for the given data', data);
+      return null;
     }
     return response.body;
   }
@@ -63,12 +69,18 @@ class Juritools {
     data = {
       metadata: data,
     };
-    const response = await needle('post', `${host}/meta-jurica`, data, {
-      json: true,
-      rejectUnauthorized: false,
-    });
+    let response = null;
+    try {
+      response = await needle('post', `${host}/meta-jurica`, data, {
+        json: true,
+        rejectUnauthorized: false,
+      });
+    } catch (e) {
+      console.error(e);
+    }
     if (!response || !response.body) {
       console.warn('GetMetaJurica failed for the given data', data);
+      return null;
     }
     return response.body;
   }
