@@ -11,6 +11,7 @@ class JudilibreIndex {
       client: null,
       collections: {
         mainIndex: null,
+        affaires: null,
       },
     };
   }
@@ -167,6 +168,11 @@ class JudilibreIndex {
           indexedDoc.error = err;
         }
         indexedDoc.dateError = this.getDateString();
+      }
+      if (/non-public/i.test(msg)) {
+        indexedDoc.public = false;
+      } else if (/is-public/i.test(msg)) {
+        indexedDoc.public = true;
       }
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
     } else {
