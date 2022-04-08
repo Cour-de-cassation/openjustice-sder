@@ -177,7 +177,8 @@ class DilaUtils {
     ],
     */
     if (jurisdictionName) {
-      switch (jurisdictionName.toLowerCase()) {
+      jurisdictionName = `${jurisdictionName}`.toLowerCase();
+      switch (jurisdictionName) {
         case 'cour de cassation':
           code = 'CC';
           break;
@@ -188,7 +189,11 @@ class DilaUtils {
           code = 'TGI';
           break;
         default:
-          code = 'OTHER';
+          if (jurisdictionName.indexOf('appel') !== -1) {
+            code = 'CA';
+          } else {
+            code = 'OTHER';
+          }
       }
     } else {
       code = 'OTHER';
@@ -250,6 +255,9 @@ class DilaUtils {
       NACCode: null,
       NPCode: null,
       public: true,
+      natureAffaireCivil: null,
+      natureAffairePenal: null,
+      codeMatiereCivil: null,
     };
 
     return normalizedDecision;
