@@ -1,13 +1,12 @@
 // DILA entries:
-const SRC_ENTRIES = ['CASS', 'INCA']; // , 'CAPP'];
+const SRC_ENTRIES = ['CAPP']; //['INCA']; // ['CAPP']; // ['CASS', 'INCA'];
 // CASS: https://echanges.dila.gouv.fr/OPENDATA/CASS/
 // INCA: https://echanges.dila.gouv.fr/OPENDATA/INCA/
 // CAPP: https://echanges.dila.gouv.fr/OPENDATA/CAPP/
-// (ignore CAPP for now...)
 
 // Path where all the .tar.gz files of every DILA entry
 // have been downloaded, in their respective folder (CASS, INCA, CAPP):
-const SRC_DIR = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\';
+const SRC_DIR = '/Users/phasme/Desktop/CC/DILA/'; // 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\';
 
 const fs = require('fs');
 const path = require('path');
@@ -356,9 +355,10 @@ function flatten(src, dest) {
 
 function processUntar(source, then) {
   const schema = {};
+  const history = {};
   const walk = require('walkdir');
   const { DilaUtils } = require('../dila-utils');
-  const basePath = `${SRC_DIR}${source}\\extract`;
+  const basePath = path.join(`${SRC_DIR}${source}`, 'extract');
   fs.writeFileSync(path.join(__dirname, 'data', `dila_import_${source}.json`), '');
   let successCount = 0;
   let errorCount = 0;
@@ -372,6 +372,13 @@ function processUntar(source, then) {
         filter: false,
       });
       flatten(jsonDocument, schema);
+      try {
+        const year = jsonDocument.META.META_SPEC.META_JURI.DATE_DEC.split('-')[0];
+        if (history[year] === undefined) {
+          history[year] = 0;
+        }
+        history[year]++;
+      } catch (ignore) {}
       fs.appendFileSync(
         path.join(__dirname, 'data', `dila_import_${source}.json`),
         JSON.stringify(jsonDocument) + '\r\n',
@@ -388,6 +395,7 @@ function processUntar(source, then) {
     console.log(`Error count (${source}): ${errorCount}.`);
     console.log(`Exit processUntar (${source}).`);
     fs.writeFileSync(path.join(__dirname, 'data', `dila_schema_${source}.json`), JSON.stringify(schema, null, 2));
+    fs.writeFileSync(path.join(__dirname, 'data', `dila_history_${source}.json`), JSON.stringify(history, null, 2));
     if (typeof then === 'function') {
       then();
     } else {
@@ -398,14 +406,16 @@ function processUntar(source, then) {
 
 function dico(source, then) {
   const dict = {
-    ORIGINE: [],
-    NATURE: [],
-    JURIDICTION: [],
-    SOLUTION: [],
-    PUB: [],
-    BULLETIN: [],
-    FORMATION: [],
-    FORM_DEC_ATT: [],
+    ORIGINE: {},
+    NATURE: {},
+    JURIDICTION: {},
+    SOLUTION: {},
+    //PUB: {},
+    //BULLETIN: {},
+    //FORMATION: {},
+    //FORM_DEC_ATT: {},
+    //NUMERO_AFFAIRE: {},
+    SIEGE_APPEL: {},
   };
   const baseDir = path.join(__dirname, 'data', `DILA_${source}`);
   const files = fs.readdirSync(baseDir);
@@ -413,9 +423,14 @@ function dico(source, then) {
     if (/\.json$/.test(files[i]) === true && /normalized/.test(files[i]) === false) {
       const data = JSON.parse(fs.readFileSync(path.join(baseDir, files[i])).toString());
       for (let key in dict) {
-        if (data[key] && dict[key].indexOf(data[key]) === -1) {
-          dict[key].push(data[key]);
+        let datum = data[key];
+        if (Array.isArray(datum)) {
+          datum = datum[0];
         }
+        if (datum && dict[key][datum] === undefined) {
+          dict[key][datum] = 0;
+        }
+        dict[key][datum]++;
       }
     }
   }
@@ -462,13 +477,14 @@ async function store(source) {
         let insertOrUpdate = false;
         if (decisionToStore.NUMERO) {
           let alreadyFromJurinet = await decisions.findOne({
-            registerNumber: decisionToStore.NUMERO,
+            registerNumber: `${decisionToStore.NUMERO}`,
             sourceName: 'jurinet',
           });
           if (alreadyFromJurinet === null) {
             console.log(`Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) not found in Jurinet: add.`);
             insertOrUpdate = true;
           } else {
+            // @TODO check if pseudonimized and published
             console.log(
               `Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) already in Jurinet as ${alreadyFromJurinet.sourceId}: skip.`,
             );
@@ -549,6 +565,7 @@ function importDila() {
           // 2. Process XML files:
           try {
             processUntar(source, function () {
+              console.log(`source ${source} done.`);
               // 3. Prepare decisions to store in DB:
               try {
                 prepare(source, function () {
@@ -606,5 +623,5 @@ async function storeDila() {
 }
 
 // importDila();
-// buildDico();
-storeDila();
+buildDico();
+// storeDila();
