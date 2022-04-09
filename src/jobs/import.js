@@ -233,6 +233,7 @@ async function importJurica() {
                 );
               }
               try {
+                // @TODO WHAT???
                 zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
                 if (!zoning || zoning.detail) {
                   throw new Error(

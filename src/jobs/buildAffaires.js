@@ -118,10 +118,12 @@ async function main() {
   } catch (ignore) {}
   const countJurinet = await rawJurinet.estimatedDocumentCount({ TYPE_ARRET: 'CC' });
 
+  let hasDoc = false;
   try {
     let doc;
     let cursor = await rawJurinet.find({ TYPE_ARRET: 'CC' }).sort({ _id: sort }).skip(offset).limit(limit);
     while ((doc = await cursor.next())) {
+      hasDoc = true;
       offset++;
       total++;
       console.log(`(buildAffaires) processing Jurinet ${doc._id}...`);
@@ -157,6 +159,9 @@ async function main() {
     console.error(e);
   }
 
+  if (hasDoc === false) {
+    offset = 0;
+  }
   fs.writeFileSync(path.join(__dirname, '.buildAffaires.jurinet.offset'), `${offset}`);
 
   console.log({
@@ -185,10 +190,13 @@ async function main() {
     }
   } catch (ignore) {}
   const countJurica = await rawJurica.estimatedDocumentCount({});
+
+  hasDoc = false;
   try {
     let doc = null;
     let cursor = await rawJurica.find({}).sort({ _id: sort }).skip(offset).limit(limit);
     while ((doc = await cursor.next())) {
+      hasDoc = true;
       offset++;
       total++;
       console.log(`(buildAffaires) processing Jurica ${doc._id}...`);
@@ -211,6 +219,9 @@ async function main() {
     console.error(e);
   }
 
+  if (hasDoc === false) {
+    offset = 0;
+  }
   fs.writeFileSync(path.join(__dirname, '.buildAffaires.jurica.offset'), `${offset}`);
 
   console.log({
