@@ -1,6 +1,12 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+if (process.env.SKIP_JOBS) {
+  process.exit(0);
+}
+
 const Graceful = require('@ladjs/graceful');
 const Bree = require('bree');
-const path = require('path');
 
 const bree = new Bree({
   root: path.join(__dirname, 'jobs'),
