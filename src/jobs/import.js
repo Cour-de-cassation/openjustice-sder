@@ -38,12 +38,12 @@ function kill(code) {
 async function main() {
   console.log('OpenJustice - Start "import" job:', new Date().toLocaleString());
   try {
-    await importJurinet();
+    // await importJurinet();
   } catch (e) {
     console.error('Jurinet import error', e);
   }
   try {
-    await importJurica();
+    // await importJurica();
   } catch (e) {
     console.error('Jurica import error', e);
   }
@@ -517,6 +517,51 @@ async function importJudifiltre() {
   console.log(
     `Done Importing Judifiltre - New: ${newCount}, Update: ${updateCount}, Skip: ${skipCount}, Error: ${errorCount}.`,
   );
+  await client.close();
+  return true;
+}
+
+async function importDecatt() {
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+  // 1. Get all _decatt from rawJurinet (no other choice, really)...
+  let allDecatt = [];
+  let rawJurinetDocument;
+  const rawJurinetCursor = await rawJurinet
+    .find(
+      { TYPE_ARRET: 'CC', _decatt: { $ne: null } },
+      {
+        allowDiskUse: true,
+        fields: {
+          _id: 1,
+          _decatt: 1,
+        },
+      },
+    )
+    .sort({ _id: -1 });
+  while ((rawJurinetDocument = await rawJurinetCursor.next())) {
+    if (
+      rawJurinetDocument._decatt &&
+      Array.isArray(rawJurinetDocument._decatt) &&
+      rawJurinetDocument._decatt.length > 0
+    ) {
+      for (let i = 0; i < rawJurinetDocument._decatt.length; i++) {
+        if (allDecatt.indexOf(rawJurinetDocument._decatt[i]) === -1) {
+          allDecatt.push(rawJurinetDocument._decatt[i]);
+        }
+      }
+    }
+  }
+
+  console.log(allDecatt.length);
+
   await client.close();
   return true;
 }

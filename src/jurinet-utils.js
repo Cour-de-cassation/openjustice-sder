@@ -764,6 +764,32 @@ class JurinetUtils {
   }
 }
 
+function ConvertOccultationBlockInCategoriesToOmit({occultationBlock, chamberId}) {
+  let categoriesToOmit = ['professionnelMagistratGreffier'];
+  if (occultationBlock >= 1 && occultationBlock <= 4) {
+    switch (occultationBlock) {
+      case 2:
+        categoriesToOmit.push('dateNaissance', 'dateMariage', 'dateDeces');
+        break;
+      case 3:
+        categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
+        break;
+      case 4:
+        categoriesToOmit.push(
+          'dateNaissance',
+          'dateMariage',
+          'dateDeces',
+          'personneMorale',
+          'numeroSiretSiren',
+        );
+        break;
+    }
+  } else if(chamberId !== "CR"){
+    categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
+  }
+  return categoriesToOmit;
+}
+
 function ConvertKeysToLowerCase(obj) {
   let output = {};
   for (let i in obj) {
@@ -803,3 +829,5 @@ function HtmlDecode(obj) {
 }
 
 exports.JurinetUtils = JurinetUtils;
+
+exports.ConvertOccultationBlockInCategoriesToOmit = ConvertOccultationBlockInCategoriesToOmit
