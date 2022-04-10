@@ -106,6 +106,42 @@ class JuricaOracle {
         } catch (e) {
           data['_portalis'] = null;
         }
+
+        try {
+          // Inject "bloc_occultation" data (if any) into the document:
+          let blocId = null;
+          if (row.JDEC_CODNAC) {
+            const NACquery = `SELECT *
+              FROM JCA_NAC
+              WHERE JCA_NAC.JNAC_F22CODE = :code`;
+            const NACResult = await this.connection.execute(NACquery, [row.JDEC_CODNAC]);
+            if (NACResult && NACResult.rows && NACResult.rows.length > 0) {
+              const indexBloc = NACResult.rows[0].JNAC_IND_BLOC;
+              if (indexBloc) {
+                const { GRCOMOracle } = require('./grcom-oracle');
+                const GRCOMSource = new GRCOMOracle();
+                await GRCOMSource.connect();
+                const GRCOMQuery = `SELECT *
+                  FROM BLOCS_OCCULT_COMPL
+                  WHERE BLOCS_OCCULT_COMPL.ID_BLOC = :code`;
+                const GRCOMResult = await GRCOMSource.connection.execute(GRCOMQuery, [indexBloc]);
+                if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
+                  blocId = GRCOMResult.rows[0].ID_BLOC;
+                  let occultations = await this.buildRawData(GRCOMResult.rows[0], false);
+                  for (let key in occultations) {
+                    if (key !== 'ID_BLOC' && data[key] === undefined) {
+                      data[key] = occultations[key];
+                    }
+                  }
+                }
+                await GRCOMSource.close();
+              }
+            }
+          }
+          data['_bloc_occultation'] = blocId;
+        } catch (e) {
+          data['_bloc_occultation'] = null;
+        }
       }
       return data;
     } else {
@@ -137,7 +173,7 @@ class JuricaOracle {
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
         AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
-        AND (${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 0 OR ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 4)
+        AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 0
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
 
@@ -166,6 +202,81 @@ class JuricaOracle {
     }
   }
 
+  async getFaulty() {
+    if (this.connected === true && this.connection !== null) {
+      const query = `SELECT *
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+        AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 4
+        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} DESC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        const data = await this.buildRawData(resultRow, true);
+        rows.push(data);
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurica.getFaulty: not connected.');
+    }
+  }
+
+  /**
+   * Get all decisions from Jurica that have been modified since the given date.
+   *
+   * @returns {Array} An array of documents (with UTF-8 encoded content)
+   */
+  async getModifiedSince(date) {
+    if (this.connected === true && this.connection !== null) {
+      let strDate = date.getFullYear();
+      strDate += '-' + (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
+      strDate += '-' + (date.getDate() < 10 ? '0' + date.getDate() : date.getDate());
+
+      const query = `SELECT *
+        FROM ${process.env.DB_TABLE_JURICA}
+        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_MAJ > '${strDate}'
+        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        const data = await this.buildRawData(resultRow, true);
+        rows.push(data);
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurica.getModifiedSince: not connected.');
+    }
+  }
+
   /**
    * Get all decisions from Jurica from the last N months.
    *
@@ -184,8 +295,8 @@ class JuricaOracle {
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
-        AND ${process.env.DB_TABLE_JURICA}.JDEC_IND_DEC_PUB IS NOT NULL
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
+      //         AND ${process.env.DB_TABLE_JURICA}.JDEC_IND_DEC_PUB IS NOT NULL
 
       const result = await this.connection.execute(query, [], {
         resultSet: true,
@@ -387,71 +498,59 @@ class JuricaOracle {
    * {
    *   NUM_RG: '17/20421',
    *   DT_DECATT: 2019-02-13T22:00:00.000Z,
-   *   FORMATION_DECATT: 'pôle 2, chambre 2',
    * }
    * @param {object} info
    * @returns
    * @throws
    */
-  async getDecisionIdByDecattInfo(info) {
-    if (!info || !info['NUM_RG'] || !info['DT_DECATT'] || !info['FORMATION_DECATT']) {
-      throw new Error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
-    } else if (this.connected === true && this.connection !== null) {
-      let decattDate1 = new Date(Date.parse(info['DT_DECATT']));
-      decattDate1.setDate(decattDate1.getDate() - 1);
-      let strDecatt1 = decattDate1.getFullYear();
-      strDecatt1 +=
-        '-' + (decattDate1.getMonth() + 1 < 10 ? '0' + (decattDate1.getMonth() + 1) : decattDate1.getMonth() + 1);
-      strDecatt1 += '-' + (decattDate1.getDate() < 10 ? '0' + decattDate1.getDate() : decattDate1.getDate());
-
-      let decattDate2 = new Date(Date.parse(info['DT_DECATT']));
-      decattDate2.setDate(decattDate2.getDate() + 1);
-      let strDecatt2 = decattDate2.getFullYear();
-      strDecatt2 +=
-        '-' + (decattDate2.getMonth() + 1 < 10 ? '0' + (decattDate2.getMonth() + 1) : decattDate2.getMonth() + 1);
-      strDecatt2 += '-' + (decattDate2.getDate() < 10 ? '0' + decattDate2.getDate() : decattDate2.getDate());
-
-      const decisionQuery = `SELECT *
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG = :rgNumber
-        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE >= '${strDecatt1}'
-        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE <= '${strDecatt2}'`;
-
-      const decisionResult = await this.connection.execute(decisionQuery, [info['NUM_RG']]);
-
-      if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
-        let result = [];
-        for (let i = 0; i < decisionResult.rows.length; i++) {
-          if (decisionResult.rows.length >= 1) {
-            try {
-              let actualFormation = decisionResult.rows[i]['JDEC_LIB_AUTORITE']
-                .replace(/[^a-z0-9]/gim, '')
-                .trim()
-                .toLowerCase();
-              let decattFormation = info['FORMATION_DECATT']
-                .replace(/[^a-z0-9]/gim, '')
-                .trim()
-                .toLowerCase();
-              if (actualFormation === decattFormation) {
-                result.push(decisionResult.rows[i]['JDEC_ID']);
-              }
-            } catch (e) {
-              result.push(decisionResult.rows[i]['JDEC_ID']);
-            }
-          } else {
-            result.push(decisionResult.rows[i]['JDEC_ID']);
-          }
-        }
-        return result;
-      } else {
-        throw new Error(
-          'Jurica.getDecisionIdByDecattInfo - no decision related to the given "decatt" info:\n' +
-            JSON.stringify(info, null, 2),
-        );
-      }
-    } else {
-      throw new Error('Jurica.getDecisionIdByDecattInfo: not connected.');
+  async getDecisionIdByDecattInfo(infos) {
+    let results = [];
+    if (!Array.isArray(infos)) {
+      infos = [infos];
     }
+    for (let ii = 0; ii < infos.length; ii++) {
+      let info = infos[ii];
+      if (!info || !info['NUM_RG'] || !info['DT_DECATT']) {
+        console.error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
+      } else if (this.connected === true && this.connection !== null) {
+        let decattDate = new Date(Date.parse(info['DT_DECATT']));
+        decattDate.setHours(decattDate.getHours() + 2);
+        let strDecatt = decattDate.getFullYear();
+        strDecatt +=
+          '-' + (decattDate.getMonth() + 1 < 10 ? '0' + (decattDate.getMonth() + 1) : decattDate.getMonth() + 1);
+        strDecatt += '-' + (decattDate.getDate() < 10 ? '0' + decattDate.getDate() : decattDate.getDate());
+
+        let RGTerms = ['', ''];
+        try {
+          RGTerms = `${info.NUM_RG}`.split('/');
+          RGTerms[0] = RGTerms[0].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+          RGTerms[1] = RGTerms[1].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+        } catch (ignore) {}
+        const decisionQuery = `SELECT *
+          FROM ${process.env.DB_TABLE_JURICA}
+          WHERE REGEXP_LIKE(${process.env.DB_TABLE_JURICA}.JDEC_NUM_RG, '^0*${RGTerms[0]}/0*${RGTerms[1]} *$')
+          AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE = '${strDecatt}'`;
+
+        const decisionResult = await this.connection.execute(decisionQuery, []);
+
+        if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+          for (let i = 0; i < decisionResult.rows.length; i++) {
+            results.push(decisionResult.rows[i]['JDEC_ID']);
+          }
+        } else {
+          console.error(
+            'Jurica.getDecisionIdByDecattInfo - no decision related to the given "decatt" info:\n' +
+              JSON.stringify(info, null, 2),
+          );
+        }
+      } else {
+        throw new Error('Jurica.getDecisionIdByDecattInfo: not connected.');
+      }
+    }
+
+    return results.filter((value, index, self) => {
+      return self.indexOf(value) === index;
+    });
   }
 
   /**

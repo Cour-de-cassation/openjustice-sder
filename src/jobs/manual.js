@@ -5,6 +5,7 @@ const { parentPort } = require('worker_threads');
 const { JurinetUtils } = require('../jurinet-utils');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JuricaOracle } = require('../jurica-oracle');
+const { JuricaUtils } = require('../jurica-utils');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -57,6 +58,7 @@ async function processJurinet(status) {
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   let cont = true;
@@ -79,6 +81,13 @@ async function processJurinet(status) {
         const decattInfo = await jurinetSource.getDecatt(document.sourceId);
         const decatt = await juricaSource.getDecisionIdByDecattInfo(decattInfo);
         newDecatt = decatt;
+        /*
+        if (decatt && Array.isArray(decatt) && decatt.length > 0) {
+          for (let d = 0; d < decatt.length; d++) {
+            await JuricaUtils.ImportDecatt(decatt[d], juricaSource, rawJurica, decisions);
+          }
+        }
+        */
       } catch (e) {
         newDecatt = null;
       }
@@ -112,6 +121,7 @@ async function processJurinet(status) {
         skipped++;
       }
     }
+    await cursor.close();
     cont = hasData;
     skip += 100;
   }

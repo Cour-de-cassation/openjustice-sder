@@ -1,10 +1,811 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
+const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
+const parser = require('fast-xml-parser');
 const he = require('he');
 
+const { Juritools } = require('./juritools');
+const { Judifiltre } = require('./judifiltre');
+const { DateTime } = require('luxon');
+const { ObjectId } = require('mongodb');
+
+const parserOptions = {
+  attributeNamePrefix: '',
+  attrNodeName: 'attributes',
+  textNodeName: 'value',
+  ignoreAttributes: false,
+  ignoreNameSpace: true,
+  allowBooleanAttributes: false,
+  parseNodeValue: false,
+  parseAttributeValue: false,
+  trimValues: true,
+  cdataTagName: false,
+  parseTrueNumberOnly: false,
+  arrayMode: true,
+  trimValues: true,
+};
+
 class JuricaUtils {
+  static GetUnconditionalNonPublicNAC() {
+    return [
+      '11A',
+      '11B',
+      '11D',
+      '11E',
+      '11Z',
+      '13A',
+      '13B',
+      '13C',
+      '13D',
+      '13E',
+      '13Z',
+      '14F',
+      '15A',
+      '15B',
+      '15C',
+      '15D',
+      '15E',
+      '15F',
+      '15G',
+      '15H',
+      '15Z',
+      '16A',
+      '16B',
+      '16C',
+      '16D',
+      '16E',
+      '16F',
+      '16G',
+      '16H',
+      '16I',
+      '16J',
+      '16K',
+      '16M',
+      '16N',
+      '16O',
+      '16P',
+      '16Q',
+      '16R',
+      '16S',
+      '16X',
+      '17A',
+      '17B',
+      '17C',
+      '17D',
+      '17E',
+      '17F',
+      '17G',
+      '17H',
+      '17I',
+      '17J',
+      '17K',
+      '17L',
+      '17M',
+      '17N',
+      '17O',
+      '17P',
+      '17Q',
+      '17R',
+      '17S',
+      '17T',
+      '17X',
+      '18A',
+      '18B',
+      '18C',
+      '18D',
+      '18E',
+      '18F',
+      '18G',
+      '18H',
+      '18X',
+      '18Z',
+      '20G',
+      '21F',
+      '22A',
+      '22B',
+      '22C',
+      '22D',
+      '22E',
+      '22F',
+      '23C',
+      '23D',
+      '23E',
+      '23F',
+      '23G',
+      '23Z',
+      '24A',
+      '24B',
+      '24C',
+      '24D',
+      '24E',
+      '24F',
+      '24I',
+      '24J',
+      '24K',
+      '24L',
+      '24M',
+      '24Z',
+      '26D',
+      '27A',
+      '27B',
+      '27C',
+      '27D',
+      '27E',
+      '27F',
+      '27G',
+      '27H',
+      '27I',
+      '27J',
+      '27K',
+      '27L',
+      '27Z',
+      '33Z',
+      '3AG',
+      '3AZ',
+      '4JF',
+      '4JH',
+      '4JI',
+      '4JJ',
+      '4JK',
+      '4JL',
+      '70G',
+      '97B',
+      '97G',
+      '97P',
+    ];
+  }
+
+  static GetConditionalNonPublicNAC() {
+    return [
+      '4AA',
+      '4AB',
+      '4AC',
+      '4AD',
+      '4AE',
+      '4AF',
+      '4AL',
+      '4AM',
+      '4AN',
+      '4AO',
+      '4AP',
+      '4EA',
+      '4EC',
+      '70J',
+      '78S',
+      '78T',
+      '78U',
+      '97A',
+    ];
+  }
+
+  static GetNonPublicNACWithAdditionalCheck(all) {
+    if (!all) {
+      return ['00A'];
+    } else {
+      return ['0', '000', '00A', '00X'];
+    }
+  }
+
+  static GetAdditionalCheck(code) {
+    return /^9[0-9a-t]$/i.test(code) === true;
+  }
+
+  static GetPartiallyPublicNAC() {
+    return [
+      '20A',
+      '20B',
+      '20C',
+      '20D',
+      '20E',
+      '20F',
+      '20I',
+      '20J',
+      '20K',
+      '20X',
+      '21A',
+      '21B',
+      '21C',
+      '21D',
+      '21E',
+      '21H',
+      '21I',
+      '21J',
+      '21X',
+      '64D',
+    ];
+  }
+
+  static GetELMSTRLocationFromJuricaLocation(juricaLocation) {
+    let ELMSTRLocation = null;
+    juricaLocation = `${juricaLocation}`.toLowerCase().trim();
+
+    if (/agen/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Agen";
+    } else if (/aix/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Aix-en-Provence";
+    } else if (/amiens/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Amiens";
+    } else if (/angers/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Angers";
+    } else if (/basse/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Basse-Terre";
+    } else if (/bastia/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Bastia";
+    } else if (/besan/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Besançon";
+    } else if (/bordeaux/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Bordeaux";
+    } else if (/bourges/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Bourges";
+    } else if (/caen/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Caen";
+    } else if (/cayenne/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Cayenne";
+    } else if (/chamb/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Chambéry";
+    } else if (/colmar/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Colmar";
+    } else if (/dijon/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Dijon";
+    } else if (/douai/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Douai";
+    } else if (/fort/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Fort-de-France";
+    } else if (/grenoble/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Grenoble";
+    } else if (/limoges/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Limoges";
+    } else if (/lyon/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Lyon";
+    } else if (/metz/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Metz";
+    } else if (/montpellier/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Montpellier";
+    } else if (/nancy/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Nancy";
+    } else if (/mes/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Nîmes";
+    } else if (/noum/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Noumea";
+    } else if (/orl/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel d'Orléans";
+    } else if (/papeete/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Papeete";
+    } else if (/paris/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Paris";
+    } else if (/pau/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Pau";
+    } else if (/poitiers/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Poitiers";
+    } else if (/reims/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Reims";
+    } else if (/rennes/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Rennes";
+    } else if (/riom/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Riom";
+    } else if (/rouen/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Rouen";
+    } else if (/denis/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Saint-Denis de la Réunion";
+    } else if (/toulouse/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Toulouse";
+    } else if (/versailles/.test(juricaLocation) === true) {
+      ELMSTRLocation = "Cour d'appel de Versailles";
+    }
+
+    return ELMSTRLocation;
+  }
+
+  static GetJuricaLocationFromELMSTRLocation(ELMSTRLocation) {
+    let juricaLocation = null;
+    ELMSTRLocation = `${ELMSTRLocation}`.toLowerCase().trim();
+
+    if (/agen/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Agen";
+    } else if (/aix/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Aix en Provence";
+    } else if (/amiens/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Amiens";
+    } else if (/angers/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Angers";
+    } else if (/basse/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Basse Terre";
+    } else if (/bastia/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Bastia";
+    } else if (/besan/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Besançon";
+    } else if (/bordeaux/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Bordeaux";
+    } else if (/bourges/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Bourges";
+    } else if (/caen/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Caen";
+    } else if (/cayenne/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Cayenne";
+    } else if (/chamb/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Chambéry";
+    } else if (/colmar/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Colmar";
+    } else if (/dijon/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Dijon";
+    } else if (/douai/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Douai";
+    } else if (/fort/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Fort de France";
+    } else if (/grenoble/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Grenoble";
+    } else if (/limoges/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Limoges";
+    } else if (/lyon/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Lyon";
+    } else if (/metz/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Metz";
+    } else if (/montpellier/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Montpellier";
+    } else if (/nancy/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Nancy";
+    } else if (/mes/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Nimes";
+    } else if (/noum/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Noumea";
+    } else if (/orl/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel d'Orléans";
+    } else if (/papeete/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Papeete";
+    } else if (/paris/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Paris";
+    } else if (/pau/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Pau";
+    } else if (/poitiers/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Poitiers";
+    } else if (/reims/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Reims";
+    } else if (/rennes/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Rennes";
+    } else if (/riom/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Riom";
+    } else if (/rouen/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Rouen";
+    } else if (/denis/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Saint Denis de la Réunion";
+    } else if (/toulouse/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Toulouse";
+    } else if (/versailles/.test(ELMSTRLocation) === true) {
+      juricaLocation = "cour d'appel de Versailles";
+    }
+
+    return juricaLocation;
+  }
+
+  static async IndexAffaire(doc, jIndexMain, jIndexAffaires, jurinetConnection) {
+    const { JudilibreIndex } = require('./judilibre-index');
+    let res = 'done';
+    if (
+      doc.JDEC_HTML_SOURCE &&
+      doc.JDEC_NUM_RG &&
+      doc.JDEC_DATE &&
+      /^\d\d\d\d-\d\d-\d\d$/.test(`${doc.JDEC_DATE}`.trim())
+    ) {
+      let objAlreadyStored = await jIndexAffaires.findOne({ ids: `jurica:${doc._id}` });
+      let objToStore = {
+        _id: objAlreadyStored !== null ? objAlreadyStored._id : new ObjectId(),
+        numbers: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers)) : [],
+        ids: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.ids)) : [],
+        affaires: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.affaires)) : [],
+        dates: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates)) : [],
+        jurisdictions: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.jurisdictions)) : [],
+        numbers_ids: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_ids)) : {},
+        numbers_dates: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_dates)) : {},
+        numbers_affaires:
+          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_affaires)) : {},
+        numbers_jurisdictions:
+          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_jurisdictions)) : {},
+        dates_jurisdictions:
+          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates_jurisdictions)) : {},
+      };
+      let dateForIndexing = `${doc.JDEC_DATE}`.trim();
+      if (objToStore.ids.indexOf(`jurica:${doc._id}`) === -1) {
+        objToStore.ids.push(`jurica:${doc._id}`);
+      }
+      if (objToStore.dates.indexOf(dateForIndexing) === -1) {
+        objToStore.dates.push(dateForIndexing);
+      }
+      let RGNumber = `${doc.JDEC_NUM_RG}`.trim();
+      if (objToStore.numbers.indexOf(RGNumber) === -1) {
+        objToStore.numbers.push(RGNumber);
+      }
+      let jurisdiction = JuricaUtils.GetELMSTRLocationFromJuricaLocation(doc.JDEC_JURIDICTION);
+      if (objToStore.jurisdictions.indexOf(jurisdiction) === -1) {
+        objToStore.jurisdictions.push(jurisdiction);
+      }
+      objToStore.numbers_ids[RGNumber] = `jurica:${doc._id}`;
+      objToStore.numbers_dates[RGNumber] = dateForIndexing;
+      objToStore.dates_jurisdictions[dateForIndexing] = jurisdiction;
+      objToStore.numbers_jurisdictions[RGNumber] = jurisdiction;
+      let hasPreced = false;
+
+      try {
+        const text = JuricaUtils.CleanHTML(doc.JDEC_HTML_SOURCE);
+        const zoning = await Juritools.GetZones(doc._id, 'ca', text);
+        if (zoning && zoning.introduction_subzonage && zoning.introduction_subzonage.j_preced_date) {
+          const baseRegex = /(\d+)\D*\s+([a-zéû.]+)\s+(\d\d\d\d)/i;
+          let remainingDates = [];
+          let datesToCheck = [];
+          let datesTaken = [];
+          for (let dd = 0; dd < zoning.introduction_subzonage.j_preced_date.length; dd++) {
+            if (baseRegex.test(zoning.introduction_subzonage.j_preced_date[dd])) {
+              const baseMatch = baseRegex.exec(zoning.introduction_subzonage.j_preced_date[dd]);
+              const baseDate = {
+                day: parseInt(baseMatch[1]),
+                month: JurinetUtils.ParseMonth(baseMatch[2]),
+                year: parseInt(baseMatch[3]),
+              };
+              baseDate.day = baseDate.day < 10 ? `0${baseDate.day}` : `${baseDate.day}`;
+              baseDate.month = baseDate.month < 10 ? `0${baseDate.month}` : `${baseDate.month}`;
+              const fullDate = `${baseDate.year}-${baseDate.month}-${baseDate.day}`;
+              if (!isNaN(Date.parse(fullDate))) {
+                datesToCheck.push(fullDate);
+              }
+            }
+          }
+          if (zoning.introduction_subzonage.j_preced_nrg) {
+            for (let rr = 0; rr < zoning.introduction_subzonage.j_preced_nrg.length; rr++) {
+              let RGTerms = ['', ''];
+              try {
+                RGTerms = `${zoning.introduction_subzonage.j_preced_nrg[rr]}`.split('/');
+                RGTerms[0] = RGTerms[0].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+                RGTerms[1] = RGTerms[1].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+              } catch (ignore) {}
+              for (let ee = 0; ee < datesToCheck.length; ee++) {
+                const decisionQuery = `SELECT JCA_DECISION.JDEC_ID, JCA_DECISION.JDEC_NUM_RG, JCA_DECISION.JDEC_JURIDICTION
+                  FROM JCA_DECISION
+                  WHERE REGEXP_LIKE(JCA_DECISION.JDEC_NUM_RG, '^0*${RGTerms[0]}/0*${RGTerms[1]} *$')
+                  AND JCA_DECISION.JDEC_DATE = '${datesToCheck[ee]}'`;
+                const decisionResult = await juricaConnection.execute(decisionQuery, []);
+                if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+                  if (objAlreadyStored === null) {
+                    objAlreadyStored = await jIndexAffaires.findOne({
+                      ids: `jurica:${decisionResult.rows[0].JDEC_ID}`,
+                    });
+                  }
+                  if (objAlreadyStored !== null) {
+                    objToStore._id = objAlreadyStored._id;
+                    objAlreadyStored.numbers.forEach((number) => {
+                      if (objToStore.numbers.indexOf(number) === -1) {
+                        objToStore.numbers.push(number);
+                      }
+                      objToStore.numbers_ids[number] = objAlreadyStored.numbers_ids[number];
+                      objToStore.numbers_dates[number] = objAlreadyStored.numbers_dates[number];
+                      objToStore.numbers_affaires[number] = objAlreadyStored.numbers_affaires[number];
+                      objToStore.numbers_jurisdictions[number] = objAlreadyStored.numbers_jurisdictions[number];
+                    });
+                    objAlreadyStored.ids.forEach((id) => {
+                      if (objToStore.ids.indexOf(id) === -1) {
+                        objToStore.ids.push(id);
+                      }
+                    });
+                    objAlreadyStored.affaires.forEach((affaire) => {
+                      if (objToStore.affaires.indexOf(affaire) === -1) {
+                        objToStore.affaires.push(affaire);
+                      }
+                    });
+                    objAlreadyStored.dates.forEach((date) => {
+                      if (objToStore.dates.indexOf(date) === -1) {
+                        objToStore.dates.push(date);
+                      }
+                      objToStore.dates_jurisdictions[date] = objAlreadyStored.dates_jurisdictions[date];
+                    });
+                    objAlreadyStored.jurisdictions.forEach((jurisdiction) => {
+                      if (objToStore.jurisdictions.indexOf(jurisdiction) === -1) {
+                        objToStore.jurisdictions.push(jurisdiction);
+                      }
+                    });
+                  }
+                  if (objToStore.ids.indexOf(`jurica:${decisionResult.rows[0].JDEC_ID}`) === -1) {
+                    objToStore.ids.push(`jurica:${decisionResult.rows[0].JDEC_ID}`);
+                  }
+                  if (objToStore.dates.indexOf(datesToCheck[ee]) === -1) {
+                    objToStore.dates.push(datesToCheck[ee]);
+                  }
+                  let actualRGNumber = `${decisionResult.rows[0].JDEC_NUM_RG}`.trim();
+                  if (objToStore.numbers.indexOf(actualRGNumber) === -1) {
+                    objToStore.numbers.push(actualRGNumber);
+                  }
+                  let actualJurisdiction = JuricaUtils.GetELMSTRLocationFromJuricaLocation(
+                    decisionResult.rows[0].JDEC_JURIDICTION,
+                  );
+                  if (objToStore.jurisdictions.indexOf(actualJurisdiction) === -1) {
+                    objToStore.jurisdictions.push(actualJurisdiction);
+                  }
+                  objToStore.numbers_ids[actualRGNumber] = `jurica:${decisionResult.rows[0].JDEC_ID}`;
+                  objToStore.numbers_dates[actualRGNumber] = datesToCheck[ee];
+                  objToStore.dates_jurisdictions[datesToCheck[ee]] = actualJurisdiction;
+                  objToStore.numbers_jurisdictions[actualRGNumbers] = actualJurisdiction;
+                  if (datesTaken.indexOf(datesToCheck[ee]) === -1) {
+                    datesTaken.push(datesToCheck[ee]);
+                  }
+                  hasPreced = true;
+                  break;
+                }
+              }
+            }
+          }
+          // Dates can't be shared between jurisdictions
+          remainingDates = [];
+          datesToCheck.forEach((date) => {
+            if (datesTaken.indexOf(date) === -1) {
+              remainingDates.push(date);
+            }
+          });
+          datesToCheck = remainingDates;
+          if (zoning.introduction_subzonage.j_preced_npourvoi) {
+            for (let pp = 0; pp < zoning.introduction_subzonage.j_preced_npourvoi.length; pp++) {
+              let simplePourvoi = parseInt(
+                `${zoning.introduction_subzonage.j_preced_npourvoi[pp]}`.replace(/\D/gm, '').trim(),
+                10,
+              );
+              for (let ee = 0; ee < datesToCheck.length; ee++) {
+                const pourvoiQuery = `SELECT DOCUMENT.ID_DOCUMENT
+                  FROM NUMPOURVOI, DOCUMENT
+                  WHERE NUMPOURVOI.ID_DOCUMENT = DOCUMENT.ID_DOCUMENT
+                  AND NUMPOURVOI.NUMPOURVOICODE = :code
+                  AND DOCUMENT.DT_DECISION = TO_DATE('${datesToCheck[ee]}', 'YYYY-MM-DD')`;
+                const pourvoiResult = await jurinetConnection.execute(pourvoiQuery, [simplePourvoi]);
+                if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
+                  if (objAlreadyStored === null) {
+                    objAlreadyStored = await jIndexAffaires.findOne({
+                      ids: `jurinet:${pourvoiResult.rows[0].ID_DOCUMENT}`,
+                    });
+                  }
+                  if (objAlreadyStored !== null) {
+                    objToStore._id = objAlreadyStored._id;
+                    objAlreadyStored.numbers.forEach((number) => {
+                      if (objToStore.numbers.indexOf(number) === -1) {
+                        objToStore.numbers.push(number);
+                      }
+                      objToStore.numbers_ids[number] = objAlreadyStored.numbers_ids[number];
+                      objToStore.numbers_dates[number] = objAlreadyStored.numbers_dates[number];
+                      objToStore.numbers_affaires[number] = objAlreadyStored.numbers_affaires[number];
+                      objToStore.numbers_jurisdictions[number] = objAlreadyStored.numbers_jurisdictions[number];
+                    });
+                    objAlreadyStored.ids.forEach((id) => {
+                      if (objToStore.ids.indexOf(id) === -1) {
+                        objToStore.ids.push(id);
+                      }
+                    });
+                    objAlreadyStored.affaires.forEach((affaire) => {
+                      if (objToStore.affaires.indexOf(affaire) === -1) {
+                        objToStore.affaires.push(affaire);
+                      }
+                    });
+                    objAlreadyStored.dates.forEach((date) => {
+                      if (objToStore.dates.indexOf(date) === -1) {
+                        objToStore.dates.push(date);
+                      }
+                      objToStore.dates_jurisdictions[date] = objAlreadyStored.dates_jurisdictions[date];
+                    });
+                    objAlreadyStored.jurisdictions.forEach((jurisdiction) => {
+                      if (objToStore.jurisdictions.indexOf(jurisdiction) === -1) {
+                        objToStore.jurisdictions.push(jurisdiction);
+                      }
+                    });
+                  }
+                  if (objToStore.ids.indexOf(`jurinet:${pourvoiResult.rows[0].ID_DOCUMENT}`) === -1) {
+                    objToStore.ids.push(`jurinet:${pourvoiResult.rows[0].ID_DOCUMENT}`);
+                  }
+                  if (objToStore.dates.indexOf(datesToCheck[ee]) === -1) {
+                    objToStore.dates.push(datesToCheck[ee]);
+                  }
+                  if (objToStore.jurisdictions.indexOf('Cour de cassation') === -1) {
+                    objToStore.jurisdictions.push('Cour de cassation');
+                  }
+                  objToStore.dates_jurisdictions[datesToCheck[ee]] = 'Cour de cassation';
+                  const pourvoiQuery2 = `SELECT LIB
+                    FROM NUMPOURVOI
+                    WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
+                  const pourvoiResult2 = await jurinetConnection.execute(pourvoiQuery2, [
+                    pourvoiResult.rows[0].ID_DOCUMENT,
+                  ]);
+                  if (pourvoiResult2 && pourvoiResult2.rows && pourvoiResult2.rows.length > 0) {
+                    for (let iii = 0; iii < pourvoiResult2.rows.length; iii++) {
+                      if (objToStore.numbers.indexOf(pourvoiResult2.rows[iii]['LIB']) === -1) {
+                        objToStore.numbers.push(pourvoiResult2.rows[iii]['LIB']);
+                      }
+                      objToStore.numbers_ids[
+                        pourvoiResult2.rows[iii]['LIB']
+                      ] = `jurinet:${pourvoiResult.rows[0].ID_DOCUMENT}`;
+                      objToStore.numbers_dates[pourvoiResult2.rows[iii]['LIB']] = datesToCheck[ee];
+                      objToStore.numbers_jurisdictions[pourvoiResult2.rows[iii]['LIB']] = 'Cour de cassation';
+                      const affaireQuery = `SELECT GPCIV.AFF.ID_AFFAIRE
+                        FROM GPCIV.AFF
+                        WHERE CONCAT(GPCIV.AFF.CLE, GPCIV.AFF.CODE) = :pourvoi`;
+                      const affaireResult = await jurinetConnection.execute(affaireQuery, [
+                        pourvoiResult2.rows[iii]['LIB'],
+                      ]);
+                      if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
+                        if (objToStore.affaires.indexOf(affaireResult.rows[0]['ID_AFFAIRE']) === -1) {
+                          objToStore.affaires.push(affaireResult.rows[0]['ID_AFFAIRE']);
+                        }
+                        objToStore.numbers_affaires[pourvoiResult2.rows[iii]['LIB']] =
+                          affaireResult.rows[0]['ID_AFFAIRE'];
+                      }
+                    }
+                  }
+                  if (datesTaken.indexOf(datesToCheck[ee]) === -1) {
+                    datesTaken.push(datesToCheck[ee]);
+                  }
+                  hasPreced = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (ignore) {}
+
+      if (hasPreced === true || objAlreadyStored !== null) {
+        objToStore.dates.sort();
+        if (objAlreadyStored === null) {
+          await jIndexAffaires.insertOne(objToStore, { bypassDocumentValidation: true });
+        } else if (JSON.stringify(objToStore) !== JSON.stringify(objAlreadyStored)) {
+          await jIndexAffaires.replaceOne({ _id: objAlreadyStored._id }, objToStore, {
+            bypassDocumentValidation: true,
+          });
+        }
+      }
+      if (hasPreced === true) {
+        res = 'decatt-found';
+      } else {
+        res = 'no-decatt';
+      }
+      for (let jj = 0; jj < objToStore.ids.length; jj++) {
+        if (objToStore.ids[jj] === `jurica:${doc._id}`) {
+          const found = await jIndexMain.findOne({ _id: objToStore.ids[jj] });
+          if (found === null) {
+            const indexedDoc = await JudilibreIndex.buildJuricaDocument(doc);
+            const lastOperation = DateTime.fromJSDate(new Date());
+            indexedDoc.lastOperation = lastOperation.toISODate();
+            await jIndexMain.insertOne(indexedDoc, { bypassDocumentValidation: true });
+          }
+        }
+      }
+    } else {
+      res = 'no-data';
+    }
+    return res;
+  }
+
+  static IsNonPublic(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    const cleanedNp = `${np}`.replace(/\W/gim, '').toUpperCase().trim();
+    publicCheckbox = parseInt(`${publicCheckbox}`, 10);
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      return true;
+    } else if (JuricaUtils.GetUnconditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
+      if (publicCheckbox === 1) {
+        throw new Error(`non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is set to 1`);
+      }
+      return true;
+    } else if (JuricaUtils.GetConditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
+      if (publicCheckbox === 0) {
+        return true;
+      } else if (publicCheckbox === 1) {
+        return false;
+      } else {
+        throw new Error(`public or non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set`);
+      }
+    } else if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true /* TEMP */).indexOf(cleanedNac) !== -1) {
+      /* Finalement non...
+      if (publicCheckbox === 1) {
+        throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
+      }
+      */
+      return true;
+      /* TEMP
+      if (!cleanedNp || cleanedNp === 'NULL' || !np) {
+        throw new Error(`invalid NP code (${np})`);
+      } else if (JuricaUtils.GetAdditionalCheck(cleanedNp) === true) {
+        if (publicCheckbox === 1) {
+          throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
+        }
+        return true;
+      } else {
+        return false;
+      }
+      */
+    }
+    return false;
+  }
+
+  static IsPartiallyPublic(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      return false;
+    } else if (JuricaUtils.GetPartiallyPublicNAC().indexOf(cleanedNac) !== -1) {
+      return true;
+    }
+    return false;
+  }
+
+  static IsPublic(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      return false;
+    }
+    const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+    const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+    publicCheckbox = parseInt(`${publicCheckbox}`, 10);
+    if (!nonPublic && !partiallyPublic) {
+      if (publicCheckbox !== 1) {
+        throw new Error(`public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set to 1`);
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static ShouldBeRejected(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      return true;
+    }
+    try {
+      const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+      const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+      const isPublic = JuricaUtils.IsPublic(nac, np, publicCheckbox);
+      return nonPublic && !isPublic && !partiallyPublic;
+    } catch (anomaly) {
+      return false;
+    }
+  }
+
+  static ShouldBeSentToJudifiltre(nac, np, publicCheckbox) {
+    const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
+    if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
+      return false;
+    }
+    try {
+      const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+      const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+      const isPublic = JuricaUtils.IsPublic(nac, np, publicCheckbox);
+      if (nonPublic === isPublic) {
+        throw new Error(
+          `contradictory public status #1 (public: ${isPublic}, non-public: ${nonPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
+        );
+      } else if (nonPublic && partiallyPublic) {
+        throw new Error(
+          `contradictory public status #2 (non-public: ${nonPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
+        );
+      } else if (isPublic && partiallyPublic) {
+        throw new Error(
+          `contradictory public status #3 (public: ${isPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
+        );
+      }
+      /* TEMP
+      if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true).indexOf(cleanedNac) !== -1) {
+        throw new Error(`NAC code requires manual check (${nac})`);
+      }
+      */
+      // @FIXME TEMPORARY:
+      if (partiallyPublic) {
+        return true;
+      }
+      if (isPublic || nonPublic) {
+        return false;
+      }
+      return true;
+    } catch (anomaly) {
+      console.error(anomaly);
+      return true;
+    }
+  }
+
   static CleanHTML(html) {
+    if (/<html/i.test(html) === false) {
+      return html;
+    }
     // Remove HTML tags:
     html = html.replace(/<\/?[^>]+(>|$)/gm, '');
 
@@ -117,6 +918,8 @@ class JuricaUtils {
       dateCreation = document.JDEC_DATE_CREATION;
     }
 
+    const now = new Date();
+
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
       _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
@@ -130,7 +933,7 @@ class JuricaUtils {
       registerNumber: `${document.JDEC_NUM_RG} ${document.JDEC_NUM_REGISTRE}`,
       pubCategory: document.JDEC_NOTICE_FORMAT,
       dateDecision: dateDecision,
-      dateCreation: dateCreation,
+      dateCreation: now.toISOString(),
       solution: document.JDEC_LIBELLE,
       originalText: originalText
         ? originalText
@@ -172,13 +975,36 @@ class JuricaUtils {
       blocOccultation: undefined,
       endCaseCode: document.JDEC_CODE || null,
       NACCode: document.JDEC_CODNAC || null,
+      NPCode: document.JDEC_CODNACPART || null,
       public:
         parseInt(document.JDEC_IND_DEC_PUB, 10) === 1
           ? true
           : parseInt(document.JDEC_IND_DEC_PUB, 10) === 0
           ? false
           : null,
+      natureAffaireCivil: null,
+      natureAffairePenal: null,
+      codeMatiereCivil: null,
     };
+
+    try {
+      const xml = `<document>${document.JDEC_COLL_PARTIES}</document>`;
+      const valid = parser.validate(xml);
+      if (valid === true) {
+        const json = parser.parse(xml, parserOptions);
+        if (
+          json &&
+          json.document &&
+          Array.isArray(json.document) &&
+          json.document[0] &&
+          json.document[0].partie &&
+          Array.isArray(json.document[0].partie) &&
+          json.document[0].partie.length > 0
+        ) {
+          normalizedDecision.parties = json.document[0].partie;
+        }
+      }
+    } catch (e) {}
 
     if (previousVersion) {
       if (previousVersion.labelStatus) {
@@ -192,11 +1018,92 @@ class JuricaUtils {
       }
     }
 
+    if (document._bloc_occultation) {
+      normalizedDecision.blocOccultation = document._bloc_occultation;
+
+      switch (parseInt(document.JDEC_OCC_COMP, 10)) {
+        case 0:
+          normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
+          break;
+        case 1:
+          normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
+            document._bloc_occultation,
+          );
+          break;
+        case 2:
+          normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
+          normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
+          break;
+        case 3:
+          normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
+            document._bloc_occultation,
+          );
+          normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
+          break;
+      }
+    }
+
     if (!normalizedDecision.originalText) {
       throw new Error(`JuricaUtils.Normalize: Document '${normalizedDecision.sourceId}' has no text.`);
     }
 
+    if (normalizedDecision.pseudoText) {
+      try {
+        const zoning = await Juritools.GetZones(
+          normalizedDecision.sourceId,
+          normalizedDecision.sourceName,
+          normalizedDecision.pseudoText,
+        );
+        if (zoning && !zoning.detail) {
+          normalizedDecision.zoning = zoning;
+        }
+      } catch (e) {
+        normalizedDecision.zoning = undefined;
+      }
+    }
+
     return normalizedDecision;
+  }
+
+  static GetDecisionNumberForIndexing(decision) {
+    let number = null;
+    try {
+      number = [decision.registerNumber.split(' ')[0]];
+    } catch (e) {}
+    if (Array.isArray(number)) {
+      number = number.map((x) => {
+        return `${x}`;
+      });
+      number.sort((a, b) => {
+        a = parseInt(a.replace(/\D/gm, '').trim(), 10);
+        b = parseInt(b.replace(/\D/gm, '').trim(), 10);
+        if (a < b) {
+          return -1;
+        }
+        if (a > b) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+    return number;
+  }
+
+  static GetDecisionDateForIndexing(date) {
+    let dateForIndexing = null;
+    try {
+      date = new Date(Date.parse(date));
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+      date.setHours(date.getHours() + 2);
+      dateForIndexing = date.getFullYear() + '-';
+      dateForIndexing += (date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+      dateForIndexing += date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+    } catch (e) {
+      dateForIndexing = null;
+    }
+    return dateForIndexing;
   }
 
   static async GetJurinetDuplicate(id) {
@@ -248,9 +1155,155 @@ class JuricaUtils {
         found = jurinetDoc._id;
       }
     }
+    await cursor.close();
     await client.close();
     return found;
   }
+
+  /* should not be needed anymore
+  static async ImportDecatt(id, juricaSource, rawJurica, decisions) {
+    const { JudilibreIndex } = require('./judilibre-index');
+
+    let hasChanges = false;
+    try {
+      let row = await juricaSource.getDecisionByID(id);
+      if (row && row._id && row.IND_ANO === 0) {
+        let duplicate = false;
+        let duplicateId = null;
+        try {
+          duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
+          if (duplicateId !== null) {
+            duplicateId = `jurinet:${duplicateId}`;
+            duplicate = true;
+          } else {
+            duplicate = false;
+          }
+        } catch (e) {
+          duplicate = false;
+        }
+        let raw = await rawJurica.findOne({ _id: row._id });
+        if (raw === null) {
+          row._indexed = null;
+          await rawJurica.insertOne(row, { bypassDocumentValidation: true });
+          await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica (decatt)');
+          hasChanges = true;
+          // import stuff
+        } else {
+          row._indexed = null;
+          await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+          await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'update in rawJurica (decatt)');
+        }
+        let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+        if (normalized === null) {
+          const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            row.JDEC_CODNAC,
+            row.JDEC_CODNACPART,
+            row.JDEC_IND_DEC_PUB,
+          );
+          if (duplicate === false && ShouldBeSentToJudifiltre === true) {
+            // XXX TEMP BEGIN
+            let normDec = await JuricaUtils.Normalize(row);
+            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+            normDec._version = decisionsVersion;
+            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normDec._id = insertResult.insertedId;
+            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
+            // XXX TEMP END
+            TOO EARLY
+            try {
+              const judifiltreResult = await Judifiltre.SendBatch([
+                {
+                  sourceId: row._id,
+                  sourceDb: 'jurica',
+                  decisionDate: row.JDEC_DATE,
+                  jurisdictionName: row.JDEC_CODE_JURIDICTION,
+                  fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
+                  publicityClerkRequest:
+                    row.JDEC_IND_DEC_PUB === null
+                      ? 'unspecified'
+                      : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
+                      ? 'public'
+                      : 'notPublic',
+                },
+              ]);
+              await JudilibreIndex.updateJuricaDocument(
+                row,
+                duplicateId,
+                `submitted to Judifiltre (decatt): ${JSON.stringify(judifiltreResult)}`,
+              );
+            } catch (e) {
+              console.error(`Jurica import to Judifiltre error processing decision ${row._id} (decatt)`, e);
+              await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
+            }
+            hasChanges = true;
+          }
+        } else {
+          let normDec = await JuricaUtils.Normalize(row, normalized);
+          normDec._version = decisionsVersion;
+          await decisions.replaceOne({ _id: normalized._id }, normDec, {
+            bypassDocumentValidation: true,
+          });
+          normDec._id = normalized._id;
+          await JudilibreIndex.updateDecisionDocument(normDec, duplicateId, 'update in decisions (decatt)');
+        }
+        await juricaSource.markAsImported(row._id);
+      }
+    } catch (e) {
+      console.error(`Could not process decatt ${id}`, e);
+      try {
+        await juricaSource.markAsErroneous(id);
+      } catch (e) {}
+    }
+
+    return hasChanges;
+  }
+  */
+}
+
+function ConvertOccultationBlockInCategoriesToOmit(occultationBlock) {
+  let categoriesToOmit = ['professionnelMagistratGreffier'];
+  if (occultationBlock >= 1 && occultationBlock <= 4) {
+    switch (occultationBlock) {
+      case 2:
+        categoriesToOmit.push('dateNaissance', 'dateMariage', 'dateDeces');
+        break;
+      case 3:
+        categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
+        break;
+      case 4:
+        categoriesToOmit.push('dateNaissance', 'dateMariage', 'dateDeces', 'personneMorale', 'numeroSiretSiren');
+        break;
+    }
+  } else {
+    categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
+  }
+  return categoriesToOmit;
+}
+
+function GetAllCategoriesToOmit() {
+  return [
+    'dateNaissance',
+    'dateMariage',
+    'dateDeces',
+    'insee',
+    'professionnelMagistratGreffier',
+    'personneMorale',
+    'etablissement',
+    'numeroSiretSiren',
+    'adresse',
+    'localite',
+    'telephoneFax',
+    'email',
+    'siteWebSensible',
+    'compteBancaire',
+    'cadastre',
+    'plaqueImmatriculation',
+  ];
 }
 
 exports.JuricaUtils = JuricaUtils;
+
+exports.ConvertOccultationBlockInCategoriesToOmit = ConvertOccultationBlockInCategoriesToOmit;

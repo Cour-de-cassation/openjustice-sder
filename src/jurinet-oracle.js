@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const iconv = require('iconv-lite');
 const oracledb = require('oracledb');
+const e = require('express');
 
 iconv.skipDecodeWarning = true;
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
@@ -226,6 +227,94 @@ class JurinetOracle {
         } catch (e) {
           data['_bloc_occultation'] = null;
         }
+
+        try {
+          // Inject "nature affaire" data (if any) into the document:
+          let numPourvoiCode;
+          let resultRow;
+          let civilNatCont = null;
+          let penalNatCont = null;
+          let civilNatId = null;
+          let penalNatId = null;
+
+          let numPourvoiQuery = `SELECT *
+            FROM NUMPOURVOI
+            WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
+          let numPourvoiResult = await this.connection.execute(numPourvoiQuery, [row[process.env.DB_ID_FIELD]], {
+            resultSet: true,
+          });
+          let numPourvoiRs = numPourvoiResult.resultSet;
+          while ((resultRow = await numPourvoiRs.getRow())) {
+            numPourvoiCode = resultRow.NUMPOURVOICODE;
+          }
+          await numPourvoiRs.close();
+
+          if (numPourvoiCode) {
+            let civQuery = `SELECT *
+              FROM GPCIV.AFF
+              WHERE GPCIV.AFF.CODE = :code`;
+            let civResult = await this.connection.execute(civQuery, [numPourvoiCode], {
+              resultSet: true,
+            });
+            let civRs = civResult.resultSet;
+            while ((resultRow = await civRs.getRow())) {
+              civilNatCont = resultRow.ID_MATIERE;
+            }
+            await civRs.close();
+
+            let penQuery = `SELECT *
+              FROM GPPEN.AFF
+              WHERE GPPEN.AFF.CODE = :code`;
+            let penResult = await this.connection.execute(penQuery, [numPourvoiCode], {
+              resultSet: true,
+            });
+            let penRs = penResult.resultSet;
+            while ((resultRow = await penRs.getRow())) {
+              penalNatCont = resultRow.ID_NATAFF;
+            }
+            await penRs.close();
+          }
+
+          if (civilNatCont) {
+            let finalCivilQuery = `SELECT *
+              FROM GRCIV.MATIERE
+              WHERE GRCIV.MATIERE.ID_MATIERE = :code`;
+            let finalCivilResult = await this.connection.execute(finalCivilQuery, [civilNatCont], {
+              resultSet: true,
+            });
+            let finalCivilRs = finalCivilResult.resultSet;
+            while ((resultRow = await finalCivilRs.getRow())) {
+              civilNatId = resultRow.ID_NATAFF;
+            }
+            await finalCivilRs.close();
+          }
+
+          if (penalNatCont) {
+            const { PenalOracle } = require('./penal-oracle');
+            const penalSource = new PenalOracle();
+            await penalSource.connect();
+            let finalPenalQuery = `SELECT *
+              FROM GRPEN.NATAFF
+              WHERE GRPEN.NATAFF.ID_NATAFF = :code`;
+            let finalPenalRrsult = await penalSource.connection.execute(finalPenalQuery, [penalNatCont], {
+              resultSet: true,
+            });
+            let finalPenalRs = finalPenalRrsult.resultSet;
+            while ((resultRow = await finalPenalRs.getRow())) {
+              penalNatId = resultRow.ID_NATAFF;
+            }
+            await finalPenalRs.close();
+            await penalSource.close();
+          }
+
+          data['_natureAffaireCivil'] = civilNatId;
+          data['_natureAffairePenal'] = penalNatId;
+          data['_codeMatiereCivil'] = civilNatCont;
+        } catch (e) {
+          data['_natureAffaireCivil'] = null;
+          data['_natureAffairePenal'] = null;
+          data['_codeMatiereCivil'] = null;
+        }
       }
 
       return data;
@@ -258,7 +347,7 @@ class JurinetOracle {
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
         AND ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} IS NULL
-        AND (${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 0 OR ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 4)
+        AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 0
         AND ${process.env.DB_TABLE}.DT_CREATION >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
 
@@ -285,6 +374,83 @@ class JurinetOracle {
       }
     } else {
       throw new Error('Jurinet.getNew: not connected.');
+    }
+  }
+
+  async getFaulty() {
+    if (this.connected === true && this.connection !== null) {
+      const query = `SELECT *
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
+        AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 4
+        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} DESC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        if (this.filter(resultRow)) {
+          rows.push(await this.buildRawData(resultRow, true));
+        }
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurinet.getFaulty: not connected.');
+    }
+  }
+
+  /**
+   * Get all decisions from Jurinet that have been modified since the given date.
+   *
+   * @returns {Array} An array of documents (with UTF-8 encoded content)
+   */
+  async getModifiedSince(date) {
+    if (this.connected === true && this.connection !== null) {
+      let strDate = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+      strDate += '/' + (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
+      strDate += '/' + date.getFullYear();
+
+      const query = `SELECT *
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
+        AND ${process.env.DB_TABLE}.DT_MODIF > TO_DATE('${strDate}', 'DD/MM/YYYY')
+        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
+
+      const result = await this.connection.execute(query, [], {
+        resultSet: true,
+      });
+
+      const rs = result.resultSet;
+      let rows = [];
+      let resultRow;
+
+      while ((resultRow = await rs.getRow())) {
+        if (this.filter(resultRow)) {
+          rows.push(await this.buildRawData(resultRow, true));
+        }
+      }
+
+      await rs.close();
+
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return null;
+      }
+    } else {
+      throw new Error('Jurinet.getModifiedSince: not connected.');
     }
   }
 
@@ -560,17 +726,26 @@ class JurinetOracle {
     if (!id) {
       throw new Error(`Jurinet.getDecatt: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
+      /*
+      const { GRCOMOracle } = require('./grcom-oracle');
+      const GRCOMSource = new GRCOMOracle();
+      await GRCOMSource.connect();
+      */
       // 1. Get the decision from Jurinet:
       const decisionQuery = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-      const decisionResult = await this.connection.execute(decisionQuery, [id]);
+      const decisionResult = await this.connection.execute(decisionQuery, [id], {
+        resultSet: false,
+      });
       if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
         // 2. Get the pourvoi related to the decision:
         const pourvoiQuery = `SELECT *
           FROM NUMPOURVOI
           WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
-        const pourvoiResult = await this.connection.execute(pourvoiQuery, [id]);
+        const pourvoiResult = await this.connection.execute(pourvoiQuery, [id], {
+          resultSet: false,
+        });
         if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
           // 3. Get the affaire related to the pourvoi:
           const pourvoi = pourvoiResult.rows[0];
@@ -578,17 +753,26 @@ class JurinetOracle {
           const affaireQuery = `SELECT *
             FROM GPCIV.AFF
             WHERE GPCIV.AFF.CODE = :code`;
-          const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi]);
+          const affaireResult = await this.connection.execute(affaireQuery, [codePourvoi], {
+            resultSet: false,
+          });
           if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
             // 4. Get the contested decision related to the affaire:
             const affaire = affaireResult.rows[0];
+            const id_elmstr = affaire['ID_ELMSTR'];
             const idAffaire = affaire['ID_AFFAIRE'];
             const decattQuery = `SELECT *
               FROM GPCIV.DECATT
               WHERE GPCIV.DECATT.ID_AFFAIRE = :id`;
-            const decattResult = await this.connection.execute(decattQuery, [idAffaire]);
+            const decattResult = await this.connection.execute(decattQuery, [idAffaire], {
+              resultSet: false,
+            });
             if (decattResult && decattResult.rows && decattResult.rows.length > 0) {
-              return decattResult.rows[0];
+              for (let jj = 0; jj < decattResult.rows.length; jj++) {
+                decattResult.rows[jj]['ID_DOCUMENT'] = id;
+                decattResult.rows[jj]['ID_ELMSTR'] = id_elmstr;
+              }
+              return decattResult.rows;
             } else {
               throw new Error(
                 `Jurinet.getDecatt: contested decision not found in GPVIV.DECATT for affaire '${idAffaire}'.`,

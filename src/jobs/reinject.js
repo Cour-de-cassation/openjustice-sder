@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JuricaOracle } = require('../jurica-oracle');
+const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -57,30 +58,39 @@ async function reinjectJurinet() {
   let decision,
     successCount = 0,
     errorCount = 0;
-  const cursor = await decisions.find({ labelStatus: 'done', sourceName: 'jurinet' }, { allowDiskUse: true }).sort({ sourceId: -1});
+  const cursor = await decisions
+    .find({ labelStatus: 'done', sourceName: 'jurinet' }, { allowDiskUse: true })
+    .sort({ sourceId: -1 });
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
-	      console.log(`reinject decision ${decision.sourceId}...`)
+        console.log(`reinject decision ${decision.sourceId}...`);
         await jurinetSource.reinject(decision);
         const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;
+        reinjected.DT_ANO = new Date();
+        reinjected.DT_MODIF = new Date();
+        reinjected.DT_MODIF_ANO = new Date();
         await rawJurinet.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
         // The labelStatus of the decision goes from 'done' to 'exported'.
         // We don't do this in the 'reinject' method because we may need
         // to reinject some decisions independently of the Label workflow:
         decision.labelStatus = 'exported';
+        decision.dateCreation = new Date().toISOString();
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
+        await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         successCount++;
       }
     } catch (e) {
       console.error(`Jurinet reinjection error processing decision ${decision._id}`, e);
+      await JudilibreIndex.updateDecisionDocument(decision, null, null, e);
       errorCount++;
     }
   }
   console.log(`Jurinet reinjection done (success: ${successCount}, errors: ${errorCount}).`);
+  await cursor.close();
   await jurinetSource.close();
   await client.close();
   return true;
@@ -114,17 +124,21 @@ async function reinjectJurica() {
         // We don't do this in the 'reinject' method because we may need
         // to reinject some decisions independently of the Label workflow:
         decision.labelStatus = 'exported';
+        decision.dateCreation = new Date().toISOString();
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
+        await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         successCount++;
       }
     } catch (e) {
       console.error(`Jurica reinjection error processing decision ${decision._id}`, e);
+      await JudilibreIndex.updateDecisionDocument(decision, null, null, e);
       errorCount++;
     }
   }
   console.log(`Jurica reinjection done (success: ${successCount}, errors: ${errorCount}).`);
+  await cursor.close();
   await juricaSource.close();
   await client.close();
   return true;

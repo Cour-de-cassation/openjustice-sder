@@ -1,13 +1,12 @@
 // DILA entries:
-const SRC_ENTRIES = ['CASS', 'INCA']; // , 'CAPP'];
+const SRC_ENTRIES = ['CAPP']; //, 'INCA']; // ['CAPP']; // ['CASS', 'INCA'];
 // CASS: https://echanges.dila.gouv.fr/OPENDATA/CASS/
 // INCA: https://echanges.dila.gouv.fr/OPENDATA/INCA/
 // CAPP: https://echanges.dila.gouv.fr/OPENDATA/CAPP/
-// (ignore CAPP for now...)
 
 // Path where all the .tar.gz files of every DILA entry
 // have been downloaded, in their respective folder (CASS, INCA, CAPP):
-const SRC_DIR = 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\';
+const SRC_DIR = '/Users/phasme/Documents/DILA/'; // 'C:\\Users\\Sebastien.Courvoisie\\Desktop\\OPENDATA\\';
 
 const fs = require('fs');
 const path = require('path');
@@ -37,12 +36,17 @@ function kill(code) {
 async function prepare(source, then) {
   const readline = require('readline');
   const { DilaUtils } = require('../dila-utils');
+  const { Juritools } = require('../juritools');
 
   let newCount = 0;
   let errorCount = 0;
 
-  if (!fs.existsSync(path.join(__dirname, 'data', `DILA_${source}`))) {
-    fs.mkdirSync(path.join(__dirname, 'data', `DILA_${source}`));
+  if (!fs.existsSync(path.join(__dirname, 'data', `DILA_${source}_raw`))) {
+    fs.mkdirSync(path.join(__dirname, 'data', `DILA_${source}_raw`));
+  }
+
+  if (!fs.existsSync(path.join(__dirname, 'data', `DILA_${source}_normalized`))) {
+    fs.mkdirSync(path.join(__dirname, 'data', `DILA_${source}_normalized`));
   }
 
   const stockFilePath = path.join(__dirname, 'data', `dila_import_${source}.json`);
@@ -88,6 +92,7 @@ async function prepare(source, then) {
         SOMMAIRE: [],
         PRECEDENTS: [],
         TEXTES_APPLIQUES: [],
+        _indexed: null,
       };
       if (decision.META.META_SPEC.META_JURI_JUDI) {
         if (
@@ -254,15 +259,46 @@ async function prepare(source, then) {
           });
         }
       }
-      fs.writeFileSync(
-        path.join(__dirname, 'data', `DILA_${source}`, decisionToStore._id + '.json'),
-        JSON.stringify(decisionToStore, null, 2),
+      const normalized = await DilaUtils.Normalize(decisionToStore);
+      /*
+      console.log(`zoning ${decisionToStore._id}...`);
+      const t0 = new Date();
+      normalized.zoning = await Juritools.GetZones(
+        parseInt(`42${newCount}`),
+        'ca',
+        normalized.pseudoText,
+        'http://127.0.0.1:8000',
       );
-      fs.writeFileSync(
-        path.join(__dirname, 'data', `DILA_${source}`, decisionToStore._id + '_normalized.json'),
-        JSON.stringify(await DilaUtils.Normalize(decisionToStore), null, 2),
-      );
-      newCount++;
+      const t1 = new Date();
+      console.log(`zoned ${decisionToStore._id} in ${t1 - t0}.`);
+      */
+      if (
+        normalized &&
+        normalized.pseudoText &&
+        /wpc:/i.test(normalized.pseudoText) === false &&
+        normalized.pseudoText.length > 440 &&
+        normalized.jurisdictionCode === 'CA'
+      ) {
+        if (normalized.appeals && normalized.appeals.length > 0) {
+          normalized.registerNumber = normalized.appeals[0];
+        }
+        if (/r\W*g\W*\s?[:n]?[\s\\n]*\d+\s?\/\s?\d+/i.test(normalized.pseudoText)) {
+          normalized.registerNumber = /r\W*g\W*\s?[:n]?[\s\\n]*(\d+\s?\/\s?\d+)/i
+            .exec(normalized.pseudoText)[1]
+            .replace(/\s/gim, '')
+            .replace(/[a-z]/gim, '')
+            .trim();
+        }
+        fs.writeFileSync(
+          path.join(__dirname, 'data', `DILA_${source}_raw`, decisionToStore._id + '.json'),
+          JSON.stringify(decisionToStore, null, 2),
+        );
+        fs.writeFileSync(
+          path.join(__dirname, 'data', `DILA_${source}_normalized`, decisionToStore._id + '.json'),
+          JSON.stringify(normalized, null, 2),
+        );
+        newCount++;
+      }
     } catch (e) {
       console.error(e);
       errorCount++;
@@ -356,9 +392,10 @@ function flatten(src, dest) {
 
 function processUntar(source, then) {
   const schema = {};
+  const history = {};
   const walk = require('walkdir');
   const { DilaUtils } = require('../dila-utils');
-  const basePath = `${SRC_DIR}${source}\\extract`;
+  const basePath = path.join(`${SRC_DIR}${source}`, 'extract');
   fs.writeFileSync(path.join(__dirname, 'data', `dila_import_${source}.json`), '');
   let successCount = 0;
   let errorCount = 0;
@@ -371,7 +408,16 @@ function processUntar(source, then) {
       let jsonDocument = DilaUtils.XMLToJSON(xmlDocument, {
         filter: false,
       });
-      flatten(jsonDocument, schema);
+      // flatten(jsonDocument, schema);
+      /*
+      try {
+        const year = jsonDocument.META.META_SPEC.META_JURI.DATE_DEC.split('-')[0];
+        if (history[year] === undefined) {
+          history[year] = 0;
+        }
+        history[year]++;
+      } catch (ignore) {}
+      */
       fs.appendFileSync(
         path.join(__dirname, 'data', `dila_import_${source}.json`),
         JSON.stringify(jsonDocument) + '\r\n',
@@ -387,7 +433,8 @@ function processUntar(source, then) {
     console.log(`Success count (${source}): ${successCount}.`);
     console.log(`Error count (${source}): ${errorCount}.`);
     console.log(`Exit processUntar (${source}).`);
-    fs.writeFileSync(path.join(__dirname, 'data', `dila_schema_${source}.json`), JSON.stringify(schema, null, 2));
+    // fs.writeFileSync(path.join(__dirname, 'data', `dila_schema_${source}.json`), JSON.stringify(schema, null, 2));
+    // fs.writeFileSync(path.join(__dirname, 'data', `dila_history_${source}.json`), JSON.stringify(history, null, 2));
     if (typeof then === 'function') {
       then();
     } else {
@@ -398,24 +445,31 @@ function processUntar(source, then) {
 
 function dico(source, then) {
   const dict = {
-    ORIGINE: [],
-    NATURE: [],
-    JURIDICTION: [],
-    SOLUTION: [],
-    PUB: [],
-    BULLETIN: [],
-    FORMATION: [],
-    FORM_DEC_ATT: [],
+    ORIGINE: {},
+    NATURE: {},
+    JURIDICTION: {},
+    SOLUTION: {},
+    //PUB: {},
+    //BULLETIN: {},
+    //FORMATION: {},
+    //FORM_DEC_ATT: {},
+    //NUMERO_AFFAIRE: {},
+    SIEGE_APPEL: {},
   };
-  const baseDir = path.join(__dirname, 'data', `DILA_${source}`);
+  const baseDir = path.join(__dirname, 'data', `DILA_${source}_raw`);
   const files = fs.readdirSync(baseDir);
   for (let i = 0; i < files.length; i++) {
-    if (/\.json$/.test(files[i]) === true && /normalized/.test(files[i]) === false) {
+    if (/\.json$/.test(files[i]) === true) {
       const data = JSON.parse(fs.readFileSync(path.join(baseDir, files[i])).toString());
       for (let key in dict) {
-        if (data[key] && dict[key].indexOf(data[key]) === -1) {
-          dict[key].push(data[key]);
+        let datum = data[key];
+        if (Array.isArray(datum)) {
+          datum = datum[0];
         }
+        if (datum && dict[key][datum] === undefined) {
+          dict[key][datum] = 0;
+        }
+        dict[key][datum]++;
       }
     }
   }
@@ -462,13 +516,14 @@ async function store(source) {
         let insertOrUpdate = false;
         if (decisionToStore.NUMERO) {
           let alreadyFromJurinet = await decisions.findOne({
-            registerNumber: decisionToStore.NUMERO,
+            registerNumber: `${decisionToStore.NUMERO}`,
             sourceName: 'jurinet',
           });
           if (alreadyFromJurinet === null) {
             console.log(`Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) not found in Jurinet: add.`);
             insertOrUpdate = true;
           } else {
+            // @TODO check if pseudonimized and published
             console.log(
               `Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) already in Jurinet as ${alreadyFromJurinet.sourceId}: skip.`,
             );
@@ -549,6 +604,7 @@ function importDila() {
           // 2. Process XML files:
           try {
             processUntar(source, function () {
+              console.log(`source ${source} done.`);
               // 3. Prepare decisions to store in DB:
               try {
                 prepare(source, function () {
@@ -605,6 +661,6 @@ async function storeDila() {
   setTimeout(end, ms('1s'));
 }
 
-// importDila();
+importDila();
 // buildDico();
-storeDila();
+// storeDila();

@@ -1,21 +1,31 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+if (process.env.SKIP_JOBS) {
+  process.exit(0);
+}
+
 const Graceful = require('@ladjs/graceful');
 const Bree = require('bree');
-const path = require('path');
 
 const bree = new Bree({
   root: path.join(__dirname, 'jobs'),
   jobs: [
     {
+      name: 'buildAffaires',
+      interval: 'every 1 minute after 3:00am and before 11:00pm',
+    },
+    {
       name: 'import',
-      interval: 'every 13 minutes after 8:00am and before 12:00pm',
+      interval: 'every 11 minutes after 8:00am and before 12:00pm',
     },
     {
       name: 'reinject',
-      interval: 'at 1:45pm also at 9:00 pm',
+      interval: 'every 5 minutes after 1:00pm and before 8:00pm',
     },
     {
-      name: 'sync',
-      interval: 'every 23 minutes after 9:00am and before 9:00pm',
+      name: 'sync2',
+      interval: 'every 17 minutes after 9:00am and before 7:00pm',
     },
   ],
 });

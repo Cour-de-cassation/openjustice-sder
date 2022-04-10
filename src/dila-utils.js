@@ -177,7 +177,8 @@ class DilaUtils {
     ],
     */
     if (jurisdictionName) {
-      switch (jurisdictionName.toLowerCase()) {
+      jurisdictionName = `${jurisdictionName}`.toLowerCase();
+      switch (jurisdictionName) {
         case 'cour de cassation':
           code = 'CC';
           break;
@@ -188,7 +189,11 @@ class DilaUtils {
           code = 'TGI';
           break;
         default:
-          code = 'OTHER';
+          if (jurisdictionName.indexOf('appel') !== -1) {
+            code = 'CA';
+          } else {
+            code = 'OTHER';
+          }
       }
     } else {
       code = 'OTHER';
@@ -197,6 +202,8 @@ class DilaUtils {
   }
 
   static async Normalize(document, previousVersion) {
+    const now = new Date();
+
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
       _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
@@ -209,8 +216,8 @@ class DilaUtils {
       chamberName: undefined,
       registerNumber: document.NUMERO,
       pubCategory: document.PUB ? 'P' : 'N',
-      dateDecision: new Date(Date.parse(document.DATE_DEC)),
-      dateCreation: new Date(),
+      dateDecision: new Date(Date.parse(document.DATE_DEC)).toISOString(),
+      dateCreation: now.toISOString(),
       solution: document.SOLUTION,
       originalText: undefined,
       pseudoText: document.TEXTE,
@@ -246,7 +253,11 @@ class DilaUtils {
       blocOccultation: undefined,
       endCaseCode: null,
       NACCode: null,
+      NPCode: null,
       public: true,
+      natureAffaireCivil: null,
+      natureAffairePenal: null,
+      codeMatiereCivil: null,
     };
 
     return normalizedDecision;
