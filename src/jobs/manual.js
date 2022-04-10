@@ -121,6 +121,7 @@ async function processJurinet(status) {
         skipped++;
       }
     }
+    await cursor.close();
     cont = hasData;
     skip += 100;
   }

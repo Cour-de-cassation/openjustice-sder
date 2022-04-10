@@ -49,6 +49,7 @@ Pour toute décision provenant de JuriCA :
    1. Doit-elle être soumise à Judifiltre ?
 
       - **OUI** si une anomalie a été remontée lors de l'application des critères précédents **OU** si le statut de la décision est contradictoire même sans anomalie détectée (par exemple : décision à la fois publique et non-publique, dans le cas où les critères qu'on a formalisés seraient incomplets ou contiendraient des failles) **OU** si la décision est partiellement publique (pour validation manuelle des critères et du texte abrégé) ;
-      - **NON** dans les autres cas (décision explicitement publique ou non-publique).
+      - **NON** dans les autres cas (décision explicitement publique).
 
-   1. Si la décision n'est pas soumise à Judifiltre, alors elle est directement intégrée dans la base SDER (`decisions`) et rendue disponible pour un traitement par Label.
+   1. Si la décision n'est pas soumise à Judifiltre (décision explicitement publique et sans anomalie), alors elle est directement intégrée dans la base SDER (`decisions`) et rendue disponible pour un traitement par Label.
+   1. Ultérieurement, les décisions soumises à Judifiltre et ayant été validées comme étant publiques (ou partiellement publiques) sont intégrées dans la base SDER (`decisions`) et rendues disponibles pour un traitement par Label. Les décisions invalidées par Judifiltre (considérées donc comme étant non-publiques _a posteriori_) sont quant à elles supprimées de la base de travail "brute" (`rawJurica`).

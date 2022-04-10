@@ -60,7 +60,6 @@ async function syncJurinet() {
 
   await jurinetSource.connect();
   const jurinetResult = await jurinetSource.getModifiedSince(jurinetLastDate.toJSDate());
-  await jurinetSource.close();
 
   if (jurinetResult) {
     const client = new MongoClient(process.env.MONGO_URI, {
@@ -75,6 +74,17 @@ async function syncJurinet() {
     const raw = database.collection(process.env.MONGO_JURINET_COLLECTION);
     const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+    const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
+      useUnifiedTopology: true,
+    });
+    await jIndexConnection.connect();
+    const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
+    const jIndexMain = jIndexClient.collection('mainIndex');
+    const jIndexAffaires = jIndexClient.collection('affaires');
+
+    const GRCOMSource = new GRCOMOracle();
+    await GRCOMSource.connect();
 
     console.log(`Syncing Jurinet (${jurinetResult.length} decisions modified since ${jurinetLastDate.toISODate()})...`);
 
@@ -93,6 +103,16 @@ async function syncJurinet() {
         try {
           row._indexed = null;
           await raw.insertOne(row, { bypassDocumentValidation: true });
+          if (row['TYPE_ARRET'] === 'CC') {
+            await JurinetUtils.IndexAffaire(
+              row,
+              jIndexMain,
+              jIndexAffaires,
+              rawJurica,
+              jurinetSource.connection,
+              GRCOMSource.connection,
+            );
+          }
           newCount++;
           if (row['TYPE_ARRET'] !== 'CC') {
             wincicaCount++;
@@ -184,6 +204,16 @@ async function syncJurinet() {
           try {
             row._indexed = null;
             await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+            if (row['TYPE_ARRET'] === 'CC') {
+              await JurinetUtils.IndexAffaire(
+                row,
+                jIndexMain,
+                jIndexAffaires,
+                rawJurica,
+                jurinetSource.connection,
+                GRCOMSource.connection,
+              );
+            }
             updateCount++;
             if (row['TYPE_ARRET'] !== 'CC') {
               wincicaCount++;
@@ -274,6 +304,8 @@ async function syncJurinet() {
     }
 
     await juricaSource.close();
+    await jIndexConnection.close();
+    await GRCOMSource.close();
     await client.close();
 
     console.log(
@@ -284,6 +316,8 @@ async function syncJurinet() {
   }
 
   fs.writeFileSync(path.join(__dirname, 'data', 'jurinet.lastDate'), jurinetLastDate.toISO());
+
+  await jurinetSource.close();
 
   return true;
 }

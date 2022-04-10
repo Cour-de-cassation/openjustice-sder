@@ -1,7 +1,10 @@
 const parser = require('fast-xml-parser');
 const he = require('he');
 
+const { JuricaUtils } = require('./jurica-utils');
 const { Juritools } = require('./juritools');
+const { DateTime } = require('luxon');
+const { ObjectId } = require('mongodb');
 
 const parserOptions = {
   attributeNamePrefix: '$',
@@ -171,6 +174,184 @@ class JurinetUtils {
     } else {
       throw new Error(`JurinetUtils.XMLToJSON: Invalid XML document: ${valid}.`);
     }
+  }
+
+  static async IndexAffaire(doc, jIndexMain, jIndexAffaires, rawJurica, jurinetConnection, grcomConnection) {
+    const { JudilibreIndex } = require('./judilibre-index');
+    let res = 'done';
+    if (doc.DT_DECISION) {
+      let objAlreadyStored = await jIndexAffaires.findOne({ ids: `jurinet:${doc._id}` });
+      let objToStore = {
+        _id: objAlreadyStored !== null ? objAlreadyStored._id : new ObjectId(),
+        numbers: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers)) : [],
+        ids: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.ids)) : [],
+        affaires: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.affaires)) : [],
+        dates: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates)) : [],
+        jurisdictions: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.jurisdictions)) : [],
+        numbers_ids: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_ids)) : {},
+        numbers_dates: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_dates)) : {},
+        numbers_affaires:
+          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_affaires)) : {},
+        numbers_jurisdictions:
+          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_jurisdictions)) : {},
+        dates_jurisdictions:
+          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates_jurisdictions)) : {},
+      };
+      let date = new Date(Date.parse(doc.DT_DECISION.toISOString()));
+      date.setHours(date.getHours() + 2);
+      let dateForIndexing = date.getFullYear() + '-';
+      dateForIndexing += (date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+      dateForIndexing += date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+      if (objToStore.ids.indexOf(`jurinet:${doc._id}`) === -1) {
+        objToStore.ids.push(`jurinet:${doc._id}`);
+      }
+      if (objToStore.dates.indexOf(dateForIndexing) === -1) {
+        objToStore.dates.push(dateForIndexing);
+      }
+      if (objToStore.jurisdictions.indexOf('Cour de cassation') === -1) {
+        objToStore.jurisdictions.push('Cour de cassation');
+      }
+      objToStore.dates_jurisdictions[dateForIndexing] = 'Cour de cassation';
+      const pourvoiQuery = `SELECT LIB
+        FROM NUMPOURVOI
+        WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
+      const pourvoiResult = await jurinetConnection.execute(pourvoiQuery, [doc._id]);
+      if (pourvoiResult && pourvoiResult.rows && pourvoiResult.rows.length > 0) {
+        for (let ii = 0; ii < pourvoiResult.rows.length; ii++) {
+          if (objToStore.numbers.indexOf(pourvoiResult.rows[ii]['LIB']) === -1) {
+            objToStore.numbers.push(pourvoiResult.rows[ii]['LIB']);
+          }
+          objToStore.numbers_ids[pourvoiResult.rows[ii]['LIB']] = `jurinet:${doc._id}`;
+          objToStore.numbers_dates[pourvoiResult.rows[ii]['LIB']] = dateForIndexing;
+          objToStore.numbers_jurisdictions[pourvoiResult.rows[ii]['LIB']] = 'Cour de cassation';
+          const affaireQuery = `SELECT GPCIV.AFF.ID_AFFAIRE
+            FROM GPCIV.AFF
+            WHERE CONCAT(GPCIV.AFF.CLE, GPCIV.AFF.CODE) = :pourvoi`;
+          const affaireResult = await jurinetConnection.execute(affaireQuery, [pourvoiResult.rows[ii]['LIB']]);
+          if (affaireResult && affaireResult.rows && affaireResult.rows.length > 0) {
+            if (objToStore.affaires.indexOf(affaireResult.rows[0]['ID_AFFAIRE']) === -1) {
+              objToStore.affaires.push(affaireResult.rows[0]['ID_AFFAIRE']);
+            }
+            objToStore.numbers_affaires[pourvoiResult.rows[ii]['LIB']] = affaireResult.rows[0]['ID_AFFAIRE'];
+          }
+        }
+      }
+      if (objToStore.affaires.length > 0) {
+        for (let i = 0; i < objToStore.affaires.length; i++) {
+          const decattQuery = `SELECT GPCIV.AFF.ID_ELMSTR, GPCIV.DECATT.NUM_RG, GPCIV.DECATT.DT_DECATT
+            FROM GPCIV.DECATT, GPCIV.AFF
+            WHERE GPCIV.DECATT.ID_AFFAIRE = GPCIV.AFF.ID_AFFAIRE AND GPCIV.DECATT.ID_AFFAIRE = :id_affaire`;
+          const decattResult = await jurinetConnection.execute(decattQuery, [objToStore.affaires[i]]);
+          if (
+            decattResult &&
+            decattResult.rows &&
+            decattResult.rows.length > 0 &&
+            decattResult.rows[0]['ID_ELMSTR'] &&
+            decattResult.rows[0]['NUM_RG'] &&
+            decattResult.rows[0]['DT_DECATT']
+          ) {
+            let decattDate = new Date(Date.parse(decattResult.rows[0]['DT_DECATT']));
+            decattDate.setHours(decattDate.getHours() + 2);
+            let strDecatt = decattDate.getFullYear();
+            strDecatt +=
+              '-' + (decattDate.getMonth() + 1 < 10 ? '0' + (decattDate.getMonth() + 1) : decattDate.getMonth() + 1);
+            strDecatt += '-' + (decattDate.getDate() < 10 ? '0' + decattDate.getDate() : decattDate.getDate());
+            const GRCOMQuery = `SELECT LIB_ELM
+              FROM ELMSTR
+              WHERE ID_ELMSTR = :id_elmstr`;
+            const GRCOMResult = await grcomConnection.execute(GRCOMQuery, [decattResult.rows[0]['ID_ELMSTR']]);
+            if (GRCOMResult && GRCOMResult.rows && GRCOMResult.rows.length > 0) {
+              let decatt = null;
+              let RGTerms = ['', ''];
+              try {
+                RGTerms = `${decattResult.rows[0]['NUM_RG']}`.split('/');
+                RGTerms[0] = RGTerms[0].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+                RGTerms[1] = RGTerms[1].replace(/\D/gm, '').replace(/^0+/gm, '').trim();
+              } catch (ignore) {}
+              decatt = await rawJurica.findOne({
+                JDEC_NUM_RG: { $regex: `^0*${RGTerms[0]}/0*${RGTerms[1]}$` },
+                JDEC_JURIDICTION: JuricaUtils.GetJuricaLocationFromELMSTRLocation(GRCOMResult.rows[0]['LIB_ELM']),
+                JDEC_DATE: strDecatt,
+              });
+              if (decatt !== null) {
+                if (decatt.JDEC_NUM_RG !== decattResult.rows[0]['NUM_RG']) {
+                  decattResult.rows[0]['NUM_RG'] = decatt.JDEC_NUM_RG;
+                }
+                if (objToStore.numbers.indexOf(decattResult.rows[0]['NUM_RG']) === -1) {
+                  objToStore.numbers.push(decattResult.rows[0]['NUM_RG']);
+                }
+                if (objToStore.ids.indexOf(`jurica:${decatt._id}`) === -1) {
+                  objToStore.ids.push(`jurica:${decatt._id}`);
+                }
+                if (objToStore.dates.indexOf(strDecatt) === -1) {
+                  objToStore.dates.push(strDecatt);
+                }
+                if (objToStore.jurisdictions.indexOf(GRCOMResult.rows[0]['LIB_ELM']) === -1) {
+                  objToStore.jurisdictions.push(GRCOMResult.rows[0]['LIB_ELM']);
+                }
+                objToStore.numbers_ids[decattResult.rows[0]['NUM_RG']] = `jurica:${decatt._id}`;
+                objToStore.numbers_dates[decattResult.rows[0]['NUM_RG']] = strDecatt;
+                objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
+                objToStore.dates_jurisdictions[strDecatt] = GRCOMResult.rows[0]['LIB_ELM'];
+                objToStore.numbers_jurisdictions[decattResult.rows[0]['NUM_RG']] = GRCOMResult.rows[0]['LIB_ELM'];
+                res = 'decatt-found';
+              } else {
+                if (objToStore.numbers.indexOf(decattResult.rows[0]['NUM_RG']) === -1) {
+                  objToStore.numbers.push(decattResult.rows[0]['NUM_RG']);
+                }
+                if (objToStore.dates.indexOf(strDecatt) === -1) {
+                  objToStore.dates.push(strDecatt);
+                }
+                if (objToStore.jurisdictions.indexOf(GRCOMResult.rows[0]['LIB_ELM']) === -1) {
+                  objToStore.jurisdictions.push(GRCOMResult.rows[0]['LIB_ELM']);
+                }
+                objToStore.numbers_dates[decattResult.rows[0]['NUM_RG']] = strDecatt;
+                objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
+                objToStore.dates_jurisdictions[strDecatt] = GRCOMResult.rows[0]['LIB_ELM'];
+                objToStore.numbers_jurisdictions[decattResult.rows[0]['NUM_RG']] = GRCOMResult.rows[0]['LIB_ELM'];
+                res = 'decatt-not-found';
+              }
+            } else {
+              if (objToStore.numbers.indexOf(decattResult.rows[0]['NUM_RG']) === -1) {
+                objToStore.numbers.push(decattResult.rows[0]['NUM_RG']);
+              }
+              if (objToStore.dates.indexOf(strDecatt) === -1) {
+                objToStore.dates.push(strDecatt);
+              }
+              objToStore.numbers_dates[decattResult.rows[0]['NUM_RG']] = strDecatt;
+              objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
+              res = 'decatt-not-found';
+            }
+          } else {
+            res = 'no-decatt';
+          }
+        }
+        objToStore.dates.sort();
+        if (objAlreadyStored === null) {
+          await jIndexAffaires.insertOne(objToStore, { bypassDocumentValidation: true });
+        } else if (JSON.stringify(objToStore) !== JSON.stringify(objAlreadyStored)) {
+          await jIndexAffaires.replaceOne({ _id: objAlreadyStored._id }, objToStore, {
+            bypassDocumentValidation: true,
+          });
+        }
+      } else {
+        res = 'no-affaire';
+      }
+      for (let jj = 0; jj < objToStore.ids.length; jj++) {
+        if (objToStore.ids[jj] === `jurinet:${doc._id}`) {
+          const found = await jIndexMain.findOne({ _id: objToStore.ids[jj] });
+          if (found === null) {
+            const indexedDoc = await JudilibreIndex.buildJurinetDocument(doc);
+            const lastOperation = DateTime.fromJSDate(new Date());
+            indexedDoc.lastOperation = lastOperation.toISODate();
+            await jIndexMain.insertOne(indexedDoc, { bypassDocumentValidation: true });
+          }
+        }
+      }
+    } else {
+      res = 'no-data';
+    }
+    return res;
   }
 
   static async Normalize(document, previousVersion, ignorePreviousContent) {
@@ -481,6 +662,55 @@ class JurinetUtils {
     return normalizedDecision;
   }
 
+  static ParseMonth(str) {
+    str = str.toLowerCase();
+    let month = 0;
+    switch (str.substring(0, 3)) {
+      case 'jan':
+        month = 1;
+        break;
+      case 'fev':
+      case 'fév':
+        month = 2;
+        break;
+      case 'mar':
+        month = 3;
+        break;
+      case 'avr':
+        month = 4;
+        break;
+      case 'mai':
+        month = 5;
+        break;
+      case 'jui':
+      case 'jul':
+        if (str.indexOf('l') !== -1) {
+          month = 7;
+        } else {
+          month = 6;
+        }
+        break;
+      case 'aou':
+      case 'aoû':
+        month = 8;
+        break;
+      case 'sep':
+        month = 9;
+        break;
+      case 'oct':
+        month = 10;
+        break;
+      case 'nov':
+        month = 11;
+        break;
+      case 'dec':
+      case 'déc':
+        month = 12;
+        break;
+    }
+    return month;
+  }
+
   static GetDecisionNumberForIndexing(decision, zoning) {
     let number = null;
     if (
@@ -534,6 +764,32 @@ class JurinetUtils {
   }
 }
 
+function ConvertOccultationBlockInCategoriesToOmit({occultationBlock, chamberId}) {
+  let categoriesToOmit = ['professionnelMagistratGreffier'];
+  if (occultationBlock >= 1 && occultationBlock <= 4) {
+    switch (occultationBlock) {
+      case 2:
+        categoriesToOmit.push('dateNaissance', 'dateMariage', 'dateDeces');
+        break;
+      case 3:
+        categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
+        break;
+      case 4:
+        categoriesToOmit.push(
+          'dateNaissance',
+          'dateMariage',
+          'dateDeces',
+          'personneMorale',
+          'numeroSiretSiren',
+        );
+        break;
+    }
+  } else if(chamberId !== "CR"){
+    categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
+  }
+  return categoriesToOmit;
+}
+
 function ConvertKeysToLowerCase(obj) {
   let output = {};
   for (let i in obj) {
@@ -573,3 +829,5 @@ function HtmlDecode(obj) {
 }
 
 exports.JurinetUtils = JurinetUtils;
+
+exports.ConvertOccultationBlockInCategoriesToOmit = ConvertOccultationBlockInCategoriesToOmit

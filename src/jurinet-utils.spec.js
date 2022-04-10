@@ -1,4 +1,5 @@
 const JurinetUtils = require('./jurinet-utils').JurinetUtils;
+const ConvertOccultationBlockInCategoriesToOmit = require('./jurinet-utils').ConvertOccultationBlockInCategoriesToOmit;
 
 describe('JurinetUtils', () => {
   describe('CleanXML', () => {
@@ -19,7 +20,81 @@ describe('JurinetUtils', () => {
       expect(cleanedXml).toEqual(buildJurinetXml([textArrets.join(' ')]));
     });
   });
+
 });
+
+describe('ConvertOccultationBlockInCategoriesToOmit', () => {
+  it('should return categories for block 1', () => {
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : 1, chamberId: "SOC"});
+
+    expect(categoriesToOmit.sort()).toEqual(
+      ['professionnelMagistratGreffier'].sort(),
+    );
+  });
+
+  it('should return categories for block 2', () => {
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : 2, chamberId: "SOC"});
+
+    expect(categoriesToOmit.sort()).toEqual(
+      [
+        'professionnelMagistratGreffier',
+        'dateNaissance',
+        'dateMariage',
+        'dateDeces',
+      ].sort(),
+    );
+  });
+
+  it('should return categories for block 3', () => {
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : 3, chamberId: "SOC"});
+
+    expect(categoriesToOmit.sort()).toEqual(
+      [
+        'professionnelMagistratGreffier',
+        'personneMorale',
+        'numeroSiretSiren',
+      ].sort(),
+    );
+  });
+
+  it('should return categories for block 4', () => {
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : 4, chamberId: "SOC"});
+
+    expect(categoriesToOmit.sort()).toEqual(
+      [
+        'professionnelMagistratGreffier',
+        'dateNaissance',
+        'dateMariage',
+        'dateDeces',
+        'personneMorale',
+        'numeroSiretSiren',
+      ].sort(),
+    );
+  });
+
+  it('should return categories for block null', () => {
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : null, chamberId: "SOC"});
+
+    expect(categoriesToOmit.sort()).toEqual(
+      [
+        'professionnelMagistratGreffier',
+        'personneMorale',
+        'numeroSiretSiren',
+      ].sort(),
+    );
+  });
+
+  it('should return categories for block 1 if chambre criminelle', () => {
+    const categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit({occultationBlock : null, chamberId: "CR"});
+
+    expect(categoriesToOmit.sort()).toEqual(
+      [
+        'professionnelMagistratGreffier',
+      ].sort(),
+    );
+  });
+});
+
 
 function buildJurinetXml(textArrets) {
   const textArretsWithTags = textArrets.map((textArret) => `<TEXTE_ARRET>${textArret}</TEXTE_ARRET>`);

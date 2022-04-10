@@ -86,6 +86,7 @@ async function check(id) {
           mngDecisions.push(decision);
         }
       }
+      await cursor.close();
       result.mongodb.decisions = mngDecisions;
     } catch (e) {
       result.mongodb.decisions = null;

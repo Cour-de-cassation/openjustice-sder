@@ -5,6 +5,7 @@ const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JurinetUtils } = require('../jurinet-utils');
 const { JuricaOracle } = require('../jurica-oracle');
+const { GRCOMOracle } = require('../grcom-oracle');
 const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
@@ -37,19 +38,19 @@ function kill(code) {
 async function main() {
   console.log('OpenJustice - Start "import" job:', new Date().toLocaleString());
   try {
-    await importJurinet();
+    // await importJurinet();
   } catch (e) {
     console.error('Jurinet import error', e);
   }
   try {
-    await importJurica();
+    // await importJurica();
   } catch (e) {
     console.error('Jurica import error', e);
   }
   try {
-    // await importJudifiltre();
+    await importJudifiltre();
   } catch (e) {
-    console.error('Jurica import error', e);
+    console.error('Judifiltre import error', e);
   }
   console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
@@ -64,6 +65,17 @@ async function importJurinet() {
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
+    useUnifiedTopology: true,
+  });
+  await jIndexConnection.connect();
+  const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
+  const jIndexMain = jIndexClient.collection('mainIndex');
+  const jIndexAffaires = jIndexClient.collection('affaires');
+
+  const GRCOMSource = new GRCOMOracle();
+  await GRCOMSource.connect();
 
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
@@ -86,6 +98,16 @@ async function importJurinet() {
           row._indexed = null;
           await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJurinetDocument(row, null, 'import in rawJurinet');
+          if (row['TYPE_ARRET'] === 'CC') {
+            await JurinetUtils.IndexAffaire(
+              row,
+              jIndexMain,
+              jIndexAffaires,
+              rawJurica,
+              jurinetSource.connection,
+              GRCOMSource.connection,
+            );
+          }
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
           if (normalized === null) {
             let normDec = await JurinetUtils.Normalize(row);
@@ -122,8 +144,10 @@ async function importJurinet() {
 
   console.log(`Done Importing Jurinet - New: ${newCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`);
   await client.close();
+  await jIndexConnection.close();
   await jurinetSource.close();
   await juricaSource.close();
+  await GRCOMSource.close();
   return true;
 }
 
@@ -136,6 +160,17 @@ async function importJurica() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
 
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION); // XXX TEMP
+
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
+    useUnifiedTopology: true,
+  });
+  await jIndexConnection.connect();
+  const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
+  const jIndexMain = jIndexClient.collection('mainIndex');
+  const jIndexAffaires = jIndexClient.collection('affaires');
+
+  const jurinetSource = new JurinetOracle();
+  await jurinetSource.connect();
 
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
@@ -198,6 +233,7 @@ async function importJurica() {
                 );
               }
               try {
+                // @TODO WHAT???
                 zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
                 if (!zoning || zoning.detail) {
                   throw new Error(
@@ -266,6 +302,7 @@ async function importJurica() {
             }
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
+            await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
             const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
@@ -309,29 +346,29 @@ async function importJurica() {
                 await juricaSource.markAsErroneous(row._id);
                 errorCount++;
               }
-            } // else {
-            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-            if (normalized === null) {
-              let normDec = await JuricaUtils.Normalize(row);
-              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-              normDec._version = decisionsVersion;
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normDec._id = insertResult.insertedId;
-              await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
-              await juricaSource.markAsImported(row._id);
-              newCount++;
             } else {
-              console.warn(
-                `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
-              );
-              await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
-              await juricaSource.markAsImported(row._id);
-              errorCount++;
+              let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+              if (normalized === null) {
+                let normDec = await JuricaUtils.Normalize(row);
+                normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+                normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+                normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+                normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+                normDec._version = decisionsVersion;
+                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                normDec._id = insertResult.insertedId;
+                await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+                await juricaSource.markAsImported(row._id);
+                newCount++;
+              } else {
+                console.warn(
+                  `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
+                );
+                await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
+                await juricaSource.markAsImported(row._id);
+                errorCount++;
+              }
             }
-            // }
           } else {
             console.warn(
               `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
@@ -362,7 +399,9 @@ async function importJurica() {
     `Done Importing Jurica - New: ${newCount}, Non-public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
   );
   await client.close();
+  await jIndexConnection.close();
   await juricaSource.close();
+  await jurinetSource.close();
   return true;
 }
 
@@ -377,6 +416,7 @@ async function importJudifiltre() {
 
   let row;
   let newCount = 0;
+  let updateCount = 0;
   let skipCount = 0;
   let errorCount = 0;
 
@@ -400,9 +440,10 @@ async function importJudifiltre() {
                 normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
                 normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
                 normDec._version = decisionsVersion;
+                normDec.public = true;
                 const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
                 normDec._id = insertResult.insertedId;
-                await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+                await JudilibreIndex.indexDecisionDocument(normDec, null, 'is-public, import in decisions');
                 newCount++;
                 try {
                   const judifiltreResult = await Judifiltre.DeleteBatch([
@@ -414,7 +455,35 @@ async function importJudifiltre() {
                   await JudilibreIndex.updateJuricaDocument(
                     row,
                     null,
-                    `deleted from Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+                    `is-public, deleted from Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+                  );
+                } catch (e) {
+                  console.error(`Judifiltre delete error`, e);
+                  errorCount++;
+                }
+              } else {
+                let normDec = await JuricaUtils.Normalize(row, normalized);
+                normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+                normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+                normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+                normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+                normDec._version = decisionsVersion;
+                normDec.public = true;
+                normDec._id = normalized._id;
+                await decisions.replaceOne({ _id: normDec._id }, normDec, { bypassDocumentValidation: true });
+                await JudilibreIndex.indexDecisionDocument(normDec, null, 'is-public, update in decisions');
+                updateCount++;
+                try {
+                  const judifiltreResult = await Judifiltre.DeleteBatch([
+                    {
+                      sourceId: batch.releasableDecisions[i].sourceId,
+                      sourceName: batch.releasableDecisions[i].sourceName,
+                    },
+                  ]);
+                  await JudilibreIndex.updateJuricaDocument(
+                    row,
+                    null,
+                    `is-public, deleted from Judifiltre: ${JSON.stringify(judifiltreResult)}`,
                   );
                 } catch (e) {
                   console.error(`Judifiltre delete error`, e);
@@ -445,7 +514,54 @@ async function importJudifiltre() {
     errorCount++;
   }
 
-  console.log(`Done Importing Judifiltre - New: ${newCount}, Skip: ${skipCount}, Error: ${errorCount}.`);
+  console.log(
+    `Done Importing Judifiltre - New: ${newCount}, Update: ${updateCount}, Skip: ${skipCount}, Error: ${errorCount}.`,
+  );
+  await client.close();
+  return true;
+}
+
+async function importDecatt() {
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+  const database = client.db(process.env.MONGO_DBNAME);
+  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+  const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+
+  // 1. Get all _decatt from rawJurinet (no other choice, really)...
+  let allDecatt = [];
+  let rawJurinetDocument;
+  const rawJurinetCursor = await rawJurinet
+    .find(
+      { TYPE_ARRET: 'CC', _decatt: { $ne: null } },
+      {
+        allowDiskUse: true,
+        fields: {
+          _id: 1,
+          _decatt: 1,
+        },
+      },
+    )
+    .sort({ _id: -1 });
+  while ((rawJurinetDocument = await rawJurinetCursor.next())) {
+    if (
+      rawJurinetDocument._decatt &&
+      Array.isArray(rawJurinetDocument._decatt) &&
+      rawJurinetDocument._decatt.length > 0
+    ) {
+      for (let i = 0; i < rawJurinetDocument._decatt.length; i++) {
+        if (allDecatt.indexOf(rawJurinetDocument._decatt[i]) === -1) {
+          allDecatt.push(rawJurinetDocument._decatt[i]);
+        }
+      }
+    }
+  }
+
+  console.log(allDecatt.length);
+
   await client.close();
   return true;
 }

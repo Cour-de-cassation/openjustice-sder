@@ -124,7 +124,7 @@ async function patch() {
         );
         */
         diffCount++;
-        if (decatt.length === 0) {
+        if (!decatt || (Array.isArray(decatt) && decatt.length === 0)) {
           lessCount++;
         }
       }

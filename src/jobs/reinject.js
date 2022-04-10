@@ -90,6 +90,7 @@ async function reinjectJurinet() {
     }
   }
   console.log(`Jurinet reinjection done (success: ${successCount}, errors: ${errorCount}).`);
+  await cursor.close();
   await jurinetSource.close();
   await client.close();
   return true;
@@ -137,6 +138,7 @@ async function reinjectJurica() {
     }
   }
   console.log(`Jurica reinjection done (success: ${successCount}, errors: ${errorCount}).`);
+  await cursor.close();
   await juricaSource.close();
   await client.close();
   return true;

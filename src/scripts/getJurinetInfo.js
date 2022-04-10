@@ -45,12 +45,7 @@ async function getJurinetInfo(id) {
 
   if (normalizedDecision.originalText) {
     try {
-      const zoning = await Juritools.GetZones(
-        normalizedDecision.sourceId,
-        'cc', // normalizedDecision.sourceName,
-        normalizedDecision.originalText,
-        'https://nlp-jurizonage-api.judilibre-prive.local',
-      );
+      const zoning = await Juritools.GetZones(normalizedDecision.sourceId, 'cc', normalizedDecision.originalText);
       console.log(JSON.stringify(zoning, null, 2));
     } catch (e) {
       console.error(e);
