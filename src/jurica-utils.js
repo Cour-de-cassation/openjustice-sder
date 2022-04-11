@@ -151,6 +151,7 @@ class JuricaUtils {
       '4JL',
       '70G',
       '97B',
+      '97E',
       '97G',
       '97P',
     ];
