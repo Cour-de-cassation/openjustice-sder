@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
-const async = require('async');
 const { parentPort } = require('worker_threads');
 const ms = require('ms');
 
@@ -66,6 +65,7 @@ async function store(source) {
           case 'NORM':
             existing = await decisions.findOne({ sourceId: documentToStore._id, sourceName: 'dila' });
             if (existing === null) {
+              documentToStore._version = decisionsVersion;
               await decisions.insertOne(documentToStore, { bypassDocumentValidation: true });
               newCount++;
             } else {
