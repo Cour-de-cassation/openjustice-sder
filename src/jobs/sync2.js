@@ -8,6 +8,7 @@ const { JurinetUtils } = require('../jurinet-utils');
 const { JuricaOracle } = require('../jurica-oracle');
 const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
+const { GRCOMOracle } = require('../grcom-oracle');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 const { DateTime } = require('luxon');
