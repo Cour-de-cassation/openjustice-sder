@@ -1,4 +1,4 @@
-const limit = 10;
+const limit = 100;
 const sort = -1;
 
 const path = require('path');
