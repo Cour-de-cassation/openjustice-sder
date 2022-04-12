@@ -13,7 +13,7 @@ const bree = new Bree({
   jobs: [
     {
       name: 'buildAffaires',
-      interval: 'every 1 minute after 4:00am and before 11:00pm',
+      interval: 'every 1 minute after 3:00am and before 11:00pm',
     },
     {
       name: 'import',
