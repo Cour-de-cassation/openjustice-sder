@@ -217,7 +217,10 @@ async function retryImportJurica() {
                 throw new Error(
                   `Cannot process partially-public decision ${
                     row._id
-                  } because its text is empty or invalid: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}.`,
+                  } because its text is empty or invalid: ${JSON.stringify(
+                    e,
+                    e ? Object.getOwnPropertyNames(e) : null,
+                  )}.`,
                 );
               }
               try {
@@ -226,7 +229,7 @@ async function retryImportJurica() {
                   throw new Error(
                     `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
                       zoning,
-                      Object.getOwnPropertyNames(zoning),
+                      zoning ? Object.getOwnPropertyNames(zoning) : null,
                     )}.`,
                   );
                 }
@@ -234,7 +237,7 @@ async function retryImportJurica() {
                 throw new Error(
                   `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
                     e,
-                    Object.getOwnPropertyNames(e),
+                    e ? Object.getOwnPropertyNames(e) : null,
                   )}.`,
                 );
               }
@@ -242,7 +245,7 @@ async function retryImportJurica() {
                 throw new Error(
                   `Cannot process partially-public decision ${row._id} because it has no zone: ${JSON.stringify(
                     zoning,
-                    Object.getOwnPropertyNames(zoning),
+                    zoning ? Object.getOwnPropertyNames(zoning) : null,
                   )}.`,
                 );
               }
@@ -250,7 +253,7 @@ async function retryImportJurica() {
                 throw new Error(
                   `Cannot process partially-public decision ${row._id} because it has no introduction: ${JSON.stringify(
                     zoning.zones,
-                    Object.getOwnPropertyNames(zoning.zones),
+                    zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
                   )}.`,
                 );
               }
@@ -258,7 +261,7 @@ async function retryImportJurica() {
                 throw new Error(
                   `Cannot process partially-public decision ${row._id} because it has no dispositif: ${JSON.stringify(
                     zoning.zones,
-                    Object.getOwnPropertyNames(zoning.zones),
+                    zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
                   )}.`,
                 );
               }

@@ -62,7 +62,7 @@ class JudilibreIndex {
         decatt: [],
         log: [],
         lastOperation: null,
-        error: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+        error: JSON.stringify(e, e ? Object.getOwnPropertyNames(e) : null),
         chamber: this.getChamber(doc),
         dateImport: null,
         dateExport: null,
@@ -108,7 +108,7 @@ class JudilibreIndex {
     }
     if (err) {
       if (typeof err === 'object') {
-        indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        indexedDoc.error = JSON.stringify(err, err ? Object.getOwnPropertyNames(err) : null);
       } else {
         indexedDoc.error = err;
       }
@@ -163,7 +163,7 @@ class JudilibreIndex {
       }
       if (err) {
         if (typeof err === 'object') {
-          indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+          indexedDoc.error = JSON.stringify(err, err ? Object.getOwnPropertyNames(err) : null);
         } else {
           indexedDoc.error = err;
         }
@@ -186,7 +186,7 @@ class JudilibreIndex {
       }
       if (err) {
         if (typeof err === 'object') {
-          indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+          indexedDoc.error = JSON.stringify(err, err ? Object.getOwnPropertyNames(err) : null);
         } else {
           indexedDoc.error = err;
         }
@@ -256,7 +256,7 @@ class JudilibreIndex {
         decatt: [],
         log: [],
         lastOperation: null,
-        error: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+        error: JSON.stringify(e, e ? Object.getOwnPropertyNames(e) : null),
         chamber: this.getChamber(doc),
         dateImport: null,
         dateExport: null,
@@ -297,7 +297,7 @@ class JudilibreIndex {
     }
     if (err) {
       if (typeof err === 'object') {
-        indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+        indexedDoc.error = JSON.stringify(err, err ? Object.getOwnPropertyNames(err) : null);
       } else {
         indexedDoc.error = err;
       }
@@ -352,7 +352,7 @@ class JudilibreIndex {
       }
       if (err) {
         if (typeof err === 'object') {
-          indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+          indexedDoc.error = JSON.stringify(err, err ? Object.getOwnPropertyNames(err) : null);
         } else {
           indexedDoc.error = err;
         }
@@ -375,7 +375,7 @@ class JudilibreIndex {
       }
       if (err) {
         if (typeof err === 'object') {
-          indexedDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+          indexedDoc.error = JSON.stringify(err, err ? Object.getOwnPropertyNames(err) : null);
         } else {
           indexedDoc.error = err;
         }
@@ -415,7 +415,7 @@ class JudilibreIndex {
       }
       if (err) {
         if (typeof err === 'object') {
-          existingDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+          existingDoc.error = JSON.stringify(err, err ? Object.getOwnPropertyNames(err) : null);
         } else {
           existingDoc.error = err;
         }
@@ -457,7 +457,7 @@ class JudilibreIndex {
       }
       if (err) {
         if (typeof err === 'object') {
-          existingDoc.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+          existingDoc.error = JSON.stringify(err, err ? Object.getOwnPropertyNames(err) : null);
         } else {
           existingDoc.error = err;
         }
