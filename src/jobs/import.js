@@ -452,7 +452,7 @@ async function importJudifiltre() {
                   const judifiltreResult = await Judifiltre.DeleteBatch([
                     {
                       sourceId: batch.releasableDecisions[i].sourceId,
-                      sourceName: batch.releasableDecisions[i].sourceName,
+                      sourceDb: batch.releasableDecisions[i].sourceName,
                     },
                   ]);
                   await JudilibreIndex.updateJuricaDocument(
@@ -480,7 +480,7 @@ async function importJudifiltre() {
                   const judifiltreResult = await Judifiltre.DeleteBatch([
                     {
                       sourceId: batch.releasableDecisions[i].sourceId,
-                      sourceName: batch.releasableDecisions[i].sourceName,
+                      sourceDb: batch.releasableDecisions[i].sourceName,
                     },
                   ]);
                   await JudilibreIndex.updateJuricaDocument(
