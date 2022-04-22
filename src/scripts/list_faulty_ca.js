@@ -77,9 +77,13 @@ async function listFaultyCA() {
 
       const decision_date = DateTime.fromISO(JuricaUtils.GetDecisionDateForIndexing(normalized.dateDecision));
       if (decision_date > limit_date) {
-        const occultations = normalized.occultation.categoriesToOmit.sort();
+        const occultations = JSON.parse(JSON.stringify(normalized.occultation.categoriesToOmit)).sort();
         if (JSON.stringify(occultations) === all_occultations) {
-          console.log(`Jurica decision ${rawDocument._id} is faulty.`);
+          console.log(`Jurica decision ${rawDocument._id} is faulty: blocked.`);
+          normalized.labelStatus = 'blocked';
+          await decisions.replaceOne({ _id: normalized._id }, normalized, {
+            bypassDocumentValidation: true,
+          });
         }
       }
     } catch (e) {
