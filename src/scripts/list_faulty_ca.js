@@ -66,7 +66,7 @@ async function listFaultyCA() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const cursor = await rawJurica.collection.find({ IND_ANO: 2 }, { allowDiskUse: true }).sort({ _id: -1 });
+  const cursor = await rawJurica.find({ IND_ANO: 2 }, { allowDiskUse: true }).sort({ _id: -1 });
   while ((rawDocument = await cursor.next())) {
     try {
       const normalized = await decisions.findOne({ sourceId: rawDocument._id, sourceName: 'jurica' });
