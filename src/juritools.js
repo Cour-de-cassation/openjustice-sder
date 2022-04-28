@@ -28,11 +28,11 @@ class Juritools {
         rejectUnauthorized: false,
       });
     } catch (e) {
-      console.error(e);
+      // console.error(e);
     }
     if (!response || !response.body || !response.body.zones) {
       delete zoneData.text;
-      console.warn('GetZones failed for the given document.', zoneData);
+      // console.warn('GetZones failed for the given document.', zoneData);
       return null;
     }
     delete response.body.arret_id;
