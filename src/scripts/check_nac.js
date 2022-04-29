@@ -56,21 +56,21 @@ async function checkNACJurica() {
   );
   while ((decision = await cursor.next())) {
     TotalCount++;
-    if (decision.NACCode !== null) {
+    if (decision.NACCode !== null && `${decision.NACCode}`.trim() && /null/i.test(`${decision.NACCode}`)) {
       NACCodeCount++;
       if (NACCode.indexOf(decision.NACCode) === -1) {
         NACCode.push(decision.NACCode);
       }
     }
     console.log(
-      `${((NACCodeCount / TotalCount) * 100).toFixed(2)}% (${NACCodeCount}/${TotalCount}) -${
+      `${((NACCodeCount / TotalCount) * 100).toFixed(2)}% (${NACCodeCount}/${TotalCount}) - ${
         NACCode.length
       } different NAC codes`,
     );
   }
 
   console.log(
-    `${((NACCodeCount / TotalCount) * 100).toFixed(2)}% (${NACCodeCount}/${TotalCount}) -${
+    `${((NACCodeCount / TotalCount) * 100).toFixed(2)}% (${NACCodeCount}/${TotalCount}) - vil ${
       NACCode.length
     } different NAC codes`,
   );
