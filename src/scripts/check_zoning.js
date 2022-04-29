@@ -7,8 +7,6 @@ const { Juritools } = require('../juritools');
 
 const ms = require('ms');
 
-const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
-
 let selfKill = setTimeout(cancel, ms('12h'));
 
 function end() {
