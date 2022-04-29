@@ -56,7 +56,7 @@ async function checkNACJurica() {
   );
   while ((decision = await cursor.next())) {
     TotalCount++;
-    if (decision.NACCode !== null && `${decision.NACCode}`.trim() && /null/i.test(`${decision.NACCode}`)) {
+    if (decision.NACCode !== null && `${decision.NACCode}`.trim() && /null/i.test(`${decision.NACCode}`) === false) {
       NACCodeCount++;
       if (NACCode.indexOf(decision.NACCode) === -1) {
         NACCode.push(decision.NACCode);
