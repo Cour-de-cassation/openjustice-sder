@@ -237,10 +237,15 @@ async function syncJurinet() {
           normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
           normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
           normDec._version = decisionsVersion;
-          const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-          normDec._id = insertResult.insertedId;
-          await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (sync2)');
-          normalizeCount++;
+          normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+          if (normalized === null) {
+            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normDec._id = insertResult.insertedId;
+            await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (sync2)');
+            normalizeCount++;
+          } else {
+            console.warn(`Jurinet sync issue: { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`);
+          }
         } catch (e) {
           console.error(e);
           await JudilibreIndex.updateJurinetDocument(row, null, null, e);
@@ -444,10 +449,15 @@ async function syncJurica() {
           if (duplicate === true) {
             normDec.labelStatus = 'exported';
           }
-          const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-          normDec._id = insertResult.insertedId;
-          await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (sync2)');
-          normalizeCount++;
+          normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+          if (normalized === null) {
+            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+            normDec._id = insertResult.insertedId;
+            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (sync2)');
+            normalizeCount++;
+          } else {
+            console.warn(`Jurica sync issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
+          }
         } catch (e) {
           console.error(e);
           await JudilibreIndex.updateJuricaDocument(row, null, null, e);
