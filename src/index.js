@@ -20,6 +20,10 @@ const bree = new Bree({
       interval: 'every 11 minutes after 8:00am and before 12:00pm',
     },
     {
+      name: 'import_judifiltre',
+      interval: 'every 11 minutes after 8:00pm and before 11:00pm',
+    },
+    {
       name: 'reinject',
       interval: 'every 5 minutes after 1:00pm and before 7:00pm',
     },
