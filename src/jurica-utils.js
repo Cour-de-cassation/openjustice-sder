@@ -184,7 +184,7 @@ class JuricaUtils {
     if (!all) {
       return ['00A'];
     } else {
-      return ['0', '000', '00A', '00X'];
+      return ['0', '000', '00A', '00X']; // 0A
     }
   }
 
