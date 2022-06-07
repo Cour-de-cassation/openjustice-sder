@@ -61,6 +61,14 @@ async function getJuricaInfo(id) {
       .replace(/\*FIN[A-Z]*/gm, '')
       .trim();
     const zoning2 = await Juritools.GetZones(originalRow._id, 'ca', trimmedText);
+    if (!zoning2 || zoning2.detail) {
+      throw new Error(
+        `Cannot process partially-public decision ${originalRow._id} because its zoning failed: ${JSON.stringify(
+          zoning2,
+          zoning2 ? Object.getOwnPropertyNames(zoning2) : null,
+        )}.`,
+      );
+    }
     console.log(JSON.stringify(zoning2, null, 2));
   } catch (e) {
     console.error(e);
