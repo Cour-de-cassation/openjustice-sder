@@ -32,9 +32,10 @@ async function getJuricaInfo(id) {
   const rs = result.resultSet;
   let rows = [];
   let resultRow;
-
+  let originalRow;
   while ((resultRow = await rs.getRow())) {
-    rows.push(await juricaSource.buildRawData(resultRow, true));
+    originalRow = await juricaSource.buildRawData(resultRow, true);
+    rows.push(originalRow);
   }
 
   await rs.close();
@@ -51,6 +52,18 @@ async function getJuricaInfo(id) {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  try {
+    const trimmedText = JuricaUtils.CleanHTML(originalRow.JDEC_HTML_SOURCE);
+    trimmedText = trimmedText
+      .replace(/\*DEB[A-Z]*/gm, '')
+      .replace(/\*FIN[A-Z]*/gm, '')
+      .trim();
+    const zoning2 = await Juritools.GetZones(originalRow._id, 'ca', trimmedText);
+    console.log(JSON.stringify(zoning2, null, 2));
+  } catch (e) {
+    console.error(e);
   }
 
   return true;
