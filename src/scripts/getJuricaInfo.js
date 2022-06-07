@@ -55,7 +55,7 @@ async function getJuricaInfo(id) {
   }
 
   try {
-    const trimmedText = JuricaUtils.CleanHTML(originalRow.JDEC_HTML_SOURCE);
+    let trimmedText = JuricaUtils.CleanHTML(originalRow.JDEC_HTML_SOURCE);
     trimmedText = trimmedText
       .replace(/\*DEB[A-Z]*/gm, '')
       .replace(/\*FIN[A-Z]*/gm, '')
