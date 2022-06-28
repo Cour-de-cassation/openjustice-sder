@@ -116,7 +116,7 @@ async function main() {
       offset = 0;
     }
   } catch (ignore) {}
-  const countJurinet = await rawJurinet.estimatedDocumentCount({ TYPE_ARRET: 'CC' });
+  const countJurinet = await rawJurinet.countDocuments({ TYPE_ARRET: 'CC' });
 
   let hasDoc = false;
   try {
@@ -189,7 +189,7 @@ async function main() {
       offset = 0;
     }
   } catch (ignore) {}
-  const countJurica = await rawJurica.estimatedDocumentCount({});
+  const countJurica = await rawJurica.countDocuments({});
 
   hasDoc = false;
   try {
