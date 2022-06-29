@@ -50,7 +50,7 @@ async function patchDuplicates() {
     .sort({ sourceId: -1 })
     .limit(1000);
   while ((decision = await cursor.next())) {
-    const count = await decisions.count({ sourceId: decision.sourceId, sourceName: 'jurinet' });
+    const count = await decisions.countDocuments({ sourceId: decision.sourceId, sourceName: 'jurinet' });
     if (count > 1 && duplicates.indexOf(decision.sourceId) === -1) {
       duplicates.push(decision.sourceId);
     }
@@ -58,6 +58,7 @@ async function patchDuplicates() {
   await cursor.close();
 
   console.log(`Done patching duplicates - Duplicates: ${duplicates.length}.`);
+  console.log(duplicates.length);
   await client.close();
   return true;
 }
