@@ -411,14 +411,21 @@ class JuricaOracle {
         WHERE ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
       const readResult = await this.connection.execute(readQuery, [decision.sourceId]);
       if (readResult && readResult.rows && readResult.rows.length > 0) {
+        const now = new Date();
+
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
             SET ${process.env.DB_STATE_FIELD_JURICA}=:ok,
-            AUT_ANO=:label
+            AUT_ANO=:label,
+            DT_ANO=:datea,
+            JDEC_DATE_MAJ=:dateb,
+            DT_MODIF_ANO=:datec,
+            DT_ENVOI_ABONNES=NULL
             WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
+
         await this.connection.execute(
           updateQuery,
-          [parseInt(process.env.DB_STATE_OK_JURICA), 'LABEL', decision.sourceId],
+          [parseInt(process.env.DB_STATE_OK_JURICA), 'LABEL', now, now, now, decision.sourceId],
           { autoCommit: true },
         );
         return true;
