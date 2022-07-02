@@ -56,7 +56,7 @@ async function main() {
     console.error('Jurinet sync2 error', e);
   }
   try {
-    // await syncJurica(); // @TODO
+    await syncJurica();
   } catch (e) {
     console.error('Jurica sync2 error', e);
   }
@@ -479,6 +479,8 @@ async function syncJurinet() {
       let row = jurinetResult[i];
       let rawDocument = await raw.findOne({ _id: row._id });
       let updated = false;
+      let anomalyUpdated = false;
+      let reprocessUpdated = false;
 
       if (rawDocument === null) {
         try {
@@ -561,9 +563,39 @@ async function syncJurinet() {
           '_natureAffairePenal',
           '_codeMatiereCivil',
         ];
+        const anomaly = ['XML'];
+        const reprocess = [
+          'IND_PM',
+          'IND_ADRESSE',
+          'IND_DT_NAISSANCE',
+          'IND_DT_DECE',
+          'IND_DT_MARIAGE',
+          'IND_IMMATRICULATION',
+          'IND_CADASTRE',
+          'IND_CHAINE',
+          'IND_COORDONNEE_ELECTRONIQUE',
+          'IND_PRENOM_PROFESSIONEL',
+          'IND_NOM_PROFESSIONEL',
+          'OCCULTATION_SUPPLEMENTAIRE',
+          '_bloc_occultation',
+          '_natureAffaireCivil',
+          '_natureAffairePenal',
+          '_codeMatiereCivil',
+        ];
+        const changelog = {};
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
             updated = true;
+            changelog[key] = {
+              old: JSON.stringify(rawDocument[key]),
+              new: JSON.stringify(row[key]),
+            };
+            if (anomaly.indexOf(key) !== -1) {
+              anomalyUpdated = true;
+            }
+            if (reprocess.indexOf(key) !== -1) {
+              reprocessUpdated = true;
+            }
           }
         });
         /*
@@ -584,6 +616,10 @@ async function syncJurinet() {
         if (updated === true) {
           try {
             row._indexed = null;
+            if (reprocessUpdated === true) {
+              row.IND_ANO = 0;
+              row.XMLA = null;
+            }
             await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
             if (row['TYPE_ARRET'] === 'CC') {
               await JurinetUtils.IndexAffaire(
@@ -599,10 +635,30 @@ async function syncJurinet() {
             if (row['TYPE_ARRET'] !== 'CC') {
               wincicaCount++;
             }
-            await JudilibreIndex.updateJurinetDocument(row, null, 'update in rawJurinet (sync2)');
+            if (anomalyUpdated === true) {
+              await JudilibreIndex.updateJurinetDocument(
+                row,
+                null,
+                `update in rawJurinet (sync2) - Original text could have been changed - changelog: ${JSON.stringify(
+                  changelog,
+                )}`,
+              );
+            } else {
+              await JudilibreIndex.updateJurinetDocument(
+                row,
+                null,
+                `update in rawJurinet (sync2) - changelog: ${JSON.stringify(changelog)}`,
+              );
+            }
           } catch (e) {
             updated = false;
             console.error(e);
+            await JudilibreIndex.updateJurinetDocument(
+              row,
+              null,
+              `error while updating in rawJurinet (sync2) - changelog: ${JSON.stringify(changelog)}`,
+              e,
+            );
             errorCount++;
           }
         }
@@ -641,11 +697,30 @@ async function syncJurinet() {
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
             normDec.dateCreation = new Date().toISOString();
+            if (reprocessUpdated === true) {
+              normDec.pseudoText = undefined;
+              normDec.pseudoStatus = 0;
+              normDec.labelStatus = 'toBeTreated';
+              normDec.labelTreatments = [];
+              normDec.zoning = null;
+            }
             await decisions.replaceOne({ _id: normalized._id }, normDec, {
               bypassDocumentValidation: true,
             });
             normDec._id = normalized._id;
-            await JudilibreIndex.updateDecisionDocument(normDec, null, 'update in decisions (sync2)');
+            if (reprocessUpdated === true) {
+              await JudilibreIndex.indexDecisionDocument(
+                normDec,
+                null,
+                `update in decisions and reprocessed (sync2) - changelog: ${JSON.stringify(changelog)}`,
+              );
+            } else {
+              await JudilibreIndex.updateDecisionDocument(
+                normDec,
+                null,
+                `update in decisions (sync2) - changelog: ${JSON.stringify(changelog)}`,
+              );
+            }
             normalizeCount++;
           } catch (e) {
             console.error(e);
@@ -745,6 +820,8 @@ async function syncJurica() {
       let row = juricaResult[i];
       let rawDocument = await raw.findOne({ _id: row._id });
       let updated = false;
+      let anomalyUpdated = false;
+      let reprocessUpdated = false;
       let duplicate = false;
       let duplicateId = null;
 
@@ -788,30 +865,90 @@ async function syncJurica() {
           'JDEC_NUM_REGISTRE',
           'JDEC_NOTICE_FORMAT',
           'JDEC_LIBELLE',
+          'JDEC_COMPOSITION',
+          'JDEC_SOMMAIRE',
           'IND_ANO',
           'AUT_ANO',
+          'JDEC_SELECTION',
+          'JDEC_MATIERE_DETERMINEE',
+          'JDEC_POURVOI_LOCAL',
+          'JDEC_POURVOI_CCASS',
+          'JDEC_COLL_DECS_ATTQ',
+          'JDEC_FIC_ARCHIVE',
+          'JDEC_NOTA_ADMIN',
+          'DT_ENVOI_ABONNES',
+          'JDEC_LIBNAC',
+          'JDEC_CODNACPART',
+          'JDEC_LIBNACPART',
           '_portalis',
           'JDEC_CODE',
           'JDEC_CODNAC',
           'JDEC_IND_DEC_PUB',
+          'JDEC_OCC_COMP',
+          'JDEC_OCC_COMP_LIBRE',
           'JDEC_COLL_PARTIES',
           '_bloc_occultation',
         ];
+        const anomaly = ['JDEC_HTML_SOURCE'];
+        const reprocess = [
+          'JDEC_CODNACPART',
+          'JDEC_CODE',
+          'JDEC_CODNAC',
+          'JDEC_IND_DEC_PUB',
+          'JDEC_OCC_COMP',
+          'JDEC_OCC_COMP_LIBRE',
+          '_bloc_occultation',
+        ];
+        const changelog = {};
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
             updated = true;
+            changelog[key] = {
+              old: JSON.stringify(rawDocument[key]),
+              new: JSON.stringify(row[key]),
+            };
+            if (anomaly.indexOf(key) !== -1) {
+              anomalyUpdated = true;
+            }
+            if (reprocess.indexOf(key) !== -1) {
+              reprocessUpdated = true;
+            }
           }
         });
 
         if (updated === true) {
           try {
             row._indexed = null;
+            if (reprocessUpdated === true) {
+              row.IND_ANO = 0;
+              row.HTMLA = null;
+            }
             await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-            await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'update in rawJurica (sync2)');
+            if (anomalyUpdated === true) {
+              await JudilibreIndex.updateJuricaDocument(
+                row,
+                duplicateId,
+                `update in rawJurica (sync2) - Original text could have been changed - changelog: ${JSON.stringify(
+                  changelog,
+                )}`,
+              );
+            } else {
+              await JudilibreIndex.updateJuricaDocument(
+                row,
+                duplicateId,
+                `update in rawJurica (sync2) - changelog: ${JSON.stringify(changelog)}`,
+              );
+            }
             updateCount++;
           } catch (e) {
             updated = false;
             console.error(e);
+            await JudilibreIndex.updateJuricaDocument(
+              row,
+              duplicateId,
+              `error while updating in rawJurica (sync2) - changelog: ${JSON.stringify(changelog)}`,
+              e,
+            );
             errorCount++;
           }
         }
@@ -853,14 +990,32 @@ async function syncJurica() {
             normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
             normDec.dateCreation = new Date().toISOString();
-            if (duplicate === true) {
+            if (reprocessUpdated === true) {
+              normDec.pseudoText = undefined;
+              normDec.pseudoStatus = 0;
+              normDec.labelStatus = 'toBeTreated';
+              normDec.labelTreatments = [];
+              normDec.zoning = null;
+            } else if (duplicate === true) {
               normDec.labelStatus = 'exported';
             }
             await decisions.replaceOne({ _id: normalized._id }, normDec, {
               bypassDocumentValidation: true,
             });
             normDec._id = normalized._id;
-            await JudilibreIndex.updateDecisionDocument(normDec, duplicateId, 'update in decisions (sync2)');
+            if (reprocessUpdated === true) {
+              await JudilibreIndex.indexDecisionDocument(
+                normDec,
+                duplicateId,
+                `update in decisions and reprocessed (sync2) - changelog: ${JSON.stringify(changelog)}`,
+              );
+            } else {
+              await JudilibreIndex.updateDecisionDocument(
+                normDec,
+                duplicateId,
+                `update in decisions (sync2) - changelog: ${JSON.stringify(changelog)}`,
+              );
+            }
             normalizeCount++;
           } catch (e) {
             console.error(e);
