@@ -474,6 +474,7 @@ async function syncJurinet() {
     let normalizeCount = 0;
     let wincicaCount = 0;
     let errorCount = 0;
+    const changelog = {};
 
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
@@ -582,7 +583,6 @@ async function syncJurinet() {
           '_natureAffairePenal',
           '_codeMatiereCivil',
         ];
-        const changelog = {};
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
             updated = true;
@@ -815,6 +815,7 @@ async function syncJurica() {
     let normalizeCount = 0;
     let duplicateCount = 0;
     let errorCount = 0;
+    const changelog = {};
 
     for (let i = 0; i < juricaResult.length; i++) {
       let row = juricaResult[i];
@@ -899,7 +900,6 @@ async function syncJurica() {
           'JDEC_OCC_COMP_LIBRE',
           '_bloc_occultation',
         ];
-        const changelog = {};
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
             updated = true;
