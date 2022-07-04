@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
-const { DateTime } = require('luxon');
-
+const { MongoClient } = require('mongodb');
 const { parentPort } = require('worker_threads');
 const { JudilibreIndex } = require('../judilibre-index');
 const ms = require('ms');
@@ -27,14 +26,19 @@ function kill(code) {
 
 async function main() {
   try {
-    await patch();
+    await patch1();
   } catch (e) {
-    console.error('patch error', e);
+    console.error('patch1 error', e);
+  }
+  try {
+    await patch2();
+  } catch (e) {
+    console.error('patch2 error', e);
   }
   setTimeout(end, ms('1s'));
 }
 
-async function patch() {
+async function patch1() {
   const result = await JudilibreIndex.find('mainIndex', { error: /changelog/i });
 
   for (let i = 0; i < result.length; i++) {
@@ -45,6 +49,35 @@ async function patch() {
       bypassDocumentValidation: true,
     });
   }
+
+  return true;
+}
+
+async function patch2() {
+  const client = new MongoClient(process.env.MONGO_URI, {
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+
+  const database = client.db(process.env.MONGO_DBNAME);
+  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+  const result = await JudilibreIndex.find('mainIndex', { 'log.msg': /changelog/i });
+
+  for (let i = 0; i < result.length; i++) {
+    let indexedDoc = result[i];
+    const changelog = {};
+    const sourceName = `${indexedDoc._id}`.split(':')[0];
+    const sourceId = parseInt(`${indexedDoc._id}`.split(':')[1], 10);
+    let normalized = await decisions.findOne({ sourceId: sourceId, sourceName: sourceName });
+    if (normalized) {
+      await JudilibreIndex.updateDecisionDocument(
+        normalized,
+        null,
+        `update in decisions (sync2) - changelog: ${JSON.stringify(changelog)}`,
+      );
+    }
+  }
+  await client.close();
 
   return true;
 }
