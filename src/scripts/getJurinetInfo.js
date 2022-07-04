@@ -47,6 +47,8 @@ async function getJurinetInfo(id) {
     try {
       const zoning = await Juritools.GetZones(normalizedDecision.sourceId, 'cc', normalizedDecision.originalText);
       console.log(JSON.stringify(zoning, null, 2));
+
+      console.log(GetDecisionPublicationForIndexing(normalizedDecision, zoning));
     } catch (e) {
       console.error(e);
     }
@@ -70,6 +72,70 @@ async function getJurinetInfo(id) {
 
   await jurinetSource.close();
   return true;
+}
+
+function GetDecisionPublicationForIndexing(decision, zoning) {
+  let publication = [];
+  if (decision.publication && Array.isArray(decision.publication) && decision.publication.length > 0) {
+    publication = decision.publication;
+  } else if (
+    zoning &&
+    !zoning.detail &&
+    zoning.introduction_subzonage &&
+    zoning.introduction_subzonage.publication &&
+    Array.isArray(zoning.introduction_subzonage.publication) &&
+    zoning.introduction_subzonage.publication.length > 0
+  ) {
+    console.log(
+      `GetDecisionPublicationForIndexing: missing publication in new Oracle data, fall back to zoning of decision ${decision.sourceId}: [${zoning.introduction_subzonage.publication}].`,
+    );
+    let pub = zoning.introduction_subzonage.publication;
+    pub.forEach((item) => {
+      let chars = item.split('');
+      chars.forEach((subItem) => {
+        if (publication.indexOf(subItem) === -1) {
+          publication.push(subItem);
+        }
+      });
+    });
+  }
+  if (decision.pubCategory) {
+    // Always add pubCategory, just in case...
+    publication.push(decision.pubCategory);
+  }
+  publication = publication
+    .map((item) => {
+      item = item.toLowerCase();
+      switch (item) {
+        case 'p':
+          item = 'b';
+          break;
+        case 'i':
+          item = 'c';
+          break;
+      }
+      return item;
+    })
+    .filter((item) => {
+      item = item.toLowerCase();
+      switch (item) {
+        case 'b':
+        case 'r':
+        case 'l':
+        case 'c':
+        case 'n':
+          return true;
+        default:
+          return false;
+      }
+    })
+    .filter((item, index, self) => {
+      return self.indexOf(item) === index;
+    });
+  if (publication.length > 0) {
+    return publication;
+  }
+  return ['n'];
 }
 
 main();
