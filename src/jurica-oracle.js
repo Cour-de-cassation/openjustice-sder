@@ -413,6 +413,10 @@ class JuricaOracle {
       if (readResult && readResult.rows && readResult.rows.length > 0) {
         const now = new Date();
 
+        let dateForIndexing = now.getFullYear() + '-';
+        dateForIndexing += (now.getMonth() < 9 ? '0' + (now.getMonth() + 1) : now.getMonth() + 1) + '-';
+        dateForIndexing += now.getDate() < 10 ? '0' + now.getDate() : now.getDate();
+
         // 2. Update query:
         const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
             SET ${process.env.DB_STATE_FIELD_JURICA}=:ok,
@@ -425,7 +429,7 @@ class JuricaOracle {
 
         await this.connection.execute(
           updateQuery,
-          [parseInt(process.env.DB_STATE_OK_JURICA), 'LABEL', now, now, now, decision.sourceId],
+          [parseInt(process.env.DB_STATE_OK_JURICA), 'LABEL', now, dateForIndexing, now, decision.sourceId],
           { autoCommit: true },
         );
         return true;
