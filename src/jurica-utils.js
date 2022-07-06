@@ -428,7 +428,7 @@ class JuricaUtils {
 
       try {
         const text = JuricaUtils.CleanHTML(doc.JDEC_HTML_SOURCE);
-        const zoning = null; // await Juritools.GetZones(doc._id, 'ca', text);
+        const zoning = await Juritools.GetZones(doc._id, 'ca', text);
         if (zoning && zoning.introduction_subzonage && zoning.introduction_subzonage.j_preced_date) {
           const baseRegex = /(\d+)\D*\s+([a-zéû.]+)\s+(\d\d\d\d)/i;
           let remainingDates = [];
