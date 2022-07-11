@@ -341,16 +341,23 @@ async function retryImportJurica() {
               }
               row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
+            /* XXX
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #1');
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
+            */
             const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
               row.JDEC_IND_DEC_PUB,
             );
+            console.log(`rawJurica.insertOne(${row._id})`);
+            console.log(`JudilibreIndex.indexJuricaDocument(${row._id})`);
+            console.log(`JuricaUtils.IndexAffaire(${row._id})`);
+            console.log(`ShouldBeSentToJudifiltre: ${ShouldBeSentToJudifiltre})`);
             if (ShouldBeSentToJudifiltre === true) {
               try {
+                /* XXX
                 const judifiltreResult = await Judifiltre.SendBatch([
                   {
                     sourceId: row._id,
@@ -380,11 +387,14 @@ async function retryImportJurica() {
                   });
                 }
                 await juricaSource.markAsImported(row._id);
+                */
                 newCount++;
               } catch (e) {
                 console.error(`Jurica import to Judifiltre error processing decision ${row._id}`, e);
+                /* XXX
                 await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
                 await juricaSource.markAsErroneous(row._id);
+                */
                 errorCount++;
               }
             } else {
@@ -396,18 +406,22 @@ async function retryImportJurica() {
                 normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
                 normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
                 normDec._version = decisionsVersion;
+                /* XXX
                 const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
                 normDec._id = insertResult.insertedId;
                 await JudilibreIndex.indexDecisionDocument(normDec, null, 'retry import in decisions #1');
                 await juricaSource.markAsImported(row._id);
+                */
                 newCount++;
               } else {
                 skipCount++;
                 console.warn(
                   `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
                 );
+                /* XXX
                 await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
                 await juricaSource.markAsImported(row._id);
+                */
                 errorCount++;
               }
             }
@@ -415,12 +429,14 @@ async function retryImportJurica() {
             console.warn(
               `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
             );
+            /* XXX
             await juricaSource.markAsErroneous(row._id);
             await JudilibreIndex.updateJuricaDocument(
               row,
               duplicateId,
               duplicate ? `duplicate of ${duplicateId}` : 'non-public',
             );
+            */
             if (duplicate) {
               duplicateCount++;
             } else {
@@ -429,8 +445,10 @@ async function retryImportJurica() {
           }
         } catch (e) {
           console.error(`Jurica retry import error processing decision ${row._id}#1`, e);
+          /* XXX
           await juricaSource.markAsErroneous(row._id);
           await JudilibreIndex.updateJuricaDocument(row, null, null, e);
+          */
           errorCount++;
         }
       } else {
@@ -550,18 +568,25 @@ async function retryImportJurica() {
               }
               row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
+            /* XXX
             await rawJurica.replaceOne({ _id: row._id }, row, {
               bypassDocumentValidation: true,
             });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #2');
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
+            */
             const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
               row.JDEC_IND_DEC_PUB,
             );
+            console.log(`rawJurica.replaceOne(${row._id})`);
+            console.log(`JudilibreIndex.indexJuricaDocument(${row._id})`);
+            console.log(`JuricaUtils.IndexAffaire(${row._id})`);
+            console.log(`ShouldBeSentToJudifiltre: ${ShouldBeSentToJudifiltre})`);
             if (ShouldBeSentToJudifiltre === true) {
               try {
+                /* XXX
                 const judifiltreResult = await Judifiltre.SendBatch([
                   {
                     sourceId: row._id,
@@ -591,11 +616,14 @@ async function retryImportJurica() {
                   });
                 }
                 await juricaSource.markAsImported(row._id);
+                */
                 newCount++;
               } catch (e) {
                 console.error(`Jurica import to Judifiltre error processing decision ${row._id}`, e);
+                /* XXX
                 await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
                 await juricaSource.markAsErroneous(row._id);
+                */
                 errorCount++;
               }
             } else {
@@ -607,18 +635,22 @@ async function retryImportJurica() {
                 normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
                 normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
                 normDec._version = decisionsVersion;
+                /* XXX
                 const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
                 normDec._id = insertResult.insertedId;
                 await JudilibreIndex.indexDecisionDocument(normDec, null, 'retry import in decisions #1');
                 await juricaSource.markAsImported(row._id);
+                */
                 newCount++;
               } else {
                 skipCount++;
                 console.warn(
                   `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
                 );
+                /* XXX
                 await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
                 await juricaSource.markAsImported(row._id);
+                */
                 errorCount++;
               }
             }
@@ -626,12 +658,14 @@ async function retryImportJurica() {
             console.warn(
               `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
             );
+            /* XXX
             await juricaSource.markAsErroneous(row._id);
             await JudilibreIndex.updateJuricaDocument(
               row,
               duplicateId,
               duplicate ? `duplicate of ${duplicateId}` : 'non-public',
             );
+            */
             if (duplicate) {
               duplicateCount++;
             } else {
@@ -640,8 +674,10 @@ async function retryImportJurica() {
           }
         } catch (e) {
           console.error(`Jurica retry import error processing decision ${row._id}#2`, e);
+          /* XXX
           await juricaSource.markAsErroneous(row._id);
           await JudilibreIndex.updateJuricaDocument(row, null, null, e);
+          */
           errorCount++;
         }
       }
