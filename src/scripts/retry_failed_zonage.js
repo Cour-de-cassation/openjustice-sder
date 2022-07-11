@@ -159,6 +159,14 @@ async function importJurica(id) {
                   )}.`,
                 );
               }
+              const indexedDoc = await jIndexMain.findOne({ _id: `jurica:${id}` });
+              if (indexedDoc) {
+                indexedDoc.error = null;
+                indexedDoc.dateError = null;
+                await jIndexMain.replaceOne({ _id: indexedDoc._id }, indexedDoc, {
+                  bypassDocumentValidation: true,
+                });
+              }
             } catch (e) {
               throw new Error(
                 `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
@@ -212,11 +220,9 @@ async function importJurica(id) {
             }
             row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
           }
-          /* XXX
-            await rawJurica.insertOne(row, { bypassDocumentValidation: true });
-            await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #1');
-            await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
-            */
+          await rawJurica.insertOne(row, { bypassDocumentValidation: true });
+          await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #1');
+          await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
           const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
@@ -228,44 +234,40 @@ async function importJurica(id) {
           console.log(`ShouldBeSentToJudifiltre: ${ShouldBeSentToJudifiltre})`);
           if (ShouldBeSentToJudifiltre === true) {
             try {
-              /* XXX
-                const judifiltreResult = await Judifiltre.SendBatch([
-                  {
-                    sourceId: row._id,
-                    sourceDb: 'jurica',
-                    decisionDate: row.JDEC_DATE,
-                    jurisdictionName: row.JDEC_CODE_JURIDICTION,
-                    fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
-                    publicityClerkRequest:
-                      row.JDEC_IND_DEC_PUB === null
-                        ? 'unspecified'
-                        : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
-                        ? 'public'
-                        : 'notPublic',
-                  },
-                ]);
-                await JudilibreIndex.updateJuricaDocument(
-                  row,
-                  duplicateId,
-                  `submitted to Judifiltre: ${JSON.stringify(judifiltreResult)}`,
-                );
-                const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
-                if (existingDoc !== null) {
-                  let dateJudifiltre = DateTime.now();
-                  existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
-                  await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
-                    bypassDocumentValidation: true,
-                  });
-                }
-                await juricaSource.markAsImported(row._id);
-                */
+              const judifiltreResult = await Judifiltre.SendBatch([
+                {
+                  sourceId: row._id,
+                  sourceDb: 'jurica',
+                  decisionDate: row.JDEC_DATE,
+                  jurisdictionName: row.JDEC_CODE_JURIDICTION,
+                  fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
+                  publicityClerkRequest:
+                    row.JDEC_IND_DEC_PUB === null
+                      ? 'unspecified'
+                      : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
+                      ? 'public'
+                      : 'notPublic',
+                },
+              ]);
+              await JudilibreIndex.updateJuricaDocument(
+                row,
+                duplicateId,
+                `submitted to Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+              );
+              const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+              if (existingDoc !== null) {
+                let dateJudifiltre = DateTime.now();
+                existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
+                await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
+                  bypassDocumentValidation: true,
+                });
+              }
+              await juricaSource.markAsImported(row._id);
               newCount++;
             } catch (e) {
               console.error(`Jurica import to Judifiltre error processing decision ${row._id}`, e);
-              /* XXX
-                await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
-                await juricaSource.markAsErroneous(row._id);
-                */
+              await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
+              await juricaSource.markAsErroneous(row._id);
               errorCount++;
             }
           } else {
@@ -277,22 +279,18 @@ async function importJurica(id) {
               normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
               normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
               normDec._version = decisionsVersion;
-              /* XXX
-                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-                normDec._id = insertResult.insertedId;
-                await JudilibreIndex.indexDecisionDocument(normDec, null, 'retry import in decisions #1');
-                await juricaSource.markAsImported(row._id);
-                */
+              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              normDec._id = insertResult.insertedId;
+              await JudilibreIndex.indexDecisionDocument(normDec, null, 'retry import in decisions #1');
+              await juricaSource.markAsImported(row._id);
               newCount++;
             } else {
               skipCount++;
               console.warn(
                 `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
               );
-              /* XXX
-                await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
-                await juricaSource.markAsImported(row._id);
-                */
+              await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
+              await juricaSource.markAsImported(row._id);
               errorCount++;
             }
           }
@@ -300,14 +298,12 @@ async function importJurica(id) {
           console.warn(
             `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
           );
-          /* XXX
-            await juricaSource.markAsErroneous(row._id);
-            await JudilibreIndex.updateJuricaDocument(
-              row,
-              duplicateId,
-              duplicate ? `duplicate of ${duplicateId}` : 'non-public',
-            );
-            */
+          await juricaSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJuricaDocument(
+            row,
+            duplicateId,
+            duplicate ? `duplicate of ${duplicateId}` : 'non-public',
+          );
           if (duplicate) {
             duplicateCount++;
           } else {
@@ -316,10 +312,8 @@ async function importJurica(id) {
         }
       } catch (e) {
         console.error(`Jurica retry import error processing decision ${row._id}#1`, e);
-        /* XXX
-          await juricaSource.markAsErroneous(row._id);
-          await JudilibreIndex.updateJuricaDocument(row, null, null, e);
-          */
+        await juricaSource.markAsErroneous(row._id);
+        await JudilibreIndex.updateJuricaDocument(row, null, null, e);
         errorCount++;
       }
     } else {
