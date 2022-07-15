@@ -132,8 +132,27 @@ async function main(id) {
         value = value ? value : null;
       }
       propertiesValues[key] = value;
+    }
 
-      console.log(`${key} --> ${propertiesValues[key]} (${type}).`);
+    for (let key in properties) {
+      let oldVal;
+      let newVal;
+      if (/^IND_/.test(key) || key === 'JDEC_OCC_COMP') {
+        oldVal = rawDocument[key] ? 'oui' : 'non';
+        newVal = propertiesValues[key] ? 'oui' : 'non';
+      } else if (key === '_bloc_occultation') {
+        oldVal = rawDocument[key] ? rawDocument[key] : 0;
+        newVal = propertiesValues[key] ? propertiesValues[key] : 0;
+      } else {
+        oldVal = rawDocument[key] ? rawDocument[key] : null;
+        newVal = propertiesValues[key] ? propertiesValues[key] : null;
+      }
+      if (oldVal !== newVal) {
+        oldVal = ` (ancienne valeur = ${oldVal})`;
+      } else {
+        oldVal = '';
+      }
+      console.log(`${key} - ${properties[key]}: ${newVal}${oldVal}`);
     }
   } catch (e) {
     console.error(e);
