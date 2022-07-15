@@ -110,15 +110,15 @@ async function main(id) {
       } else if (key === '_bloc_occultation') {
         type = 'number';
         validator = /\d+/;
-        def = rawDocument[key];
+        def = rawDocument[key] ? rawDocument[key] : 0;
       } else {
         type = 'string';
         validator = /.*/;
-        def = rawDocument[key];
+        def = rawDocument[key] ? rawDocument[key] : '';
       }
       let { value } = await prompt.get({
         name: 'value',
-        message: `${key} - ${properties[key]}:`,
+        message: `${key} - ${properties[key]}`,
         validator: validator,
         default: def,
       });
