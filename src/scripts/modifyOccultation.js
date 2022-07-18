@@ -4,6 +4,9 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const prompt = require('prompt');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient, ObjectId } = require('mongodb');
+const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
+const { JurinetUtils } = require('../jurinet-utils');
+const { JuricaUtils } = require('../jurica-utils');
 
 async function main(id) {
   const client = new MongoClient(process.env.MONGO_URI, {
@@ -38,6 +41,8 @@ async function main(id) {
     let sourceId = null;
     let rawDocument = null;
     let decision = null;
+    let changelog = {};
+    let changed = false;
     let properties = {
       IND_PM: 'personne morale, numéro de Siret/Siren',
       IND_ADRESSE: 'adresse, localité, établissement',
@@ -148,11 +153,96 @@ async function main(id) {
         newVal = propertiesValues[key] ? propertiesValues[key] : null;
       }
       if (oldVal !== newVal) {
-        oldVal = ` (ancienne valeur = ${oldVal})`;
+        changed = true;
+        oldVal = ` (modifié, ancienne valeur = ${oldVal})`;
+        changelog[key] = {
+          old: JSON.stringify(oldVal),
+          new: JSON.stringify(newVal),
+        };
+        rawDocument[key] = propertiesValues[key];
       } else {
         oldVal = '';
       }
       console.log(`${key} - ${properties[key]}: ${newVal}${oldVal}`);
+    }
+
+    if (changed === true) {
+      const { doChange } = await prompt.get({
+        name: 'doChange',
+        message: 'Enregistrer les changements et mettre à jour la décision ?',
+        validator: /(oui|non)/,
+        default: 'non',
+      });
+
+      if (doChange === 'oui') {
+        rawDocument._indexed = null;
+        if (sourceName === 'jurinet') {
+          rawDocument.IND_ANO = 0;
+          rawDocument.XMLA = null;
+          await rawJurinet.replaceOne({ _id: rawDocument._id }, rawDocument, { bypassDocumentValidation: true });
+          await JudilibreIndex.updateJurinetDocument(
+            rawDocument,
+            null,
+            `modify occultation - changelog: ${JSON.stringify(changelog)}`,
+          );
+          let normDec = await JurinetUtils.Normalize(rawDocument, decision);
+          normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
+          normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
+          normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
+          normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
+          normDec._id = decision._id;
+          normDec._version = decisionsVersion;
+          normDec.dateCreation = new Date().toISOString();
+          normDec.pseudoText = undefined;
+          normDec.pseudoStatus = 0;
+          normDec.labelStatus = 'toBeTreated';
+          normDec.labelTreatments = [];
+          normDec.zoning = null;
+          await decisions.replaceOne({ _id: decision._id }, normDec, {
+            bypassDocumentValidation: true,
+          });
+          await JudilibreIndex.updateDecisionDocument(
+            normDec,
+            null,
+            `modify occultation - changelog: ${JSON.stringify(changelog)}`,
+          );
+        } else if (sourceName === 'jurica') {
+          rawDocument.IND_ANO = 0;
+          rawDocument.HTMLA = null;
+          await rawJurica.replaceOne({ _id: rawDocument._id }, rawDocument, { bypassDocumentValidation: true });
+          await JudilibreIndex.updateJuricaDocument(
+            rawDocument,
+            null,
+            `modify occultation - changelog: ${JSON.stringify(changelog)}`,
+          );
+          let normDec = await JuricaUtils.Normalize(row, decision);
+          normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+          normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+          normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+          normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+          normDec._id = decision._id;
+          normDec._version = decisionsVersion;
+          normDec.dateCreation = new Date().toISOString();
+          normDec.pseudoText = undefined;
+          normDec.pseudoStatus = 0;
+          normDec.labelStatus = 'toBeTreated';
+          normDec.labelTreatments = [];
+          normDec.zoning = null;
+          await decisions.replaceOne({ _id: decision._id }, normDec, {
+            bypassDocumentValidation: true,
+          });
+          await JudilibreIndex.indexDecisionDocument(
+            normDec,
+            null,
+            `modify occultation - changelog: ${JSON.stringify(changelog)}`,
+          );
+        }
+        console.log('Changements enregistrés.');
+      } else {
+        console.log('Changements ignorés.');
+      }
+    } else {
+      console.log('Aucun changement à enregistrer.');
     }
   } catch (e) {
     console.error(e);
