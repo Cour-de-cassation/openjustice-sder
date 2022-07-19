@@ -7,6 +7,8 @@ const { MongoClient, ObjectId } = require('mongodb');
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 const { JurinetUtils } = require('../jurinet-utils');
 const { JuricaUtils } = require('../jurica-utils');
+const { JurinetOracle } = require('../jurinet-oracle');
+const { JuricaOracle } = require('../jurica-oracle');
 
 async function main(id) {
   const client = new MongoClient(process.env.MONGO_URI, {
@@ -206,6 +208,20 @@ async function main(id) {
             null,
             `modify occultation - changelog: ${JSON.stringify(changelog)}`,
           );
+          const now = new Date();
+          const jurinetSource = new JurinetOracle();
+          await jurinetSource.connect();
+          const updateQuery = `UPDATE DOCUMENT
+            SET XMLA=null,
+            IND_ANO=0,
+            AUT_ANO=null,
+            DT_ANO=null,
+            DT_MODIF=:datea,
+            DT_MODIF_ANO=null,
+            DT_ENVOI_DILA=NULL
+            WHERE ID_DOCUMENT=:id`;
+          await jurinetSource.connection.execute(updateQuery, [now, decision.sourceId], { autoCommit: true });
+          await jurinetSource.close();
         } else if (sourceName === 'jurica') {
           rawDocument.IND_ANO = 0;
           rawDocument.HTMLA = null;
@@ -236,6 +252,19 @@ async function main(id) {
             null,
             `modify occultation - changelog: ${JSON.stringify(changelog)}`,
           );
+          const now = new Date();
+          const juricaSource = new JuricaOracle();
+          await juricaSource.connect();
+          const updateQuery = `UPDATE JCA_DECISION
+            SET IND_ANO=0,
+            AUT_ANO=null,
+            DT_ANO=null,
+            JDEC_DATE_MAJ=:datea,
+            DT_MODIF_ANO=null,
+            DT_ENVOI_ABONNES=NULL
+            WHERE JDEC_ID=:id`;
+          await juricaSource.connection.execute(updateQuery, [now, decision.sourceId], { autoCommit: true });
+          await juricaSource.close();
         }
         console.log('Changements enregistrés.');
       } else {
