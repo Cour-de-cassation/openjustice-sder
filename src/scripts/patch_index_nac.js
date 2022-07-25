@@ -5,8 +5,6 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { parentPort } = require('worker_threads');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
-const { JurinetUtils } = require('../jurinet-utils');
-const { JuricaUtils } = require('../jurica-utils');
 const ms = require('ms');
 
 let selfKill = setTimeout(cancel, ms('24h'));
@@ -42,44 +40,26 @@ async function patch() {
   });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
-  const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
-  const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   const result = await JudilibreIndex.find('mainIndex', {});
 
   for (let i = 0; i < result.length; i++) {
     let indexedDoc = result[i];
-    let decision = null;
-    let matiere = null;
+    let nac = null;
     let doc = null;
-    if (!indexedDoc.matiere) {
-      if (/jurinet/.test(indexedDoc._id)) {
-        doc = await rawJurinet.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
-        if (doc) {
-          decision = await decisions.findOne({ sourceId: doc._id, sourceName: 'jurinet' });
-          if (decision) {
-            matiere = JurinetUtils.GetDecisionThemesForIndexing(decision);
-          } else {
-            matiere = null;
-          }
-        }
-      } else if (/jurica/.test(indexedDoc._id)) {
+    if (!indexedDoc.nac) {
+      if (/jurica/.test(indexedDoc._id)) {
         doc = await rawJurica.findOne({ _id: parseInt(indexedDoc._id.split(':')[1], 10) });
         if (doc) {
-          decision = await decisions.findOne({ sourceId: doc._id, sourceName: 'jurica' });
-          if (decision) {
-            matiere = JuricaUtils.GetDecisionThemesForIndexing(decision);
-          } else {
-            matiere = JuricaUtils.GetThemeByNAC(`${doc.JDEC_CODNAC}`.trim());
-          }
+          nac = `${doc.JDEC_CODNAC}`.trim().toLowerCase();
         }
       }
-      if (indexedDoc.matiere !== matiere) {
-        if (matiere) {
-          indexedDoc.matiere = matiere;
+      if (indexedDoc.nac !== nac) {
+        if (nac) {
+          indexedDoc.nac = nac;
         } else {
-          indexedDoc.matiere = null;
+          indexedDoc.nac = null;
         }
         await JudilibreIndex.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, {
           bypassDocumentValidation: true,
