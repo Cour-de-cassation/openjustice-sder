@@ -42,6 +42,7 @@ class JudilibreIndex {
         dateExport: null,
         dateError: null,
         dateJudifiltre: null,
+        matiere: JurinetUtils.GetDecisionThemesForIndexing(normalized),
       };
     } catch (e) {
       let dateDecision = null;
@@ -68,6 +69,7 @@ class JudilibreIndex {
         dateExport: null,
         dateError: this.getDateString(),
         dateJudifiltre: null,
+        matiere: null,
       };
     }
     let newRef = [];
@@ -143,6 +145,7 @@ class JudilibreIndex {
       indexedDoc.dateExport = existingDoc.dateExport;
       indexedDoc.dateError = existingDoc.dateError;
       indexedDoc.dateJudifiltre = existingDoc.dateJudifiltre;
+      indexedDoc.matiere = existingDoc.matiere;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);
@@ -227,6 +230,7 @@ class JudilibreIndex {
         dateExport: null,
         dateError: null,
         dateJudifiltre: null,
+        matiere: JuricaUtils.GetDecisionThemesForIndexing(normalized),
       };
     } catch (e) {
       let dateDecision = null;
@@ -262,6 +266,7 @@ class JudilibreIndex {
         dateExport: null,
         dateError: this.getDateString(),
         dateJudifiltre: null,
+        matiere: JuricaUtils.GetThemeByNAC(`${doc.JDEC_CODNAC}`.trim()),
       };
     }
     let newRef = [];
@@ -332,6 +337,7 @@ class JudilibreIndex {
       indexedDoc.dateExport = existingDoc.dateExport;
       indexedDoc.dateError = existingDoc.dateError;
       indexedDoc.dateJudifiltre = existingDoc.dateJudifiltre;
+      indexedDoc.matiere = existingDoc.matiere;
       existingDoc.duplicates.forEach((item) => {
         if (indexedDoc.duplicates.indexOf(item) === -1) {
           indexedDoc.duplicates.push(item);

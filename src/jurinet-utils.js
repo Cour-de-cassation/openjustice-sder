@@ -762,9 +762,35 @@ class JurinetUtils {
     }
     return dateForIndexing;
   }
+
+  static GetDecisionThemesForIndexing(decision) {
+    let themes = null;
+    if (
+      decision.analysis &&
+      decision.analysis.title &&
+      Array.isArray(decision.analysis.title) &&
+      decision.analysis.title.length > 0
+    ) {
+      themes = decision.analysis.title.map((item) => {
+        try {
+          item = he.decode(item);
+        } catch (ignore) {}
+        item = item.toLowerCase();
+        item = item.replace(/\*+\s*$/gm, '');
+        item = item.replace(/\s+/gm, ' ');
+        item = item.replace(/(\w)\s+\./gm, '$1.');
+        item = item.replace(/\(\s+(\w)/gm, '($1');
+        item = item.replace(/(\w)\s+\)/gm, '$1)');
+        item = item.replace(/(\w)\(/gm, '$1 (');
+        item = item.replace(/([^,]),(\w)/gm, '$1, $2');
+        return item.trim();
+      });
+    }
+    return themes;
+  }
 }
 
-function ConvertOccultationBlockInCategoriesToOmit({occultationBlock, chamberId}) {
+function ConvertOccultationBlockInCategoriesToOmit({ occultationBlock, chamberId }) {
   let categoriesToOmit = ['professionnelMagistratGreffier'];
   if (occultationBlock >= 1 && occultationBlock <= 4) {
     switch (occultationBlock) {
@@ -775,16 +801,10 @@ function ConvertOccultationBlockInCategoriesToOmit({occultationBlock, chamberId}
         categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
         break;
       case 4:
-        categoriesToOmit.push(
-          'dateNaissance',
-          'dateMariage',
-          'dateDeces',
-          'personneMorale',
-          'numeroSiretSiren',
-        );
+        categoriesToOmit.push('dateNaissance', 'dateMariage', 'dateDeces', 'personneMorale', 'numeroSiretSiren');
         break;
     }
-  } else if(chamberId !== "CR"){
+  } else if (chamberId !== 'CR') {
     categoriesToOmit.push('personneMorale', 'numeroSiretSiren');
   }
   return categoriesToOmit;
@@ -830,4 +850,4 @@ function HtmlDecode(obj) {
 
 exports.JurinetUtils = JurinetUtils;
 
-exports.ConvertOccultationBlockInCategoriesToOmit = ConvertOccultationBlockInCategoriesToOmit
+exports.ConvertOccultationBlockInCategoriesToOmit = ConvertOccultationBlockInCategoriesToOmit;
