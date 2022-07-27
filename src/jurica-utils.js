@@ -1476,9 +1476,9 @@ class JuricaUtils {
             if (baseRegex.test(zoning.introduction_subzonage.j_preced_date[dd])) {
               const baseMatch = baseRegex.exec(zoning.introduction_subzonage.j_preced_date[dd]);
               const baseDate = {
-                day: parseInt(baseMatch[1]),
+                day: parseInt(baseMatch[1], 10),
                 month: JurinetUtils.ParseMonth(baseMatch[2]),
-                year: parseInt(baseMatch[3]),
+                year: parseInt(baseMatch[3], 10),
               };
               baseDate.day = baseDate.day < 10 ? `0${baseDate.day}` : `${baseDate.day}`;
               baseDate.month = baseDate.month < 10 ? `0${baseDate.month}` : `${baseDate.month}`;
@@ -2016,9 +2016,9 @@ class JuricaUtils {
       NACCode: document.JDEC_CODNAC || null,
       NPCode: document.JDEC_CODNACPART || null,
       public:
-        parseInt(document.JDEC_IND_DEC_PUB, 10) === 1
+        parseInt(`${document.JDEC_IND_DEC_PUB}`, 10) === 1
           ? true
-          : parseInt(document.JDEC_IND_DEC_PUB, 10) === 0
+          : parseInt(`${document.JDEC_IND_DEC_PUB}`, 10) === 0
           ? false
           : null,
       natureAffaireCivil: null,
@@ -2059,26 +2059,79 @@ class JuricaUtils {
 
     if (document._bloc_occultation) {
       normalizedDecision.blocOccultation = document._bloc_occultation;
+    }
 
-      switch (parseInt(document.JDEC_OCC_COMP, 10)) {
-        case 0:
-          normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
-          break;
-        case 1:
-          normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
-            document._bloc_occultation,
-          );
-          break;
-        case 2:
-          normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
-          normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
-          break;
-        case 3:
-          normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
-            document._bloc_occultation,
-          );
-          normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
-          break;
+    switch (parseInt(`${document.JDEC_OCC_COMP}`, 10)) {
+      case 0:
+        normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
+        break;
+      case 1:
+        normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
+          normalizedDecision.blocOccultation,
+        );
+        break;
+      case 2:
+        normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
+        normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
+        break;
+      case 3:
+        normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
+          normalizedDecision.blocOccultation,
+        );
+        normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
+        break;
+    }
+
+    const occultations = {
+      IND_PM: ['personneMorale', 'numeroSiretSiren'],
+      IND_ADRESSE: ['adresse', 'localite', 'etablissement'],
+      IND_DT_NAISSANCE: ['dateNaissance'],
+      IND_DT_DECE: ['dateDeces'],
+      IND_DT_MARIAGE: ['dateMariage'],
+      IND_IMMATRICULATION: ['plaqueImmatriculation'],
+      IND_CADASTRE: ['cadastre'],
+      IND_CHAINE: ['compteBancaire', 'telephoneFax', 'insee'],
+      IND_COORDONNEE_ELECTRONIQUE: ['email'],
+      IND_PRENOM_PROFESSIONEL: ['professionnelMagistratGreffier'],
+      IND_NOM_PROFESSIONEL: ['professionnelMagistratGreffier'],
+    };
+
+    for (let key in occultations) {
+      let indOccultation = parseInt(`${document[key]}`, 10);
+      if (key === 'IND_PM' || key === 'IND_NOM_PROFESSIONEL' || key === 'IND_PRENOM_PROFESSIONEL') {
+        if (indOccultation === 0 || isNaN(indOccultation)) {
+          occultations[key].forEach((item) => {
+            if (normalizedDecision.occultation.categoriesToOmit.indexOf(item) === -1) {
+              normalizedDecision.occultation.categoriesToOmit.push(item);
+            }
+          });
+        } else if (indOccultation === 1) {
+          occultations[key].forEach((item) => {
+            if (normalizedDecision.occultation.categoriesToOmit.indexOf(item) !== -1) {
+              normalizedDecision.occultation.categoriesToOmit.splice(
+                normalizedDecision.occultation.categoriesToOmit.indexOf(item),
+                1,
+              );
+            }
+          });
+        }
+      } else {
+        if (indOccultation === 0) {
+          occultations[key].forEach((item) => {
+            if (normalizedDecision.occultation.categoriesToOmit.indexOf(item) === -1) {
+              normalizedDecision.occultation.categoriesToOmit.push(item);
+            }
+          });
+        } else if (indOccultation === 1) {
+          occultations[key].forEach((item) => {
+            if (normalizedDecision.occultation.categoriesToOmit.indexOf(item) !== -1) {
+              normalizedDecision.occultation.categoriesToOmit.splice(
+                normalizedDecision.occultation.categoriesToOmit.indexOf(item),
+                1,
+              );
+            }
+          });
+        }
       }
     }
 

@@ -454,7 +454,7 @@ class JurinetUtils {
       zoning: undefined,
       occultation: {
         additionalTerms: '',
-        categoriesToOmit: [],
+        categoriesToOmit: ['personneMorale', 'numeroSiretSiren', 'professionnelMagistratGreffier'],
       },
       publication: [],
       formation: undefined,
@@ -604,16 +604,39 @@ class JurinetUtils {
     };
 
     for (let key in occultations) {
+      let indOccultation = parseInt(`${document[key]}`, 10);
       if (key === 'IND_PM' || key === 'IND_NOM_PROFESSIONEL' || key === 'IND_PRENOM_PROFESSIONEL') {
-        if (!document[key]) {
+        if (indOccultation === 0 || isNaN(indOccultation)) {
           occultations[key].forEach((item) => {
-            normalizedDecision.occultation.categoriesToOmit.push(item);
+            if (normalizedDecision.occultation.categoriesToOmit.indexOf(item) === -1) {
+              normalizedDecision.occultation.categoriesToOmit.push(item);
+            }
+          });
+        } else if (indOccultation === 1) {
+          occultations[key].forEach((item) => {
+            if (normalizedDecision.occultation.categoriesToOmit.indexOf(item) !== -1) {
+              normalizedDecision.occultation.categoriesToOmit.splice(
+                normalizedDecision.occultation.categoriesToOmit.indexOf(item),
+                1,
+              );
+            }
           });
         }
       } else {
-        if (!document[key] && document[key] !== null && document[key] !== undefined) {
+        if (indOccultation === 0) {
           occultations[key].forEach((item) => {
-            normalizedDecision.occultation.categoriesToOmit.push(item);
+            if (normalizedDecision.occultation.categoriesToOmit.indexOf(item) === -1) {
+              normalizedDecision.occultation.categoriesToOmit.push(item);
+            }
+          });
+        } else if (indOccultation === 1) {
+          occultations[key].forEach((item) => {
+            if (normalizedDecision.occultation.categoriesToOmit.indexOf(item) !== -1) {
+              normalizedDecision.occultation.categoriesToOmit.splice(
+                normalizedDecision.occultation.categoriesToOmit.indexOf(item),
+                1,
+              );
+            }
           });
         }
       }
