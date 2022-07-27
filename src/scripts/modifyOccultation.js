@@ -231,7 +231,7 @@ async function main(id) {
             null,
             `modify occultation - changelog: ${JSON.stringify(changelog)}`,
           );
-          let normDec = await JuricaUtils.Normalize(row, decision);
+          let normDec = await JuricaUtils.Normalize(rawDocument, decision);
           normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
           normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
           normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
