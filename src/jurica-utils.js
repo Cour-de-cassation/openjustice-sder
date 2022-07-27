@@ -2072,15 +2072,15 @@ class JuricaUtils {
         break;
       case 2:
         normalizedDecision.occultation.categoriesToOmit = GetAllCategoriesToOmit();
-        normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
         break;
       case 3:
         normalizedDecision.occultation.categoriesToOmit = ConvertOccultationBlockInCategoriesToOmit(
           normalizedDecision.blocOccultation,
         );
-        normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
         break;
     }
+
+    normalizedDecision.occultation.additionalTerms = document.JDEC_OCC_COMP_LIBRE || '';
 
     const occultations = {
       IND_PM: ['personneMorale', 'numeroSiretSiren'],
