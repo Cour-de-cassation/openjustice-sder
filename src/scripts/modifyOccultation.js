@@ -253,6 +253,11 @@ async function main(id) {
             `modify occultation - changelog: ${JSON.stringify(changelog)}`,
           );
           const now = new Date();
+
+          let dateForIndexing = now.getFullYear() + '-';
+          dateForIndexing += (now.getMonth() < 9 ? '0' + (now.getMonth() + 1) : now.getMonth() + 1) + '-';
+          dateForIndexing += now.getDate() < 10 ? '0' + now.getDate() : now.getDate();
+
           const juricaSource = new JuricaOracle();
           await juricaSource.connect();
           const updateQuery = `UPDATE JCA_DECISION
@@ -263,7 +268,9 @@ async function main(id) {
             DT_MODIF_ANO=null,
             DT_ENVOI_ABONNES=NULL
             WHERE JDEC_ID=:id`;
-          await juricaSource.connection.execute(updateQuery, [now, decision.sourceId], { autoCommit: true });
+          await juricaSource.connection.execute(updateQuery, [dateForIndexing, decision.sourceId], {
+            autoCommit: true,
+          });
           await juricaSource.close();
         }
         console.log('Changements enregistrés.');
