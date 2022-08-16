@@ -742,10 +742,16 @@ class JurinetUtils {
       zoning.introduction_subzonage &&
       zoning.introduction_subzonage.pourvoi &&
       Array.isArray(zoning.introduction_subzonage.pourvoi) &&
-      zoning.introduction_subzonage.pourvoi.length > 0
+      zoning.introduction_subzonage.pourvoi.length > 0 &&
+      zoning.introduction_subzonage.pourvoi.indexOf(null) === -1
     ) {
       number = zoning.introduction_subzonage.pourvoi;
-    } else if (decision.appeals && Array.isArray(decision.appeals) && decision.appeals.length > 0) {
+    } else if (
+      decision.appeals &&
+      Array.isArray(decision.appeals) &&
+      decision.appeals.length > 0 &&
+      decision.appeals.indexOf(null) === -1
+    ) {
       number = decision.appeals;
     } else if (decision.registerNumber) {
       number = [decision.registerNumber];
