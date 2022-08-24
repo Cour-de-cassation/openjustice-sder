@@ -60,4 +60,7 @@ if (!process.env.SKIP_JOBS) {
   console.info('Start jobs.');
 } else {
   console.info('Skip jobs.');
+  setInterval(() => {
+    // nope
+  }, 1000);
 }
