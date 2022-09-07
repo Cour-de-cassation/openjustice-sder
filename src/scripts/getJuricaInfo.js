@@ -177,6 +177,8 @@ async function getJuricaInfo(id) {
       }
 
       console.log(row.JDEC_HTML_SOURCE);
+      require('fs').writeFileSync('zones.json', JSON.stringify(zoning.zones, null, 2));
+      require('fs').writeFileSync('partial.txt', row.JDEC_HTML_SOURCE);
 
       const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
         row.JDEC_CODNAC,
