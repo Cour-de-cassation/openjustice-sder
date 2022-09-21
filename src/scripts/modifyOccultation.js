@@ -213,6 +213,20 @@ async function main(id) {
           await jurinetSource.connect();
           const updateQuery = `UPDATE DOCUMENT
             SET XMLA=null,
+            IND_PM=${parseInt(rawDocument['IND_PM'], 10)},
+            IND_ADRESSE=${parseInt(rawDocument['IND_ADRESSE'], 10)},
+            IND_DT_NAISSANCE=${parseInt(rawDocument['IND_DT_NAISSANCE'], 10)},
+            IND_DT_DECE=${parseInt(rawDocument['IND_DT_DECE'], 10)},
+            IND_DT_MARIAGE=${parseInt(rawDocument['IND_DT_MARIAGE'], 10)},
+            IND_IMMATRICULATION=${parseInt(rawDocument['IND_IMMATRICULATION'], 10)},
+            IND_CADASTRE=${parseInt(rawDocument['IND_CADASTRE'], 10)},
+            IND_CHAINE=${parseInt(rawDocument['IND_CHAINE'], 10)},
+            IND_COORDONNEE_ELECTRONIQUE=${parseInt(rawDocument['IND_COORDONNEE_ELECTRONIQUE'], 10)},
+            IND_PRENOM_PROFESSIONEL=${parseInt(rawDocument['IND_PRENOM_PROFESSIONEL'], 10)},
+            IND_NOM_PROFESSIONEL=${parseInt(rawDocument['IND_NOM_PROFESSIONEL'], 10)},
+            OCCULTATION_SUPPLEMENTAIRE=${
+              rawDocument['OCCULTATION_SUPPLEMENTAIRE'] ? rawDocument['OCCULTATION_SUPPLEMENTAIRE'] : 'null'
+            },
             IND_ANO=0,
             AUT_ANO=null,
             DT_ANO=null,
@@ -262,6 +276,19 @@ async function main(id) {
           await juricaSource.connect();
           const updateQuery = `UPDATE JCA_DECISION
             SET IND_ANO=0,
+            IND_PM=${parseInt(rawDocument['IND_PM'], 10)},
+            IND_ADRESSE=${parseInt(rawDocument['IND_ADRESSE'], 10)},
+            IND_DT_NAISSANCE=${parseInt(rawDocument['IND_DT_NAISSANCE'], 10)},
+            IND_DT_DECE=${parseInt(rawDocument['IND_DT_DECE'], 10)},
+            IND_DT_MARIAGE=${parseInt(rawDocument['IND_DT_MARIAGE'], 10)},
+            IND_IMMATRICULATION=${parseInt(rawDocument['IND_IMMATRICULATION'], 10)},
+            IND_CADASTRE=${parseInt(rawDocument['IND_CADASTRE'], 10)},
+            IND_CHAINE=${parseInt(rawDocument['IND_CHAINE'], 10)},
+            IND_COORDONNEE_ELECTRONIQUE=${parseInt(rawDocument['IND_COORDONNEE_ELECTRONIQUE'], 10)},
+            IND_PRENOM_PROFESSIONEL=${parseInt(rawDocument['IND_PRENOM_PROFESSIONEL'], 10)},
+            IND_NOM_PROFESSIONEL=${parseInt(rawDocument['IND_NOM_PROFESSIONEL'], 10)},
+            JDEC_OCC_COMP=${parseInt(rawDocument['JDEC_OCC_COMP'], 10)},
+            JDEC_OCC_COMP_LIBRE=${rawDocument['JDEC_OCC_COMP_LIBRE'] ? rawDocument['JDEC_OCC_COMP_LIBRE'] : 'null'},
             AUT_ANO=null,
             DT_ANO=null,
             JDEC_DATE_MAJ=:datea,
