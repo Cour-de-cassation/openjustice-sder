@@ -156,12 +156,12 @@ async function main(id) {
       }
       if (oldVal !== newVal) {
         changed = true;
-        oldVal = ` (modifié, ancienne valeur = ${oldVal})`;
         changelog[key] = {
           old: JSON.stringify(oldVal),
           new: JSON.stringify(newVal),
         };
         rawDocument[key] = propertiesValues[key];
+        oldVal = ` (modifié, ancienne valeur = ${oldVal})`;
       } else {
         oldVal = '';
       }
