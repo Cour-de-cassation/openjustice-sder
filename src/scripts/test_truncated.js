@@ -24,13 +24,20 @@ async function main() {
     const decision = await decisions.findOne({ sourceName: 'jurinet', sourceId: document._id });
     if (decision && decision.pseudoText) {
       let pseudoText = `${decision.pseudoText}`.trim();
-      if (/cc$/gim.test(pseudoText)) {
-        pseudoText = pseudoText.replace(/cc$/gim, '').trim();
-      }
-      if (/\w\s?[;.]$/gim.test(decision.pseudoText) === false) {
-        let endOfFile = decision.pseudoText.slice(-30);
-        if (/greffier/i.test(endOfFile) === false && /pr.+sident/i.test(endOfFile) === false) {
-          console.log(document._id, ':', endOfFile);
+      if (decision.pseudoText.split('\n').length > 5) {
+        if (/cc$/gim.test(pseudoText)) {
+          pseudoText = pseudoText.replace(/cc$/gim, '').trim();
+        }
+        if (/\w\s?[;.]$/gim.test(decision.pseudoText) === false) {
+          let endOfFile = decision.pseudoText.slice(-30);
+          if (
+            /conseiller/i.test(endOfFile) === false &&
+            /magistrat/i.test(endOfFile) === false &&
+            /greffier/i.test(endOfFile) === false &&
+            /pr.+sident/i.test(endOfFile) === false
+          ) {
+            console.log(document._id, ':', endOfFile);
+          }
         }
       }
     }
