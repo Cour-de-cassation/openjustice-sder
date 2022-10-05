@@ -32,6 +32,7 @@ async function main() {
           let endOfFile = decision.pseudoText.slice(-30);
           if (
             /conseiller/i.test(endOfFile) === false &&
+            /barreau/i.test(endOfFile) === false &&
             /magistrat/i.test(endOfFile) === false &&
             /greffier/i.test(endOfFile) === false &&
             /pr.+sident/i.test(endOfFile) === false
