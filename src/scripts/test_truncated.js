@@ -22,8 +22,17 @@ async function main() {
   );
   while ((document = await cursor.next())) {
     const decision = await decisions.findOne({ sourceName: 'jurinet', sourceId: document._id });
-    if (decision && decision.pseudoText && /\w\s?[;.]$/gim.test(`${decision.pseudoText}`.trim()) === false) {
-      console.log(document._id, ':', `${decision.pseudoText}`.trim().slice(-10));
+    if (decision && decision.pseudoText) {
+      let pseudoText = `${decision.pseudoText}`.trim();
+      if (/cc$/gim.test(pseudoText)) {
+        pseudoText = pseudoText.replace(/cc$/gim, '').trim();
+      }
+      if (/\w\s?[;.]$/gim.test(decision.pseudoText) === false) {
+        let endOfFile = decision.pseudoText.slice(-30);
+        if (/greffier/i.test(endOfFile) === false && /pr.+sident/i.test(endOfFile) === false) {
+          console.log(document._id, ':', endOfFile);
+        }
+      }
     }
   }
   await cursor.close();
