@@ -31,7 +31,7 @@ async function main() {
         .replace(/[\r\n]/gm, ' ')
         .replace(/\s+/gm, ' ')
         .trim();
-      if (pseudoText.length / originalText.length < 0.9) {
+      if (pseudoText.length / originalText.length < 0.95) {
         let endOfOriginal = originalText.slice(-15);
         let endOfPseudo = pseudoText.slice(-15);
         if (endOfOriginal !== endOfPseudo) {
