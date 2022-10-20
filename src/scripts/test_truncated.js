@@ -32,8 +32,8 @@ async function main() {
         .replace(/\s+/gm, ' ')
         .trim();
       if (pseudoText.length / originalText.length < 0.875) {
-        let endOfOriginal = originalText.slice(-30);
-        let endOfPseudo = pseudoText.slice(-30);
+        let endOfOriginal = originalText.slice(-15);
+        let endOfPseudo = pseudoText.slice(-15);
         if (endOfOriginal !== endOfPseudo) {
           console.log(`<${document._id}> (${(pseudoText.length / originalText.length).toFixed(2)}):`);
           console.log(`- original [${endOfOriginal}]`);
