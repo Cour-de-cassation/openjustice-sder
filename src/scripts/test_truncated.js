@@ -25,12 +25,12 @@ async function main() {
     if (decision && decision.pseudoText) {
       let originalText = `${decision.originalText}`.trim();
       let pseudoText = `${decision.pseudoText}`.trim();
-      if (pseudoText.length / originalText.length < 0.5) {
+      if (pseudoText.length / originalText.length < 0.75) {
         let endOfOriginal = originalText.slice(-30);
         let endOfPseudo = pseudoText.slice(-30);
         console.log(`*** ${document._id}:`);
-        console.log(endOfOriginal);
-        console.log(endOfPseudo);
+        console.log(`original: ${endOfOriginal}</end>`);
+        console.log(`pseudo: ${endOfPseudo}</end>`);
       }
       /*
       if (decision.pseudoText.split('\n').length > 2) {
