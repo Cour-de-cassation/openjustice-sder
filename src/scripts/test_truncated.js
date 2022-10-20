@@ -28,9 +28,9 @@ async function main() {
       if (pseudoText.length / originalText.length < 0.75) {
         let endOfOriginal = originalText.slice(-30);
         let endOfPseudo = pseudoText.slice(-30);
-        console.log(`*** ${document._id}:`);
-        console.log(`original: ${endOfOriginal}</end>`);
-        console.log(`pseudo: ${endOfPseudo}</end>`);
+        console.log(`<${document._id}> (${(pseudoText.length / originalText.length).toFixed(2)}):`);
+        console.log(`- original [${endOfOriginal}]`);
+        console.log(`- pseudo [${endOfPseudo}]`);
       }
       /*
       if (decision.pseudoText.split('\n').length > 2) {
