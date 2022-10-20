@@ -31,13 +31,17 @@ async function main() {
         .replace(/[\r\n]/gm, ' ')
         .replace(/\s+/gm, ' ')
         .trim();
-      if (pseudoText.length / originalText.length < 0.875) {
+      if (pseudoText.length / originalText.length < 0.9) {
         let endOfOriginal = originalText.slice(-15);
         let endOfPseudo = pseudoText.slice(-15);
         if (endOfOriginal !== endOfPseudo) {
-          console.log(`<${document._id}> (${(pseudoText.length / originalText.length).toFixed(2)}):`);
+          console.log(
+            `https://www.courdecassation.fr/decision/${decision._id} <${document._id}> (${(
+              pseudoText.length / originalText.length
+            ).toFixed(2)}):`,
+          );
           console.log(`- original [${endOfOriginal}]`);
-          console.log(`- pseudo [${endOfPseudo}]`);
+          console.log(`- pseudo [${endOfPseudo}]\n`);
         }
       }
       /*
