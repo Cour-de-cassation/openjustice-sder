@@ -23,14 +23,22 @@ async function main() {
   while ((document = await cursor.next())) {
     const decision = await decisions.findOne({ sourceName: 'jurinet', sourceId: document._id });
     if (decision && decision.pseudoText) {
-      let originalText = `${decision.originalText}`.trim();
-      let pseudoText = `${decision.pseudoText}`.trim();
-      if (pseudoText.length / originalText.length < 0.75) {
+      let originalText = `${decision.originalText}`
+        .replace(/[\r\n]/gm, ' ')
+        .replace(/\s+/gm, ' ')
+        .trim();
+      let pseudoText = `${decision.pseudoText}`
+        .replace(/[\r\n]/gm, ' ')
+        .replace(/\s+/gm, ' ')
+        .trim();
+      if (pseudoText.length / originalText.length < 0.875) {
         let endOfOriginal = originalText.slice(-30);
         let endOfPseudo = pseudoText.slice(-30);
-        console.log(`<${document._id}> (${(pseudoText.length / originalText.length).toFixed(2)}):`);
-        console.log(`- original [${endOfOriginal}]`);
-        console.log(`- pseudo [${endOfPseudo}]`);
+        if (endOfOriginal !== endOfPseudo) {
+          console.log(`<${document._id}> (${(pseudoText.length / originalText.length).toFixed(2)}):`);
+          console.log(`- original [${endOfOriginal}]`);
+          console.log(`- pseudo [${endOfPseudo}]`);
+        }
       }
       /*
       if (decision.pseudoText.split('\n').length > 2) {
