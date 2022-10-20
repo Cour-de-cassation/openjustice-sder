@@ -23,7 +23,16 @@ async function main() {
   while ((document = await cursor.next())) {
     const decision = await decisions.findOne({ sourceName: 'jurinet', sourceId: document._id });
     if (decision && decision.pseudoText) {
+      let originalText = `${decision.originalText}`.trim();
       let pseudoText = `${decision.pseudoText}`.trim();
+      if (pseudoText.length / originalText.length < 0.5) {
+        let endOfOriginal = originalText.slice(-30);
+        let endOfPseudo = pseudoText.slice(-30);
+        console.log(`*** ${document._id}:`);
+        console.log(endOfOriginal);
+        console.log(endOfPseudo);
+      }
+      /*
       if (decision.pseudoText.split('\n').length > 2) {
         if (/cc$/gim.test(pseudoText)) {
           pseudoText = pseudoText.replace(/cc$/gim, '').trim();
@@ -41,6 +50,7 @@ async function main() {
           }
         }
       }
+      */
     }
   }
   await cursor.close();
