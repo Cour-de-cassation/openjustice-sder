@@ -24,7 +24,7 @@ async function main() {
     const decision = await decisions.findOne({ sourceName: 'jurinet', sourceId: document._id });
     if (decision && decision.pseudoText) {
       let pseudoText = `${decision.pseudoText}`.trim();
-      if (decision.pseudoText.split('\n').length > 5) {
+      if (decision.pseudoText.split('\n').length > 2) {
         if (/cc$/gim.test(pseudoText)) {
           pseudoText = pseudoText.replace(/cc$/gim, '').trim();
         }
