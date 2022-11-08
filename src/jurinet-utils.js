@@ -70,10 +70,10 @@ class JurinetUtils {
       fragments[j] = fragments[j].replace(/\r/gim, '\n');
 
       // Remove extra spaces:
-      fragments[j] = fragments[j].replace(/\t/gim, '');
-      fragments[j] = fragments[j].replace(/\\t/gim, ''); // That could happen...
-      fragments[j] = fragments[j].replace(/\f/gim, '');
-      fragments[j] = fragments[j].replace(/\\f/gim, ''); // That could happen too...
+      fragments[j] = fragments[j].replace(/\t/gim, ' ');
+      fragments[j] = fragments[j].replace(/\\t/gim, ' '); // That could happen...
+      fragments[j] = fragments[j].replace(/\f/gim, ' ');
+      fragments[j] = fragments[j].replace(/\\f/gim, ' '); // That could happen too...
       fragments[j] = JurinetUtils.removeMultipleSpace(fragments[j]);
 
       // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):

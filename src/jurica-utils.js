@@ -1853,10 +1853,10 @@ class JuricaUtils {
     html = html.replace(/\r/gim, '\n');
 
     // Remove extra spaces:
-    html = html.replace(/\t/gim, '');
-    html = html.replace(/\\t/gim, ''); // That could happen...
-    html = html.replace(/\f/gim, '');
-    html = html.replace(/\\f/gim, ''); // That could happen too...
+    html = html.replace(/\t/gim, ' ');
+    html = html.replace(/\\t/gim, ' '); // That could happen...
+    html = html.replace(/\f/gim, ' ');
+    html = html.replace(/\\f/gim, ' '); // That could happen too...
     html = JuricaUtils.removeMultipleSpace(html);
 
     // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):
