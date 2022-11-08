@@ -41,10 +41,10 @@ class DilaUtils {
     str = str.replace(/\r/gim, '\n');
 
     // Remove extra spaces:
-    str = str.replace(/\t/gim, '');
-    str = str.replace(/\\t/gim, ''); // That could happen...
-    str = str.replace(/\f/gim, '');
-    str = str.replace(/\\f/gim, ''); // That could happen too...
+    str = str.replace(/\t/gim, ' ');
+    str = str.replace(/\\t/gim, ' '); // That could happen...
+    str = str.replace(/\f/gim, ' ');
+    str = str.replace(/\\f/gim, ' '); // That could happen too...
     str = DilaUtils.removeMultipleSpace(str);
 
     // Mysterious chars (cf. https://www.compart.com/fr/unicode/U+0080, etc.):
@@ -99,10 +99,10 @@ class DilaUtils {
         fragments[j] = fragments[j].replace(/<\/h\d>/gim, '\n');
         fragments[j] = fragments[j].replace(/<\/\w+>/gim, ' ');
 
-        fragments[j] = fragments[j].replace(/\t/gim, '');
-        fragments[j] = fragments[j].replace(/\\t/gim, '');
-        fragments[j] = fragments[j].replace(/\f/gim, '');
-        fragments[j] = fragments[j].replace(/\\f/gim, '');
+        fragments[j] = fragments[j].replace(/\t/gim, ' ');
+        fragments[j] = fragments[j].replace(/\\t/gim, ' ');
+        fragments[j] = fragments[j].replace(/\f/gim, ' ');
+        fragments[j] = fragments[j].replace(/\\f/gim, ' ');
         fragments[j] = fragments[j].replace(/\r\n/gim, '\n');
         fragments[j] = fragments[j].replace(/\r/gim, '\n');
         fragments[j] = fragments[j].replace(/  +/gm, ' ');
