@@ -703,12 +703,12 @@ async function syncJurinet() {
               normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
               normDec._version = decisionsVersion;
               normDec.dateCreation = new Date().toISOString();
+              normDec.zoning = null;
               if (reprocessUpdated === true) {
                 normDec.pseudoText = undefined;
                 normDec.pseudoStatus = 0;
                 normDec.labelStatus = 'toBeTreated';
                 normDec.labelTreatments = [];
-                normDec.zoning = null;
               }
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
                 bypassDocumentValidation: true,
