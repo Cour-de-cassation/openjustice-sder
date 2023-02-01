@@ -315,6 +315,37 @@ class JurinetOracle {
           data['_natureAffairePenal'] = null;
           data['_codeMatiereCivil'] = null;
         }
+
+        try {
+          // Inject "nao" code (if any) into the document:
+          let naoCode = null;
+          const pourvoiQuery2 = `SELECT *
+            FROM NUMPOURVOI
+            WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
+          const pourvoiResult2 = await this.connection.execute(pourvoiQuery2, [row[process.env.DB_ID_FIELD]]);
+          if (pourvoiResult2 && pourvoiResult2.rows && pourvoiResult2.rows.length > 0) {
+            const pourvoi2 = pourvoiResult2.rows[0];
+            const codePourvoi2 = pourvoi2['NUMPOURVOICODE'];
+            const affaireQuery2 = `SELECT *
+              FROM GPCIV.AFF
+              WHERE GPCIV.AFF.CODE = :code`;
+            const affaireResult2 = await this.connection.execute(affaireQuery2, [codePourvoi2]);
+            if (affaireResult2 && affaireResult2.rows && affaireResult2.rows.length > 0) {
+              const affaire2 = affaireResult2.rows[0];
+              naoCode = affaire2['ID_NAO'];
+              const naoQuery = `SELECT *
+                FROM GPCIV.NAO
+                WHERE GPCIV.NAO.ID_NAO = :code`;
+              const naoResult = await this.connection.execute(naoQuery, [naoCode]);
+              if (naoResult && naoResult.rows && naoResult.rows.length > 0) {
+                data['_bloc_occultation'] = naoResult.rows[0]['ID_BLOC'];
+              }
+            }
+          }
+          data['_nao_code'] = naoCode;
+        } catch (e) {
+          data['_nao_code'] = null;
+        }
       }
 
       return data;
