@@ -2013,6 +2013,7 @@ class JuricaUtils {
       formation: undefined,
       blocOccultation: undefined,
       endCaseCode: document.JDEC_CODE || null,
+      NAOCode: null,
       NACCode: document.JDEC_CODNAC || null,
       NPCode: document.JDEC_CODNACPART || null,
       public:
