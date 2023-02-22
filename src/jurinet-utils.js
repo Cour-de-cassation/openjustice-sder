@@ -460,6 +460,7 @@ class JurinetUtils {
       formation: undefined,
       blocOccultation: undefined,
       endCaseCode: null,
+      NAOCode: null,
       NACCode: null,
       NPCode: null,
       public: null,
@@ -572,6 +573,10 @@ class JurinetUtils {
 
     if (document._bloc_occultation) {
       normalizedDecision.blocOccultation = document._bloc_occultation;
+    }
+
+    if (document._nao_code) {
+      normalizedDecision.NAOCode = document._nao_code;
     }
 
     if (normalizedDecision.pseudoText) {
