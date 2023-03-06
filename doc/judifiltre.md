@@ -16,7 +16,7 @@
 
 1. **Décision partiellement publique**, si :
 
-   1. Son code NAC appartient à l'un des suivants : `20A, 20B, 20C, 20D, 20E, 20F, 20I, 20J, 20K, 20X, 21A, 21B, 21C, 21D, 21E, 21H, 21I, 21J, 21X, 64D`.
+   1. Son code NAC appartient à l'un des suivants : `20A, 20B, 20C, 20D, 20E, 20F, 20I, 20J, 20K, 20L, 20X, 21A, 21B, 21C, 21D, 21E, 21H, 21I, 21J, 21K, 21X, 64D`.
 
    Anomalie remontées :
 
