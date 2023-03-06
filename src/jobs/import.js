@@ -101,7 +101,11 @@ async function importJurinet() {
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
       // SKIP CA AND OTHER STUFF
-      if (row['TYPE_ARRET'] === 'CC') {
+      if (
+        row['TYPE_ARRET'] === 'CC' ||
+        (row['TYPE_ARRET'] === 'AUTRE' &&
+          (/^t\.cfl$/i.test(row['ID_CHAMBRE']) === true || /judiciaire.*paris$/i.test(row['JURIDICTION'])))
+      ) {
         let raw = await rawJurinet.findOne({ _id: row._id });
         if (raw === null) {
           try {
@@ -483,7 +487,11 @@ async function syncJurinet() {
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
       // SKIP CA AND OTHER STUFF
-      if (row['TYPE_ARRET'] === 'CC') {
+      if (
+        row['TYPE_ARRET'] === 'CC' ||
+        (row['TYPE_ARRET'] === 'AUTRE' &&
+          (/^t\.cfl$/i.test(row['ID_CHAMBRE']) === true || /judiciaire.*paris$/i.test(row['JURIDICTION'])))
+      ) {
         let rawDocument = await raw.findOne({ _id: row._id });
         let updated = false;
         let anomalyUpdated = false;
