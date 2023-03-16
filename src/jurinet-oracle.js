@@ -342,7 +342,11 @@ class JurinetOracle {
               }
             }
           }
-          data['_nao_code'] = naoCode;
+          if (naoCode && naoCode != null && /null/i.test(`${naoCode}`) === false) {
+            data['_nao_code'] = naoCode;
+          } else {
+            data['_nao_code'] = null;
+          }
         } catch (e) {
           data['_nao_code'] = null;
         }

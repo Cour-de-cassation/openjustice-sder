@@ -577,7 +577,7 @@ async function syncJurinet() {
             '_natureAffaireCivil',
             '_natureAffairePenal',
             '_codeMatiereCivil',
-            '_nao_code',
+            // '_nao_code',
           ];
           const anomaly = ['XML'];
           const reprocess = [
@@ -597,7 +597,7 @@ async function syncJurinet() {
             '_natureAffaireCivil',
             '_natureAffairePenal',
             '_codeMatiereCivil',
-            //            '_nao_code',
+            // '_nao_code',
           ];
           diff.forEach((key) => {
             if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
