@@ -575,7 +575,7 @@ class JurinetUtils {
       normalizedDecision.blocOccultation = document._bloc_occultation;
     }
 
-    if (document._nao_code) {
+    if (document._nao_code && document._nao_code != null && /null/i.test(`${document._nao_code}`) === false) {
       normalizedDecision.NAOCode = document._nao_code;
     }
 
