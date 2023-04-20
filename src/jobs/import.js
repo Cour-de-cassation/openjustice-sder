@@ -496,6 +496,7 @@ async function syncJurinet() {
         let updated = false;
         let anomalyUpdated = false;
         let reprocessUpdated = false;
+        let tooOld = false;
 
         if (rawDocument === null) {
           try {
@@ -521,17 +522,17 @@ async function syncJurinet() {
             errorCount++;
           }
           /*
-        try {
-          if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-            for (let d = 0; d < row._decatt.length; d++) {
-              await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+          try {
+            if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
+              for (let d = 0; d < row._decatt.length; d++) {
+                await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+              }
             }
+          } catch (e) {
+            console.error(e);
+            errorCount++;
           }
-        } catch (e) {
-          console.error(e);
-          errorCount++;
-        }
-        */
+          */
         } else {
           const diff = [
             'XML',
@@ -615,56 +616,86 @@ async function syncJurinet() {
             }
           });
           /*
-        try {
-          if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-            for (let d = 0; d < row._decatt.length; d++) {
-              const needUpdate = await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-              if (needUpdate) {
-                updated = true;
+          try {
+            if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
+              for (let d = 0; d < row._decatt.length; d++) {
+                const needUpdate = await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+                if (needUpdate) {
+                  updated = true;
+                }
               }
             }
+          } catch (e) {
+            console.error(e);
+            errorCount++;
           }
-        } catch (e) {
-          console.error(e);
-          errorCount++;
-        }
-        */
+          */
           if (updated === true) {
             try {
-              row._indexed = null;
-              if (reprocessUpdated === true) {
-                row.IND_ANO = 0;
-                row.XMLA = null;
+              let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
+              inDate.setHours(inDate.getHours() + 2);
+              inDate = DateTime.fromJSDate(inDate);
+              const dateDiff = now.diff(inDate, 'months').toObject();
+              if (dateDiff.months >= 12) {
+                tooOld = true;
               }
-              await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-              if (row['TYPE_ARRET'] === 'CC') {
-                await JurinetUtils.IndexAffaire(
-                  row,
-                  jIndexMain,
-                  jIndexAffaires,
-                  rawJurica,
-                  jurinetSource.connection,
-                  GRCOMSource.connection,
-                );
-              }
-              updateCount++;
-              if (row['TYPE_ARRET'] !== 'CC') {
-                wincicaCount++;
-              }
-              if (anomalyUpdated === true) {
+
+              if (tooOld === true) {
+                if (row['TYPE_ARRET'] === 'CC') {
+                  await JurinetUtils.IndexAffaire(
+                    row,
+                    jIndexMain,
+                    jIndexAffaires,
+                    rawJurica,
+                    jurinetSource.connection,
+                    GRCOMSource.connection,
+                  );
+                }
+                updateCount++;
+                if (row['TYPE_ARRET'] !== 'CC') {
+                  wincicaCount++;
+                }
                 await JudilibreIndex.updateJurinetDocument(
                   row,
                   null,
-                  `update in rawJurinet (sync2) - Original text could have been changed - changelog: ${JSON.stringify(
-                    changelog,
-                  )}`,
+                  `update in rawJurinet (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
                 );
               } else {
-                await JudilibreIndex.updateJurinetDocument(
-                  row,
-                  null,
-                  `update in rawJurinet (sync2) - changelog: ${JSON.stringify(changelog)}`,
-                );
+                row._indexed = null;
+                if (reprocessUpdated === true) {
+                  row.IND_ANO = 0;
+                  row.XMLA = null;
+                }
+                await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+                if (row['TYPE_ARRET'] === 'CC') {
+                  await JurinetUtils.IndexAffaire(
+                    row,
+                    jIndexMain,
+                    jIndexAffaires,
+                    rawJurica,
+                    jurinetSource.connection,
+                    GRCOMSource.connection,
+                  );
+                }
+                updateCount++;
+                if (row['TYPE_ARRET'] !== 'CC') {
+                  wincicaCount++;
+                }
+                if (anomalyUpdated === true) {
+                  await JudilibreIndex.updateJurinetDocument(
+                    row,
+                    null,
+                    `update in rawJurinet (sync2) - Original text could have been changed - changelog: ${JSON.stringify(
+                      changelog,
+                    )}`,
+                  );
+                } else {
+                  await JudilibreIndex.updateJurinetDocument(
+                    row,
+                    null,
+                    `update in rawJurinet (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                  );
+                }
               }
             } catch (e) {
               updated = false;
@@ -689,6 +720,9 @@ async function syncJurinet() {
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
+            if (tooOld === true) {
+              normDec.labelStatus = 'locked';
+            }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
             if (normalized === null) {
               const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
@@ -714,7 +748,9 @@ async function syncJurinet() {
               normDec._version = decisionsVersion;
               normDec.dateCreation = new Date().toISOString();
               normDec.zoning = null;
-              if (reprocessUpdated === true) {
+              if (tooOld === true) {
+                normDec.labelStatus = 'locked';
+              } else if (reprocessUpdated === true) {
                 normDec.pseudoText = undefined;
                 normDec.pseudoStatus = 0;
                 normDec.labelStatus = 'toBeTreated';
@@ -724,7 +760,7 @@ async function syncJurinet() {
                 bypassDocumentValidation: true,
               });
               normDec._id = normalized._id;
-              if (reprocessUpdated === true) {
+              if (reprocessUpdated === true && tooOld === false) {
                 await JudilibreIndex.indexDecisionDocument(
                   normDec,
                   null,
@@ -842,6 +878,7 @@ async function syncJurica() {
       let reprocessUpdated = false;
       let duplicate = false;
       let duplicateId = null;
+      let tooOld = false;
 
       try {
         duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
@@ -957,28 +994,52 @@ async function syncJurica() {
 
         if (updated === true) {
           try {
-            row._indexed = null;
-            if (reprocessUpdated === true) {
-              row.IND_ANO = 0;
-              row.HTMLA = null;
+            let inDate = new Date();
+            let dateDecisionElements = row.JDEC_DATE.split('-');
+            inDate.setFullYear(parseInt(dateDecisionElements[0], 10));
+            inDate.setMonth(parseInt(dateDecisionElements[1], 10) - 1);
+            inDate.setDate(parseInt(dateDecisionElements[2], 10));
+            inDate.setHours(0);
+            inDate.setMinutes(0);
+            inDate.setSeconds(0);
+            inDate.setMilliseconds(0);
+            inDate = DateTime.fromJSDate(inDate);
+            const dateDiff = now.diff(inDate, 'months').toObject();
+            if (dateDiff.months >= 12) {
+              tooOld = true;
             }
-            await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-            if (anomalyUpdated === true) {
+
+            if (tooOld === true) {
+              updateCount++;
               await JudilibreIndex.updateJuricaDocument(
                 row,
                 duplicateId,
-                `update in rawJurica (sync2) - Original text could have been changed - changelog: ${JSON.stringify(
-                  changelog,
-                )}`,
+                `update in rawJurica (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
               );
             } else {
-              await JudilibreIndex.updateJuricaDocument(
-                row,
-                duplicateId,
-                `update in rawJurica (sync2) - changelog: ${JSON.stringify(changelog)}`,
-              );
+              row._indexed = null;
+              if (reprocessUpdated === true) {
+                row.IND_ANO = 0;
+                row.HTMLA = null;
+              }
+              await raw.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+              if (anomalyUpdated === true) {
+                await JudilibreIndex.updateJuricaDocument(
+                  row,
+                  duplicateId,
+                  `update in rawJurica (sync2) - Original text could have been changed - changelog: ${JSON.stringify(
+                    changelog,
+                  )}`,
+                );
+              } else {
+                await JudilibreIndex.updateJuricaDocument(
+                  row,
+                  duplicateId,
+                  `update in rawJurica (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                );
+              }
+              updateCount++;
             }
-            updateCount++;
           } catch (e) {
             updated = false;
             console.error(e);
@@ -1005,6 +1066,9 @@ async function syncJurica() {
           if (duplicate === true) {
             normDec.labelStatus = 'exported';
           }
+          if (tooOld === true) {
+            normDec.labelStatus = 'locked';
+          }
           normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
           if (normalized === null) {
             const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
@@ -1029,7 +1093,9 @@ async function syncJurica() {
             normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
             normDec.dateCreation = new Date().toISOString();
-            if (reprocessUpdated === true) {
+            if (tooOld === true) {
+              normDec.labelStatus = 'locked';
+            } else if (reprocessUpdated === true) {
               normDec.pseudoText = undefined;
               normDec.pseudoStatus = 0;
               normDec.labelStatus = 'toBeTreated';
@@ -1042,7 +1108,7 @@ async function syncJurica() {
               bypassDocumentValidation: true,
             });
             normDec._id = normalized._id;
-            if (reprocessUpdated === true) {
+            if (reprocessUpdated === true && tooOld === false) {
               await JudilibreIndex.indexDecisionDocument(
                 normDec,
                 duplicateId,
