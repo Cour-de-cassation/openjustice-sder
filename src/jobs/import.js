@@ -100,6 +100,9 @@ async function importJurinet() {
   if (jurinetResult) {
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
+      let tooOld = false;
+      let tooEarly = false;
+
       // SKIP CA AND OTHER STUFF
       if (
         row['TYPE_ARRET'] === 'CC' ||
@@ -109,6 +112,27 @@ async function importJurinet() {
         let raw = await rawJurinet.findOne({ _id: row._id });
         if (raw === null) {
           try {
+            let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
+            inDate.setHours(inDate.getHours() + 2);
+            inDate = DateTime.fromJSDate(inDate);
+            const dateDiff = inDate.diffNow('months').toObject();
+            if (dateDiff.months <= -6) {
+              tooOld = true;
+            }
+
+            const dateDiff2 = inDate.diffNow('days').toObject();
+            if (dateDiff2.days > 1) {
+              tooEarly = true;
+            }
+
+            if (tooOld === true) {
+              throw new Error(
+                `Cannot import decision ${row._id} because it is too old (${Math.abs(dateDiff.months)} months).`,
+              );
+            } else if (tooEarly === true) {
+              throw new Error(`Cannot import decision ${row._id} because it is too early (${dateDiff2.days} days).`);
+            }
+
             row._indexed = null;
             await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
             await JudilibreIndex.indexJurinetDocument(row, null, 'import in rawJurinet');
@@ -207,9 +231,40 @@ async function importJurica() {
   if (juricaResult) {
     for (let i = 0; i < juricaResult.length; i++) {
       let row = juricaResult[i];
+      let tooOld = false;
+      let tooEarly = false;
+
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
         try {
+          let inDate = new Date();
+          let dateDecisionElements = row.JDEC_DATE.split('-');
+          inDate.setFullYear(parseInt(dateDecisionElements[0], 10));
+          inDate.setMonth(parseInt(dateDecisionElements[1], 10) - 1);
+          inDate.setDate(parseInt(dateDecisionElements[2], 10));
+          inDate.setHours(0);
+          inDate.setMinutes(0);
+          inDate.setSeconds(0);
+          inDate.setMilliseconds(0);
+          inDate = DateTime.fromJSDate(inDate);
+          const dateDiff = inDate.diffNow('months').toObject();
+          if (dateDiff.months <= -6) {
+            tooOld = true;
+          }
+
+          const dateDiff2 = inDate.diffNow('days').toObject();
+          if (dateDiff2.days > 1) {
+            tooEarly = true;
+          }
+
+          if (tooOld === true) {
+            throw new Error(
+              `Cannot import decision ${row._id} because it is too old (${Math.abs(dateDiff.months)} months).`,
+            );
+          } else if (tooEarly === true) {
+            throw new Error(`Cannot import decision ${row._id} because it is too early (${dateDiff2.days} days).`);
+          }
+
           row._indexed = null;
           let duplicate = false;
           let duplicateId = null;
@@ -497,6 +552,7 @@ async function syncJurinet() {
         let anomalyUpdated = false;
         let reprocessUpdated = false;
         let tooOld = false;
+        let tooEarly = false;
 
         if (rawDocument === null) {
           try {
@@ -635,9 +691,14 @@ async function syncJurinet() {
               let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
               inDate.setHours(inDate.getHours() + 2);
               inDate = DateTime.fromJSDate(inDate);
-              const dateDiff = now.diff(inDate, 'months').toObject();
-              if (dateDiff.months >= 12) {
+              const dateDiff = inDate.diffNow('months').toObject();
+              if (dateDiff.months <= -6) {
                 tooOld = true;
+              }
+
+              const dateDiff2 = inDate.diffNow('days').toObject();
+              if (dateDiff2.days > 1) {
+                tooEarly = true;
               }
 
               if (tooOld === true) {
@@ -659,6 +720,16 @@ async function syncJurinet() {
                   row,
                   null,
                   `update in rawJurinet (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
+                );
+              } else if (tooEarly === true) {
+                updateCount++;
+                if (row['TYPE_ARRET'] !== 'CC') {
+                  wincicaCount++;
+                }
+                await JudilibreIndex.updateJurinetDocument(
+                  row,
+                  null,
+                  `update in rawJurinet (sync2) - Skip decision (too early) - changelog: ${JSON.stringify(changelog)}`,
                 );
               } else {
                 row._indexed = null;
@@ -720,7 +791,7 @@ async function syncJurinet() {
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
-            if (tooOld === true) {
+            if (tooOld === true || tooEarly === true) {
               normDec.labelStatus = 'locked';
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
@@ -748,7 +819,7 @@ async function syncJurinet() {
               normDec._version = decisionsVersion;
               normDec.dateCreation = new Date().toISOString();
               normDec.zoning = null;
-              if (tooOld === true) {
+              if (tooOld === true || tooEarly === true) {
                 normDec.labelStatus = 'locked';
               } else if (reprocessUpdated === true) {
                 normDec.pseudoText = undefined;
@@ -760,7 +831,7 @@ async function syncJurinet() {
                 bypassDocumentValidation: true,
               });
               normDec._id = normalized._id;
-              if (reprocessUpdated === true && tooOld === false) {
+              if (reprocessUpdated === true && tooOld === false && tooEarly === false) {
                 await JudilibreIndex.indexDecisionDocument(
                   normDec,
                   null,
@@ -879,6 +950,7 @@ async function syncJurica() {
       let duplicate = false;
       let duplicateId = null;
       let tooOld = false;
+      let tooEarly = false;
 
       try {
         duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
@@ -1004,9 +1076,14 @@ async function syncJurica() {
             inDate.setSeconds(0);
             inDate.setMilliseconds(0);
             inDate = DateTime.fromJSDate(inDate);
-            const dateDiff = now.diff(inDate, 'months').toObject();
-            if (dateDiff.months >= 12) {
+            const dateDiff = inDate.diffNow('months').toObject();
+            if (dateDiff.months <= -6) {
               tooOld = true;
+            }
+
+            const dateDiff2 = inDate.diffNow('days').toObject();
+            if (dateDiff2.days > 1) {
+              tooEarly = true;
             }
 
             if (tooOld === true) {
@@ -1015,6 +1092,13 @@ async function syncJurica() {
                 row,
                 duplicateId,
                 `update in rawJurica (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
+              );
+            } else if (tooEarly === true) {
+              updateCount++;
+              await JudilibreIndex.updateJuricaDocument(
+                row,
+                duplicateId,
+                `update in rawJurica (sync2) - Skip decision (too early) - changelog: ${JSON.stringify(changelog)}`,
               );
             } else {
               row._indexed = null;
@@ -1066,7 +1150,7 @@ async function syncJurica() {
           if (duplicate === true) {
             normDec.labelStatus = 'exported';
           }
-          if (tooOld === true) {
+          if (tooOld === true || tooEarly === true) {
             normDec.labelStatus = 'locked';
           }
           normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
@@ -1093,7 +1177,7 @@ async function syncJurica() {
             normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
             normDec.dateCreation = new Date().toISOString();
-            if (tooOld === true) {
+            if (tooOld === true || tooEarly === true) {
               normDec.labelStatus = 'locked';
             } else if (reprocessUpdated === true) {
               normDec.pseudoText = undefined;
@@ -1108,7 +1192,7 @@ async function syncJurica() {
               bypassDocumentValidation: true,
             });
             normDec._id = normalized._id;
-            if (reprocessUpdated === true && tooOld === false) {
+            if (reprocessUpdated === true && tooOld === false && tooEarly === false) {
               await JudilibreIndex.indexDecisionDocument(
                 normDec,
                 duplicateId,
