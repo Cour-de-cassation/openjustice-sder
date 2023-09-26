@@ -8,7 +8,10 @@ stages:
 
 build_import_job:
   stage: build
-  script: 
+  variables:
+    HTTP_PROXY: $HTTP_PROXY
+    HTTPS_PROXY: $HTTPS_PROXY
+  script:
     - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - echo $HTTP_PROXY
     - echo $HTTPS_PROXY
