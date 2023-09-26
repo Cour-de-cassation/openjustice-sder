@@ -13,8 +13,8 @@ build_import_job:
     HTTPS_PROXY: $HTTPS_PROXY
   script:
     - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - echo $HTTP_PROXY
-    - echo $HTTPS_PROXY
+    - echo "$HTTP_PROXY"
+    - echo "$HTTPS_PROXY"
     - docker build
         --build-arg http_proxy=$HTTP_PROXY
         --build-arg https_proxy=$HTTPS_PROXY
