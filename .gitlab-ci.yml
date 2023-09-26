@@ -18,8 +18,8 @@ build_import_job:
     - docker build
         --build-arg http_proxy=$HTTP_PROXY
         --build-arg https_proxy=$HTTPS_PROXY
-        -t $CI_REGISTRY/cour-de-cassation/openjustice-sder-import:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA-api .
-    - docker push $CI_REGISTRY/cour-de-cassation/openjustice-sder-import:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA-api
+        -t $CI_REGISTRY/cour-de-cassation/openjustice-sder:import-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA-api .
+    - docker push $CI_REGISTRY/cour-de-cassation/openjustice-sder:import-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA-api
   only:
     - master
     - migration_nouvelle_preprod
