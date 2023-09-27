@@ -540,6 +540,7 @@ async function syncJurinet() {
     const changelog = {};
     console.log('for (let i = 0; i < jurinetResult.length; i++) {')
     for (let i = 0; i < jurinetResult.length; i++) {
+      console.log(i)
       let row = jurinetResult[i];
       // SKIP CA AND OTHER STUFF
       if (
@@ -889,10 +890,13 @@ async function syncJurinet() {
         jurinetLastDate = DateTime.max(jurinetLastDate, modifTime);
       }
     }
-
+    console.log("await juricaSource.close();")
     await juricaSource.close();
+    console.log("await jIndexConnection.close();")
     await jIndexConnection.close();
+    console.log("await GRCOMSource.close();")
     await GRCOMSource.close();
+    console.log("await client.close();")
     await client.close();
 
     console.log(
