@@ -538,7 +538,7 @@ async function syncJurinet() {
     let wincicaCount = 0;
     let errorCount = 0;
     const changelog = {};
-
+    console.log('for (let i = 0; i < jurinetResult.length; i++) {')
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
       // SKIP CA AND OTHER STUFF
@@ -547,6 +547,7 @@ async function syncJurinet() {
         (row['TYPE_ARRET'] === 'AUTRE' &&
           (/^t\.cfl$/i.test(row['ID_CHAMBRE']) === true || /judiciaire.*paris$/i.test(row['JURIDICTION'])))
       ) {
+        console.log("let rawDocument = await raw.findOne({ _id: row._id });")
         let rawDocument = await raw.findOne({ _id: row._id });
         let updated = false;
         let anomalyUpdated = false;
@@ -556,6 +557,7 @@ async function syncJurinet() {
 
         if (rawDocument === null) {
           try {
+            console.log("if (rawDocument === null) {")
             row._indexed = null;
             await raw.insertOne(row, { bypassDocumentValidation: true });
             if (row['TYPE_ARRET'] === 'CC') {
@@ -781,7 +783,7 @@ async function syncJurinet() {
             }
           }
         }
-
+        console.log("let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });")
         let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
         if (normalized === null) {
           try {
@@ -852,7 +854,7 @@ async function syncJurinet() {
             }
           }
         }
-
+        console.log('let existingDoc = await JudilibreIndex.findOne(\'mainIndex\', { _id: `jurinet:${row._id}` });')
         let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id}` });
         if (existingDoc === null) {
           rawDocument = await raw.findOne({ _id: row._id });
