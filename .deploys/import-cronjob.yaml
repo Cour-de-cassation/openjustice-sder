@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: import-job
+  namespace: ${KUBE_NAMESPACE}
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: import-job
+              image: ${CI_REGISTRY}/cour-de-cassation/openjustice-sder:import-${CI_COMMIT_BRANCH}-${CI_COMMIT_SHORT_SHA}
+              imagePullPolicy: IfNotPresent
+              env:
+                - configMapRef:
+                    name: import-config
+                - secretRef:
+                    name: import-secrets
+          restartPolicy: OnFailure
+  concurrencyPolicy: Forbid

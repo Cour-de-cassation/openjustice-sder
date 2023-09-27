@@ -18,8 +18,8 @@ build_import_job:
     - docker build
         --build-arg http_proxy=$HTTP_PROXY
         --build-arg https_proxy=$HTTPS_PROXY
-        -t $CI_REGISTRY/cour-de-cassation/openjustice-sder:import-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA-api .
-    - docker push $CI_REGISTRY/cour-de-cassation/openjustice-sder:import-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA-api
+        -t $CI_REGISTRY/cour-de-cassation/openjustice-sder:import-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY/cour-de-cassation/openjustice-sder:import-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   only:
     - master
     - migration_nouvelle_preprod
@@ -27,34 +27,20 @@ build_import_job:
     - docker
 
 
-#deploy_api:
-#  stage: deploy
-#  variables:
-#    APP_HOST: $APP_HOST
-#    APP_ID: $APP_ID
-#    APP_PORT: $APP_PORT
-#    API_PORT: $API_PORT
-#    APP_SCHEME: $APP_SCHEME
-#    APP_SELF_SIGNED: $APP_SELF_SIGNED
-#    APP_STORAGE: $APP_STORAGE
-#    START_TIMEOUT: $START_TIMEOUT
-#    DOLLAR: $DOLLAR
-#    MODEL_JURICA: $MODEL_JURICA
-#    SCW_REGION: $SCW_REGION
-#    SCW_MODELS_BUCKET: $SCW_MODELS_BUCKET
-#    SCW_MODELS_ACCESS_KEY: $SCW_MODELS_ACCESS_KEY
-#    SCW_MODELS_SECRET_KEY: $SCW_MODELS_SECRET_KEY
-#    KUBE_NAMESPACE: $KUBE_NAMESPACE
-#  script:
-#    - envsubst < .deploys/namespace.yaml | kubectl --kubeconfig=/home/gitlab-runner/.kube/$CI_COMMIT_BRANCH apply -f -
-#    - envsubst < .deploys/deployment.yaml | kubectl --kubeconfig=/home/gitlab-runner/.kube/$CI_COMMIT_BRANCH apply -f -
-#    - envsubst < .deploys/deployment_rclone_test.yaml | kubectl --kubeconfig=/home/gitlab-runner/.kube/$CI_COMMIT_BRANCH apply -f -
-#  only:
-#    - master
-#    - re7
-#    - dev
-#  tags:
-#    - shell
-#  dependencies:
-#    - build_api
-#  when: manual
+deploy_import_job:
+  stage: deploy
+  variables:
+    DOLLAR: $DOLLAR
+    KUBE_NAMESPACE: $KUBE_NAMESPACE
+  script:
+    - envsubst < .deploys/namespace.yaml | kubectl --kubeconfig=/home/gitlab-runner/.kube/$CI_COMMIT_BRANCH apply -f -
+    - envsubst < .deploys/configmap.yaml | kubectl --kubeconfig=/home/gitlab-runner/.kube/$CI_COMMIT_BRANCH apply -f -
+    - envsubst < .deploys/secret.yaml | kubectl --kubeconfig=/home/gitlab-runner/.kube/$CI_COMMIT_BRANCH apply -f -
+    - envsubst < .deploys/import-cronjob.yaml | kubectl --kubeconfig=/home/gitlab-runner/.kube/$CI_COMMIT_BRANCH apply -f -
+  only:
+    - master
+    - migration_nouvelle_preprod
+  tags:
+    - shell
+  dependencies:
+    - build_import_job

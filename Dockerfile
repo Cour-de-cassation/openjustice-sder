@@ -1,6 +1,4 @@
 FROM node:18
-#ENV http_proxy=${http_proxy}
-#ENV https_proxy=${https_proxy}
 RUN echo "Acquire::http::Proxy \"${http_proxy}/\";" > /etc/apt/apt.conf && \
     echo "Acquire::https::Proxy \"${http_proxy}/\";" >> /etc/apt/apt.conf
 RUN apt update
