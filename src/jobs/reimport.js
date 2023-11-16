@@ -62,14 +62,10 @@ async function reimportJurinet(n, resetContent) {
 
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
-  // const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
-
-  // const juricaSource = new JuricaOracle();
-  // await juricaSource.connect();
 
   let newCount = 0;
   let updateCount = 0;
@@ -264,6 +260,7 @@ async function reimportJurica(n, resetContent) {
     useUnifiedTopology: true,
   });
   await client.connect();
+
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
@@ -275,9 +272,8 @@ async function reimportJurica(n, resetContent) {
   let updateCount = 0;
   let errorCount = 0;
   let duplicateCount = 0;
-
-  /*
   let juricaResult;
+
   if (n > 12) {
     console.log(`Reimport Jurica decision ${n}...`);
     juricaResult = [await juricaSource.getDecisionByID(n)];
@@ -285,27 +281,12 @@ async function reimportJurica(n, resetContent) {
     console.log(`Reimport last ${n} month(s) decisions from Jurica...`);
     juricaResult = await juricaSource.getLastNMonth(n);
   }
-  */
 
-  let ago = new Date();
-  ago.setMonth(ago.getMonth() - n);
-  ago.setHours(0, 0, 0, 0);
-  let strAgo = ago.getFullYear();
-  strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
-  strAgo += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
-
-  const query = `SELECT *
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
-        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
-        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
-
-  const result = await juricaSource.connection.execute(query, [], {
-    resultSet: true,
-  });
-
-  const rs = result.resultSet;
-  let resultRow;
+  if (juricaResult) {
+    for (let i = 0; i < juricaResult.length; i++) {
+      let row = juricaResult[i];
+    }
+  }
 
   while ((resultRow = await rs.getRow())) {
     let row = await juricaSource.buildRawData(resultRow, true);
