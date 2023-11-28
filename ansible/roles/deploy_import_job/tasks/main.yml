@@ -1,0 +1,12 @@
+---
+- name: Deploy namespace
+  import_tasks: namespace.yml
+
+- name: Deploy configmap
+  import_tasks: configmap.yml
+
+- name: Deploy secrets
+  import_tasks: secret.yml
+
+- name: Deploy cronjob
+  import_tasks: cronjob.yml

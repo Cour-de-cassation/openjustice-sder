@@ -1,0 +1,30 @@
+---
+- name: Create cronjob
+  k8s:
+    apply: true
+    state: present
+    verify_ssl: true
+    definition:
+     apiVersion: batch/v1
+     kind: CronJob
+     metadata:
+       name: import-job
+       namespace: "{{ openjustice_sder_namespace }}"
+     spec:
+       schedule: "0 * * * *"
+       jobTemplate:
+         spec:
+           template:
+             spec:
+               containers:
+                 - name: import-job
+                   image: "{{ docker_image }}"
+                   imagePullPolicy: IfNotPresent
+                   envFrom:
+                     - configMapRef:
+                         name: import-config
+                     - secretRef:
+                         name: import-secrets
+               restartPolicy: OnFailure
+       concurrencyPolicy: Forbid
+...
