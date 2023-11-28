@@ -3,7 +3,7 @@ services:
   - docker:20.10.22-dind
 
 variables:
-  docker_image: $CI_REGISTRY/cour-de-cassation/openjustice-sder/import:-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA .
+  docker_image: $CI_REGISTRY/cour-de-cassation/openjustice-sder/import:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   dev: dev
   re7: preprod
   master: prod
