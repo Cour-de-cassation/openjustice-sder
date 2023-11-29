@@ -107,3 +107,6 @@ dist
 src/jobs/data/
 *.zip
 .DS_Store
+
+.idea
+data

@@ -1,0 +1,5 @@
+---
+judifiltre_uri: "judifiltre.judilibre-prive.local"
+meta_uri: "172.16.118.98"
+zoning_uri: "nlp-jurizonage-api.judilibre-prive.local"
+api_zonage_uri: "http://172.16.118.98:8090"
