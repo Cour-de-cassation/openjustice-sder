@@ -98,6 +98,8 @@ async function importJurinet() {
   const jurinetResult = await jurinetSource.getNew();
 
   if (jurinetResult) {
+    console.log(`Jurinet has ${jurinetResult.length} new decision(s)`);
+
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
       let tooOld = false;
@@ -170,12 +172,12 @@ async function importJurinet() {
                 );
               }
               /*
-            if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-              for (let d = 0; d < row._decatt.length; d++) {
-                await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+              if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
+                for (let d = 0; d < row._decatt.length; d++) {
+                  await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
+                }
               }
-            }
-            */
+              */
             }
           } catch (e) {
             console.error(`Jurinet import error processing decision ${row._id}`, e);
@@ -183,9 +185,15 @@ async function importJurinet() {
             await JudilibreIndex.updateJurinetDocument(row, null, null, e);
             errorCount++;
           }
+        } else {
+          console.log(`Jurinet skip already inserted CC decision ${row._id}`);
         }
+      } else {
+        console.log(`Jurinet skip non CC decision ${row._id}`);
       }
     }
+  } else {
+    console.log(`Jurinet has no new decision`);
   }
 
   console.log(`Done Importing Jurinet - New: ${newCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`);
