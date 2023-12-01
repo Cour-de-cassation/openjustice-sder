@@ -186,69 +186,52 @@ async function importJurinet() {
             errorCount++;
           }
         } else {
-          console.log(`Jurinet skip already inserted CC decision ${row._id}`);
-          try {
-            let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
-            inDate.setHours(inDate.getHours() + 2);
-            inDate = DateTime.fromJSDate(inDate);
-            const dateDiff = inDate.diffNow('months').toObject();
-            if (dateDiff.months <= -6) {
-              tooOld = true;
-            }
+          if (process.env.NODE_ENV === 'preprod') {
+            console.log(`Jurinet overwrite already inserted CC decision ${row._id}`);
+            try {
+              row._indexed = null;
+              await rawJurinet.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
 
-            const dateDiff2 = inDate.diffNow('days').toObject();
-            if (dateDiff2.days > 1) {
-              tooEarly = true;
-            }
-
-            if (tooOld === true) {
-              throw new Error(
-                `Cannot import decision ${row._id} because it is too old (${Math.abs(dateDiff.months)} months).`,
-              );
-            } else if (tooEarly === true) {
-              throw new Error(`Cannot import decision ${row._id} because it is too early (${dateDiff2.days} days).`);
-            }
-
-            row._indexed = null;
-            await rawJurinet.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-
-            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
-            if (normalized === null) {
-              let normDec = await JurinetUtils.Normalize(row);
-              normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
-              normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
-              normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
-              normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
-              normDec._version = decisionsVersion;
-              normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+              let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
               if (normalized === null) {
-                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-                normDec._id = insertResult.insertedId;
-                await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
-                await jurinetSource.markAsImported(row._id);
-                if (row['TYPE_ARRET'] !== 'CC') {
-                  wincicaCount++;
+                let normDec = await JurinetUtils.Normalize(row);
+                normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
+                normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
+                normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
+                normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
+                normDec._version = decisionsVersion;
+                normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+                if (normalized === null) {
+                  const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                  normDec._id = insertResult.insertedId;
+                  await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+                  await jurinetSource.markAsImported(row._id);
+                  if (row['TYPE_ARRET'] !== 'CC') {
+                    wincicaCount++;
+                  }
+                  newCount++;
+                } else {
+                  console.warn(
+                    `Jurinet import issue: normalized decision { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
+                  );
+                  normDec.zoning = null;
+                  normDec.pseudoText = undefined;
+                  normDec.pseudoStatus = 0;
+                  normDec.labelStatus = 'toBeTreated';
+                  normDec.labelTreatments = [];
+                  await decisions.replaceOne({ _id: normalized._id }, normDec, {
+                    bypassDocumentValidation: true,
+                  });
                 }
-                newCount++;
-              } else {
-                console.warn(
-                  `Jurinet import issue: normalized decision { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
-                );
-                normDec.zoning = null;
-                normDec.pseudoText = undefined;
-                normDec.pseudoStatus = 0;
-                normDec.labelStatus = 'toBeTreated';
-                normDec.labelTreatments = [];
-                await decisions.replaceOne({ _id: normalized._id }, normDec, {
-                  bypassDocumentValidation: true,
-                });
               }
+            } catch (e) {
+              console.error(`Jurinet import error processing decision ${row._id}`, e);
+              await jurinetSource.markAsErroneous(row._id);
+              await JudilibreIndex.updateJurinetDocument(row, null, null, e);
+              errorCount++;
             }
-          } catch (e) {
-            console.error(`Jurinet import error processing decision ${row._id}`, e);
-            await jurinetSource.markAsErroneous(row._id);
-            await JudilibreIndex.updateJurinetDocument(row, null, null, e);
-            errorCount++;
+          } else {
+            console.log(`Jurinet skip already inserted CC decision ${row._id}`);
           }
         }
       } else {
