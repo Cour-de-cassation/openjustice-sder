@@ -158,12 +158,15 @@ class JuricaOracle {
    *
    * @returns {Array} An array of documents (with UTF-8 encoded content)
    */
-  async getNew() {
+  async getNew(monthAgo) {
+    if (monthAgo === undefined) {
+      monthAgo = 1;
+    }
     if (this.connected === true && this.connection !== null) {
       // Source DBs are full of "holes" so we need to set a limit
       // (Sword used '2015-07-17' as date limit):
       let ago = new Date();
-      ago.setMonth(ago.getMonth() - 1);
+      ago.setMonth(ago.getMonth() - monthAgo);
       ago.setHours(0, 0, 0, 0);
       let strAgo = ago.getFullYear();
       strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
