@@ -72,10 +72,8 @@ async function reinjectJurinet() {
         reinjected.DT_MODIF = new Date();
         reinjected.DT_MODIF_ANO = new Date();
         await rawJurinet.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
-        // The labelStatus of the decision goes from 'done' to 'exported'.
-        // We don't do this in the 'reinject' method because we may need
-        // to reinject some decisions independently of the Label workflow:
-        decision.labelStatus = 'exported';
+        decision.labelStatus = 'done';
+        decision.publishStatus = 'toBePublished';
         decision.dateCreation = new Date().toISOString();
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
@@ -123,10 +121,8 @@ async function reinjectJurica() {
         reinjected.DT_MODIF = new Date();
         reinjected.DT_MODIF_ANO = new Date();
         await rawJurica.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
-        // The labelStatus of the decision goes from 'done' to 'exported'.
-        // We don't do this in the 'reinject' method because we may need
-        // to reinject some decisions independently of the Label workflow:
-        decision.labelStatus = 'exported';
+        decision.labelStatus = 'done';
+        decision.publishStatus = 'toBePublished';
         decision.dateCreation = new Date().toISOString();
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
