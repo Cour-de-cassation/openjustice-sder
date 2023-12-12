@@ -241,7 +241,7 @@ class DilaUtils {
       parties: [],
       decatt: null,
       locked: false,
-      labelStatus: 'exported',
+      labelStatus: 'done',
       labelTreatments: [],
       zoning: undefined,
       occultation: {

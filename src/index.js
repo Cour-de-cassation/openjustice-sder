@@ -1,32 +1,7 @@
 const path = require('path');
-const pm2 = require('pm2');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 console.info('Start main script.');
-
-pm2.connect(function (err) {
-  if (err) {
-    console.info('Failed to connect to pm2.');
-    console.error(err);
-  } else {
-    console.info('Connected to pm2.');
-    pm2.start(
-      {
-        script: path.join(__dirname, '..', '..', 'judilibre-sder', 'src', 'index.js'),
-        name: 'export',
-      },
-      function (err, apps) {
-        if (err) {
-          console.info('Failed to start export project.');
-          console.error(err);
-          return pm2.disconnect();
-        } else {
-          console.info('Start export project.');
-        }
-      },
-    );
-  }
-});
 
 if (!process.env.SKIP_JOBS) {
   const Graceful = require('@ladjs/graceful');

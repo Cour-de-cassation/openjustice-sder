@@ -2004,7 +2004,7 @@ class JuricaUtils {
       parties: [],
       decatt: null,
       locked: false,
-      labelStatus: pseudoText ? 'exported' : 'toBeTreated',
+      labelStatus: pseudoText ? 'done' : 'toBeTreated',
       labelTreatments: [],
       zoning: undefined,
       occultation: {
