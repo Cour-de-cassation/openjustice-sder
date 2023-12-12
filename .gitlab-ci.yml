@@ -3,16 +3,16 @@ services:
   - docker:20.10.22-dind
 
 variables:
-  docker_image: $CI_REGISTRY/cour-de-cassation/openjustice-sder/import:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   dev: dev
   re7: preprod
   master: prod
+  docker_image: '$CI_REGISTRY/cour-de-cassation/openjustice-sder:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA'
 
 stages:
   - build
   - deploy
 
-build_import_job:
+build_openjustice_sder:
   stage: build
   variables:
     HTTP_PROXY: $HTTP_PROXY_DEV
@@ -35,7 +35,7 @@ build_import_job:
   tags:
     - docker
 
-deploy_import_job:
+deploy_openjustice_sder:
   stage: deploy
   image: alpine/ansible:latest
   variables:
@@ -60,4 +60,4 @@ deploy_import_job:
   tags:
     - docker
   dependencies:
-    - build_import_job
+    - build_openjustice_sder

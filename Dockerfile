@@ -18,5 +18,5 @@ RUN mkdir src/jobs/data
 RUN npm config set proxy ${http_proxy}
 RUN npm config set https-proxy ${http_proxy}
 RUN npm install
-CMD ["node", "src/jobs/import.js"]
+CMD ["node", "src/index.js"]
 
