@@ -11,7 +11,7 @@ const all_occultations = JSON.stringify(
     'dateNaissance',
     'dateMariage',
     'dateDeces',
-    'insee',
+    'numeroIdentifiant',
     'professionnelMagistratGreffier',
     'personneMorale',
     'etablissement',

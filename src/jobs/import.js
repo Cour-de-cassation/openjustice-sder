@@ -16,6 +16,12 @@ const { DateTime } = require('luxon');
 
 const ms = require('ms');
 
+let monthAgo = 1;
+
+if (process.env.NODE_ENV === 'preprod') {
+  monthAgo = 6;
+}
+
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
 let selfKill = setTimeout(cancel, ms('1h'));
@@ -95,7 +101,7 @@ async function importJurinet() {
   let errorCount = 0;
   let wincicaCount = 0;
 
-  const jurinetResult = await jurinetSource.getNew();
+  const jurinetResult = await jurinetSource.getNew(monthAgo);
 
   if (jurinetResult) {
     console.log(`Jurinet has ${jurinetResult.length} new decision(s)`);
@@ -185,6 +191,47 @@ async function importJurinet() {
             await JudilibreIndex.updateJurinetDocument(row, null, null, e);
             errorCount++;
           }
+        } else if (process.env.NODE_ENV === 'preprod') {
+          console.log(`Jurinet overwrite already inserted CC decision ${row._id}`);
+          try {
+            row._indexed = null;
+            await rawJurinet.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+            let normDec = await JurinetUtils.Normalize(row);
+            normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
+            normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
+            normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
+            normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
+            normDec._version = decisionsVersion;
+            normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
+            newCount++;
+            if (normalized === null) {
+              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              normDec._id = insertResult.insertedId;
+              await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+              await jurinetSource.markAsImported(row._id);
+              if (row['TYPE_ARRET'] !== 'CC') {
+                wincicaCount++;
+              }
+            } else {
+              console.warn(
+                `Jurinet import issue: normalized decision { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
+              );
+              normDec.zoning = null;
+              normDec.pseudoText = undefined;
+              normDec.pseudoStatus = 0;
+              normDec.labelStatus = 'toBeTreated';
+              normDec.labelTreatments = [];
+              await decisions.replaceOne({ _id: normalized._id }, normDec, {
+                bypassDocumentValidation: true,
+              });
+            }
+          } catch (e) {
+            console.error(`Jurinet import error processing decision ${row._id}`, e);
+            await jurinetSource.markAsErroneous(row._id);
+            await JudilibreIndex.updateJurinetDocument(row, null, null, e);
+            errorCount++;
+          }
         } else {
           console.log(`Jurinet skip already inserted CC decision ${row._id}`);
         }
@@ -234,9 +281,11 @@ async function importJurica() {
   let duplicateCount = 0;
   let nonPublicCount = 0;
 
-  const juricaResult = await juricaSource.getNew();
+  const juricaResult = await juricaSource.getNew(monthAgo);
 
   if (juricaResult) {
+    console.log(`Jurica has ${juricaResult.length} new decision(s)`);
+
     for (let i = 0; i < juricaResult.length; i++) {
       let row = juricaResult[i];
       let tooOld = false;
@@ -485,6 +534,219 @@ async function importJurica() {
           await JudilibreIndex.updateJuricaDocument(row, null, null, e);
           errorCount++;
         }
+      } else if (process.env.NODE_ENV === 'preprod') {
+        console.log(`Jurica overwrite already inserted CA decision ${row._id}`);
+        try {
+          row._indexed = null;
+          await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+          let duplicate = false;
+          let duplicateId = null;
+          try {
+            duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
+            if (duplicateId !== null) {
+              duplicateId = `jurinet:${duplicateId}`;
+              duplicate = true;
+            } else {
+              duplicate = false;
+            }
+          } catch (e) {
+            duplicate = false;
+          }
+          const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
+            row.JDEC_CODNAC,
+            row.JDEC_CODNACPART,
+            row.JDEC_IND_DEC_PUB,
+          );
+          if (ShouldBeRejected === false && duplicate === false) {
+            let partiallyPublic = false;
+            try {
+              partiallyPublic = JuricaUtils.IsPartiallyPublic(
+                row.JDEC_CODNAC,
+                row.JDEC_CODNACPART,
+                row.JDEC_IND_DEC_PUB,
+              );
+            } catch (ignore) {}
+            if (partiallyPublic) {
+              let trimmedText;
+              let zoning;
+              try {
+                trimmedText = JuricaUtils.CleanHTML(row.JDEC_HTML_SOURCE);
+                trimmedText = trimmedText
+                  .replace(/\*DEB[A-Z]*/gm, '')
+                  .replace(/\*FIN[A-Z]*/gm, '')
+                  .trim();
+              } catch (e) {
+                throw new Error(
+                  `Cannot process partially-public decision ${
+                    row._id
+                  } because its text is empty or invalid: ${JSON.stringify(
+                    e,
+                    e ? Object.getOwnPropertyNames(e) : null,
+                  )}.`,
+                );
+              }
+              try {
+                zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
+                if (!zoning || zoning.detail) {
+                  throw new Error(
+                    `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                      zoning,
+                      zoning ? Object.getOwnPropertyNames(zoning) : null,
+                    )}.`,
+                  );
+                }
+              } catch (e) {
+                throw new Error(
+                  `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                    e,
+                    e ? Object.getOwnPropertyNames(e) : null,
+                  )}.`,
+                );
+              }
+              if (!zoning.zones) {
+                throw new Error(
+                  `Cannot process partially-public decision ${row._id} because it has no zone: ${JSON.stringify(
+                    zoning,
+                    zoning ? Object.getOwnPropertyNames(zoning) : null,
+                  )}.`,
+                );
+              }
+              if (!zoning.zones.introduction) {
+                throw new Error(
+                  `Cannot process partially-public decision ${row._id} because it has no introduction: ${JSON.stringify(
+                    zoning.zones,
+                    zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
+                  )}.`,
+                );
+              }
+              if (!zoning.zones.dispositif) {
+                throw new Error(
+                  `Cannot process partially-public decision ${row._id} because it has no dispositif: ${JSON.stringify(
+                    zoning.zones,
+                    zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
+                  )}.`,
+                );
+              }
+              let parts = [];
+              if (Array.isArray(zoning.zones.introduction)) {
+                for (let ii = 0; ii < zoning.zones.introduction.length; ii++) {
+                  parts.push(
+                    trimmedText
+                      .substring(zoning.zones.introduction[ii].start, zoning.zones.introduction[ii].end)
+                      .trim(),
+                  );
+                }
+              } else {
+                parts.push(
+                  trimmedText.substring(zoning.zones.introduction.start, zoning.zones.introduction.end).trim(),
+                );
+              }
+              if (Array.isArray(zoning.zones.dispositif)) {
+                for (let ii = 0; ii < zoning.zones.dispositif.length; ii++) {
+                  parts.push(
+                    trimmedText.substring(zoning.zones.dispositif[ii].start, zoning.zones.dispositif[ii].end).trim(),
+                  );
+                }
+              } else {
+                parts.push(trimmedText.substring(zoning.zones.dispositif.start, zoning.zones.dispositif.end).trim());
+              }
+              row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
+            }
+            await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
+            const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+              row.JDEC_CODNAC,
+              row.JDEC_CODNACPART,
+              row.JDEC_IND_DEC_PUB,
+            );
+            if (ShouldBeSentToJudifiltre === true) {
+              try {
+                const judifiltreResult = await Judifiltre.SendBatch([
+                  {
+                    sourceId: row._id,
+                    sourceDb: 'jurica',
+                    decisionDate: row.JDEC_DATE,
+                    jurisdictionName: row.JDEC_CODE_JURIDICTION,
+                    fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
+                    publicityClerkRequest:
+                      row.JDEC_IND_DEC_PUB === null
+                        ? 'unspecified'
+                        : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
+                        ? 'public'
+                        : 'notPublic',
+                  },
+                ]);
+                await JudilibreIndex.updateJuricaDocument(
+                  row,
+                  duplicateId,
+                  `submitted to Judifiltre: ${JSON.stringify(judifiltreResult)}`,
+                );
+                const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+                if (existingDoc !== null) {
+                  let dateJudifiltre = DateTime.now();
+                  existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
+                  await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
+                    bypassDocumentValidation: true,
+                  });
+                }
+                await juricaSource.markAsImported(row._id);
+                newCount++;
+              } catch (e) {
+                console.error(`Jurica import to Judifiltre error processing decision ${row._id}`, e);
+                await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
+                await juricaSource.markAsErroneous(row._id);
+                errorCount++;
+              }
+            } else {
+              let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+              newCount++;
+              let normDec = await JuricaUtils.Normalize(row);
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec._version = decisionsVersion;
+              normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+              if (normalized === null) {
+                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                normDec._id = insertResult.insertedId;
+                await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
+                await juricaSource.markAsImported(row._id);
+              } else {
+                console.warn(`Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
+                normDec.zoning = null;
+                normDec.pseudoText = undefined;
+                normDec.pseudoStatus = 0;
+                normDec.labelStatus = 'toBeTreated';
+                normDec.labelTreatments = [];
+                await decisions.replaceOne({ _id: normalized._id }, normDec, {
+                  bypassDocumentValidation: true,
+                });
+              }
+            }
+          } else {
+            console.warn(
+              `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
+            );
+            await juricaSource.markAsErroneous(row._id);
+            await JudilibreIndex.updateJuricaDocument(
+              row,
+              duplicateId,
+              duplicate ? `duplicate of ${duplicateId}` : 'non-public',
+            );
+            if (duplicate) {
+              duplicateCount++;
+            } else {
+              nonPublicCount++;
+            }
+          }
+        } catch (e) {
+          console.error(`Jurica import error processing decision ${row._id}`, e);
+          await juricaSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJuricaDocument(row, null, null, e);
+          errorCount++;
+        }
+      } else {
+        console.log(`Jurica skip already inserted CA decision ${row._id}`);
       }
     }
   }
