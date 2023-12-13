@@ -19,6 +19,7 @@ const ms = require('ms');
 let monthAgo = 1;
 
 if (process.env.NODE_ENV === 'preprod') {
+  console.log('OpenJustice - preprod context');
   monthAgo = 6;
 }
 

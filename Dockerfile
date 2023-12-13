@@ -18,5 +18,6 @@ RUN mkdir src/jobs/data
 RUN npm config set proxy ${http_proxy}
 RUN npm config set https-proxy ${http_proxy}
 RUN npm install
+RUN echo "Launch main scheduling script"
 CMD ["node", "src/index.js"]
 
