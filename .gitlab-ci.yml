@@ -6,7 +6,7 @@ variables:
   dev: dev
   re7: preprod
   master: prod
-  docker_image: '$CI_REGISTRY/cour-de-cassation/openjustice-sder:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA'
+  docker_image: '$CI_REGISTRY/cour-de-cassation/openjustice-sder/import:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA'
 
 stages:
   - build
@@ -17,15 +17,11 @@ build_openjustice_sder:
   variables:
     HTTP_PROXY: $HTTP_PROXY_DEV
     HTTPS_PROXY: $HTTP_PROXY_DEV
-    CI_COMMIT_BRANCH: $CI_COMMIT_BRANCH
   script:
     - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - node_env=$(eval "echo \$$CI_COMMIT_BRANCH")
     - docker build
       --build-arg http_proxy=$HTTP_PROXY
       --build-arg https_proxy=$HTTPS_PROXY
-      --build-arg ci_commit_branch=$CI_COMMIT_BRANCH
-      --build-arg node_env=$node_env
       -t $docker_image .
     - docker push $docker_image
   only:

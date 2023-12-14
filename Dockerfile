@@ -1,10 +1,6 @@
 FROM node:18
 ARG http_proxy
 ARG https_proxy
-ARG ci_commit_branch
-ARG node_env
-ENV CI_COMMIT_BRANCH ${ci_commit_branch}
-ENV NODE_ENV ${node_env}
 
 RUN echo "Acquire::http::Proxy \"${http_proxy}/\";" > /etc/apt/apt.conf && \
     echo "Acquire::https::Proxy \"${http_proxy}/\";" >> /etc/apt/apt.conf
