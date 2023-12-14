@@ -4,10 +4,10 @@ services:
 
 variables:
   SCRIPT_NAMES: buildAffaires import import_judifiltre reinject
-  image_buildAffaires: $CI_REGISTRY/cour-de-cassation/juritest/build-affaires:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+  image_buildAffaires: $CI_REGISTRY/cour-de-cassation/openjustice-sder/build-affaires:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   image_import: $CI_REGISTRY/cour-de-cassation/openjustice-sder/import:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
-  image_import_judifiltre: $CI_REGISTRY/cour-de-cassation/juritest/import-judifiltre:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
-  image_reinject: $CI_REGISTRY/cour-de-cassation/juritest/reinject:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+  image_import_judifiltre: $CI_REGISTRY/cour-de-cassation/openjustice-sder/import-judifiltre:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+  image_reinject: $CI_REGISTRY/cour-de-cassation/openjustice-sder/reinject:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   dev: dev
   re7: preprod
   master: prod
