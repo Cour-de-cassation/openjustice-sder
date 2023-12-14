@@ -1,7 +1,7 @@
 ---
 openjustice_sder_namespace: openjustice-sder
 
-scripts:
+jobs_sder:
   - nom_image: "{{ build_affaires_image }}"
     nom_cronjob: build-affaires
     planification: "* 3-22 * * *"

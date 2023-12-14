@@ -10,6 +10,6 @@
 
 - name: Deploy test scripts
   include_tasks: cronjob.yml
-  loop: "{{ jobs }}"
+  loop: "{{ jobs_sder }}"
   loop_control:
     loop_var: job_sder
