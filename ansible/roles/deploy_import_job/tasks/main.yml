@@ -7,5 +7,6 @@
 
 - name: Deploy secrets
   import_tasks: secret.yml
-# - name: Deploy cronjob
-#  import_tasks: cronjob.yml
+
+- name: Deploy cronjob
+  import_tasks: cronjob.yml
