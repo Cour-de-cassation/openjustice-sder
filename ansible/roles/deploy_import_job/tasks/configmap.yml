@@ -32,7 +32,6 @@
         MONGO_DILA_COLLECTION: "{{ mongo_dila_collection }}"
         MONGO_DECISIONS_COLLECTION: "{{ mongo_decisions_collection }}"
         MONGO_ID: "{{ mongo_id }}"
-        API_PORT: "{{ api_port }}"
         INDEX_DB_NAME: "{{ index_db_name }}"
         API_PORT: "{{ api_port }}"
         API_ZONAGE_URI: "{{ api_zonage_uri }}"
@@ -45,4 +44,4 @@
         META_PROTOCOL: "{{ meta_protocol }}"
         JUDIFILTRE_URI: "{{ judifiltre_uri }}"
         JUDIFILTRE_PROTOCOL: "{{ judifiltre_protocol }}"
-...
+        NODE_ENV: "{{ node_env }}"

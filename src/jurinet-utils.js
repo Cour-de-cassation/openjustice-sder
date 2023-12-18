@@ -449,7 +449,7 @@ class JurinetUtils {
       parties: [],
       decatt: null,
       locked: false,
-      labelStatus: pseudoText ? 'exported' : 'toBeTreated',
+      labelStatus: pseudoText ? 'done' : 'toBeTreated',
       labelTreatments: [],
       zoning: undefined,
       occultation: {
@@ -602,7 +602,7 @@ class JurinetUtils {
       IND_DT_MARIAGE: ['dateMariage'],
       IND_IMMATRICULATION: ['plaqueImmatriculation'],
       IND_CADASTRE: ['cadastre'],
-      IND_CHAINE: ['compteBancaire', 'telephoneFax', 'insee'],
+      IND_CHAINE: ['compteBancaire', 'telephoneFax', 'numeroIdentifiant'],
       IND_COORDONNEE_ELECTRONIQUE: ['email'],
       IND_PRENOM_PROFESSIONEL: ['professionnelMagistratGreffier'],
       IND_NOM_PROFESSIONEL: ['professionnelMagistratGreffier'],

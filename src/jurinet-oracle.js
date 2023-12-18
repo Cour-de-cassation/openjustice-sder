@@ -367,12 +367,15 @@ class JurinetOracle {
    *
    * @returns {Array} An array of documents (with UTF-8 encoded content)
    */
-  async getNew() {
+  async getNew(monthAgo) {
+    if (monthAgo === undefined) {
+      monthAgo = 1;
+    }
     if (this.connected === true && this.connection !== null) {
       // Source DBs are full of "holes" so we need to set a limit
       // (Sword used '01/06/2016' as date limit):
       let ago = new Date();
-      ago.setMonth(ago.getMonth() - 1);
+      ago.setMonth(ago.getMonth() - monthAgo);
       ago.setHours(0, 0, 0, 0);
       let strAgo = ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);

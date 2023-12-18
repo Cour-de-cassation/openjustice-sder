@@ -8,10 +8,10 @@
      apiVersion: batch/v1
      kind: CronJob
      metadata:
-       name: import-job
+       name: "{{ job_sder.nom_cronjob }}"
        namespace: "{{ openjustice_sder_namespace }}"
      spec:
-       schedule: "0 * * * *"
+       schedule: "{{ job_sder.planification}}"
        successfulJobsHistoryLimit: 3
        failedJobsHistoryLimit: 3
        jobTemplate:
@@ -19,8 +19,8 @@
            template:
              spec:
                containers:
-                 - name: import-job
-                   image: "{{ docker_image }}"
+                 - name: "{{ job_sder.nom_cronjob }}"
+                   image: "{{ job_sder.nom_image }}"
                    imagePullPolicy: IfNotPresent
                    envFrom:
                      - configMapRef:
