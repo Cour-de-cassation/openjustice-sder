@@ -32,9 +32,9 @@ if (!process.env.SKIP_JOBS) {
   const graceful = new Graceful({ brees: [bree] });
   graceful.listen();
   bree.start();
-  console.info('Start jobs.');
+  console.log('Start jobs.');
 } else {
-  console.info('Skip jobs.');
+  console.log('Skip jobs.');
   setInterval(() => {
     // nope
   }, 1000);
