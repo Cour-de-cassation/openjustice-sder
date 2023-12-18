@@ -1,0 +1,48 @@
+---
+- name: Creation de la ConfigMap de l'api
+  k8s:
+    apply: true
+    state: present
+    verify_ssl: true
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: import-config
+        namespace: "{{ openjustice_sder_namespace }}"
+      data:
+        DB_TABLE: "{{ db_table }}"
+        DB_ID_FIELD: "{{ db_id_field }}"
+        DB_ANO_TEXT_FIELD: "{{ db_ano_text_field }}"
+        DB_STATE_FIELD: "{{ db_state_field }}"
+        DB_STATE_OK: "{{ db_state_ok }}"
+        DB_VALID_FIELD: "{{ db_valid_field }}"
+        DB_TITRAGE_TABLE: "{{ db_titrage_table }}"
+        DB_TABLE_JURICA: "{{ db_table_jurica }}"
+        DB_ID_FIELD_JURICA: "{{ db_id_field_jurica }}"
+        DB_ANO_TEXT_FIELD_JURICA: "{{ db_ano_text_field_jurica }}"
+        DB_STATE_FIELD_JURICA: "{{ db_state_field_jurica }}"
+        DB_STATE_OK_JURICA: "{{ db_state_ok_jurica }}"
+        DB_VALID_FIELD_JURICA: "{{ db_valid_field_jurica }}"
+        TITRAGE_FIELD: "{{ titrage_field }}"
+        ENCODING: "{{ encoding }}"
+        MONGO_DBNAME: "{{ mongo_dbname }}"
+        MONGO_JURINET_COLLECTION: "{{ mongo_jurinet_collection }}"
+        MONGO_JURICA_COLLECTION: "{{ mongo_jurica_collection }}"
+        MONGO_DILA_COLLECTION: "{{ mongo_dila_collection }}"
+        MONGO_DECISIONS_COLLECTION: "{{ mongo_decisions_collection }}"
+        MONGO_ID: "{{ mongo_id }}"
+        API_PORT: "{{ api_port }}"
+        INDEX_DB_NAME: "{{ index_db_name }}"
+        API_PORT: "{{ api_port }}"
+        API_ZONAGE_URI: "{{ api_zonage_uri }}"
+        ZONING_URI: "{{ zoning_uri }}"
+        ZONING_PORT: "{{ zoning_port }}"
+        ZONING_PROTOCOL: "{{ zoning_protocol }}"
+        ZONING_NORMALIZE_SOURCE: "{{ zoning_normalize_source }}"
+        META_URI: "{{ meta_uri }}"
+        META_PORT: "{{ meta_port }}"
+        META_PROTOCOL: "{{ meta_protocol }}"
+        JUDIFILTRE_URI: "{{ judifiltre_uri }}"
+        JUDIFILTRE_PROTOCOL: "{{ judifiltre_protocol }}"
+...

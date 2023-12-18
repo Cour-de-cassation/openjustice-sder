@@ -538,7 +538,6 @@ async function syncJurinet() {
     let wincicaCount = 0;
     let errorCount = 0;
     const changelog = {};
-
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
       // SKIP CA AND OTHER STUFF
@@ -781,7 +780,6 @@ async function syncJurinet() {
             }
           }
         }
-
         let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
         if (normalized === null) {
           try {
@@ -852,7 +850,6 @@ async function syncJurinet() {
             }
           }
         }
-
         let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id}` });
         if (existingDoc === null) {
           rawDocument = await raw.findOne({ _id: row._id });
@@ -887,7 +884,6 @@ async function syncJurinet() {
         jurinetLastDate = DateTime.max(jurinetLastDate, modifTime);
       }
     }
-
     await juricaSource.close();
     await jIndexConnection.close();
     await GRCOMSource.close();
