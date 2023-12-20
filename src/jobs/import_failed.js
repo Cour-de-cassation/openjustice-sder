@@ -16,7 +16,7 @@ const { DateTime } = require('luxon');
 
 const ms = require('ms');
 
-const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
+const decisionsVersion = 1.0;
 
 let selfKill = setTimeout(cancel, ms('1h'));
 
@@ -53,7 +53,7 @@ async function main() {
 }
 
 async function importJurinet() {
-  const client = new MongoClient(process.env.MONGO_URI, {
+  const client = new MongoClient('mongodb://openjustice-sder:openjustice-sder@10.227.11.205:27017/SDER', {
     useUnifiedTopology: true,
   });
   await client.connect();
@@ -62,9 +62,12 @@ async function importJurinet() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
-    useUnifiedTopology: true,
-  });
+  const jIndexConnection = new MongoClient(
+    'mongodb://judilibre-index:judilibre-index@10.227.11.205:27017/judilibre-index',
+    {
+      useUnifiedTopology: true,
+    },
+  );
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexMain = jIndexClient.collection('mainIndex');
@@ -239,7 +242,7 @@ async function importJurinet() {
 }
 
 async function importJurica() {
-  const client = new MongoClient(process.env.MONGO_URI, {
+  const client = new MongoClient('mongodb://openjustice-sder:openjustice-sder@10.227.11.205:27017/SDER', {
     useUnifiedTopology: true,
   });
   await client.connect();
@@ -248,9 +251,12 @@ async function importJurica() {
 
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION); // XXX TEMP
 
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
-    useUnifiedTopology: true,
-  });
+  const jIndexConnection = new MongoClient(
+    'mongodb://judilibre-index:judilibre-index@10.227.11.205:27017/judilibre-index',
+    {
+      useUnifiedTopology: true,
+    },
+  );
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexMain = jIndexClient.collection('mainIndex');
