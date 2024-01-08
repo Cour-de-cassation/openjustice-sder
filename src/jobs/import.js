@@ -1077,7 +1077,7 @@ async function syncJurinet() {
             errorCount++;
           }
         } else if (normalized.locked === false) {
-          if (updated === true || normalized._version !== decisionsVersion) {
+          if (updated === true) {
             try {
               let normDec = await JurinetUtils.Normalize(row, normalized);
               normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
@@ -1434,7 +1434,7 @@ async function syncJurica() {
           errorCount++;
         }
       } else if (normalized.locked === false) {
-        if (updated === true || normalized._version !== decisionsVersion) {
+        if (updated === true) {
           try {
             let normDec = await JuricaUtils.Normalize(row, normalized);
             normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
