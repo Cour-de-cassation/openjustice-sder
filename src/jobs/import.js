@@ -1030,7 +1030,7 @@ async function syncJurinet() {
                       changelog,
                     )}`,
                   );
-                } else {
+                } else if (Object.keys(changelog).length > 0) {
                   await JudilibreIndex.updateJurinetDocument(
                     row,
                     null,
@@ -1078,7 +1078,7 @@ async function syncJurinet() {
             errorCount++;
           }
         } else if (normalized.locked === false) {
-          if (updated === true || normalized._version !== decisionsVersion) {
+          if (updated === true) {
             try {
               let normDec = await JurinetUtils.Normalize(row, normalized);
               normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
@@ -1106,7 +1106,7 @@ async function syncJurinet() {
                   null,
                   `update in decisions and reprocessed (sync2) - changelog: ${JSON.stringify(changelog)}`,
                 );
-              } else {
+              } else if (Object.keys(changelog).length > 0) {
                 await JudilibreIndex.updateDecisionDocument(
                   normDec,
                   null,
@@ -1382,7 +1382,7 @@ async function syncJurica() {
                     changelog,
                   )}`,
                 );
-              } else {
+              } else if (Object.keys(changelog).length > 0) {
                 await JudilibreIndex.updateJuricaDocument(
                   row,
                   duplicateId,
@@ -1435,7 +1435,7 @@ async function syncJurica() {
           errorCount++;
         }
       } else if (normalized.locked === false) {
-        if (updated === true || normalized._version !== decisionsVersion) {
+        if (updated === true) {
           try {
             let normDec = await JuricaUtils.Normalize(row, normalized);
             normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
@@ -1465,7 +1465,7 @@ async function syncJurica() {
                 duplicateId,
                 `update in decisions and reprocessed (sync2) - changelog: ${JSON.stringify(changelog)}`,
               );
-            } else {
+            } else if (Object.keys(changelog).length > 0) {
               await JudilibreIndex.updateDecisionDocument(
                 normDec,
                 duplicateId,
