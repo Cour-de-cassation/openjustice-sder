@@ -11,6 +11,10 @@ class Juritools {
         case 'jurica':
           source = 'ca';
           break;
+        case 'tj':
+        case 'juritj':
+          source = 'tj';
+          break;
         default:
           source = 'cc';
           break;
