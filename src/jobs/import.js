@@ -1029,7 +1029,7 @@ async function syncJurinet() {
                       changelog,
                     )}`,
                   );
-                } else {
+                } else if (Object.keys(changelog).length > 0) {
                   await JudilibreIndex.updateJurinetDocument(
                     row,
                     null,
@@ -1105,7 +1105,7 @@ async function syncJurinet() {
                   null,
                   `update in decisions and reprocessed (sync2) - changelog: ${JSON.stringify(changelog)}`,
                 );
-              } else {
+              } else if (Object.keys(changelog).length > 0) {
                 await JudilibreIndex.updateDecisionDocument(
                   normDec,
                   null,
@@ -1381,7 +1381,7 @@ async function syncJurica() {
                     changelog,
                   )}`,
                 );
-              } else {
+              } else if (Object.keys(changelog).length > 0) {
                 await JudilibreIndex.updateJuricaDocument(
                   row,
                   duplicateId,
@@ -1464,7 +1464,7 @@ async function syncJurica() {
                 duplicateId,
                 `update in decisions and reprocessed (sync2) - changelog: ${JSON.stringify(changelog)}`,
               );
-            } else {
+            } else if (Object.keys(changelog).length > 0) {
               await JudilibreIndex.updateDecisionDocument(
                 normDec,
                 duplicateId,
