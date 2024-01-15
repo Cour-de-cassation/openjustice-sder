@@ -26,27 +26,78 @@ function kill(code) {
   process.exit(code);
 }
 
-async function main(id) {
+const ids = [
+  'jurinet:1922905',
+  'jurinet:1922906',
+  'jurinet:1922907',
+  'jurinet:1922908',
+  'jurinet:1922909',
+  'jurinet:1929267',
+  'jurinet:1925133',
+  'jurinet:1925134',
+  'jurinet:1925135',
+  'jurinet:1925136',
+  'jurinet:1925138',
+  'jurinet:1925139',
+  'jurinet:1925140',
+  'jurinet:1925141',
+  'jurinet:1927291',
+  'jurinet:1927292',
+  'jurinet:1927293',
+  'jurinet:1927294',
+  'jurinet:1927295',
+  'jurinet:1927296',
+  'jurinet:1927297',
+  'jurinet:1927298',
+  'jurinet:1927299',
+  'jurinet:1929407',
+  'jurinet:1929408',
+  'jurinet:1929409',
+  'jurinet:1929410',
+  'jurinet:1929412',
+  'jurinet:1929413',
+  'jurinet:1929415',
+  'jurinet:1929416',
+  'jurinet:1929417',
+  'jurinet:1929419',
+  'jurinet:1929420',
+  'jurinet:1929421',
+  'jurinet:1929422',
+  'jurinet:1929423',
+  'jurinet:1929424',
+  'jurinet:1929411',
+  'jurinet:1929414',
+  'jurinet:1927300',
+  'jurinet:1927307',
+  'jurinet:1922689',
+  'jurinet:1929280',
+  'jurinet:1922677',
+];
+
+async function main() {
   console.log('OpenJustice - Start "reinject" job:', new Date().toLocaleString());
-  id = `${id}`.split(':');
-  if (id && id.length == 2) {
-    if (id[0] === 'jurinet') {
-      try {
-        await reinjectJurinet(parseInt(id[1], 10));
-      } catch (e) {
-        console.error('Jurinet reinject error', e);
-      }
-    } else if (id[0] === 'jurica') {
-      try {
-        await reinjectJurica(parseInt(id[1], 10));
-      } catch (e) {
-        console.error('Jurica reinject error', e);
+  for (let i = 0; i < ids.length; i++) {
+    let id = ids[i];
+    id = `${id}`.split(':');
+    if (id && id.length == 2) {
+      if (id[0] === 'jurinet') {
+        try {
+          await reinjectJurinet(parseInt(id[1], 10));
+        } catch (e) {
+          console.error('Jurinet reinject error', e);
+        }
+      } else if (id[0] === 'jurica') {
+        try {
+          await reinjectJurica(parseInt(id[1], 10));
+        } catch (e) {
+          console.error('Jurica reinject error', e);
+        }
+      } else {
+        console.error(`Cannot process id ${id[0]}:${id[1]}.`);
       }
     } else {
-      console.error(`Cannot process id ${id[0]}:${id[1]}.`);
+      console.error(`Cannot process id ${id}.`);
     }
-  } else {
-    console.error(`Cannot process id ${id}.`);
   }
   console.log('OpenJustice - End "reinject" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
@@ -143,4 +194,4 @@ async function reinjectJurica(id) {
   return true;
 }
 
-main(/* 'jurinet:1796675' */);
+main();
