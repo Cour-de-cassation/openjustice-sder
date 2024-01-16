@@ -221,6 +221,7 @@ async function importJurinet() {
               normDec.pseudoText = undefined;
               normDec.pseudoStatus = 0;
               normDec.labelStatus = 'toBeTreated';
+              normDec.publishStatus = 'toBePublished';
               normDec.labelTreatments = [];
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
                 bypassDocumentValidation: true,
@@ -717,6 +718,7 @@ async function importJurica() {
                 normDec.pseudoText = undefined;
                 normDec.pseudoStatus = 0;
                 normDec.labelStatus = 'toBeTreated';
+                normDec.publishStatus = 'toBePublished';
                 normDec.labelTreatments = [];
                 await decisions.replaceOne({ _id: normalized._id }, normDec, {
                   bypassDocumentValidation: true,
@@ -1093,6 +1095,7 @@ async function syncJurinet() {
                 normDec.pseudoText = undefined;
                 normDec.pseudoStatus = 0;
                 normDec.labelStatus = 'toBeTreated';
+                normDec.publishStatus = 'toBePublished';
                 normDec.labelTreatments = [];
               }
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
@@ -1449,6 +1452,7 @@ async function syncJurica() {
               normDec.pseudoText = undefined;
               normDec.pseudoStatus = 0;
               normDec.labelStatus = 'toBeTreated';
+              normDec.publishStatus = 'toBePublished';
               normDec.labelTreatments = [];
               normDec.zoning = null;
             } else if (duplicate === true) {
