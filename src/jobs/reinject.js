@@ -72,7 +72,7 @@ async function reinjectJurinet() {
         reinjected.DT_MODIF = new Date();
         reinjected.DT_MODIF_ANO = new Date();
         await rawJurinet.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
-        decision.labelStatus = 'done';
+        decision.labelStatus = 'exported';
         decision.publishStatus = 'toBePublished';
         decision.dateCreation = new Date().toISOString();
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
@@ -121,7 +121,7 @@ async function reinjectJurica() {
         reinjected.DT_MODIF = new Date();
         reinjected.DT_MODIF_ANO = new Date();
         await rawJurica.replaceOne({ _id: reinjected._id }, reinjected, { bypassDocumentValidation: true });
-        decision.labelStatus = 'done';
+        decision.labelStatus = 'exported';
         decision.publishStatus = 'toBePublished';
         decision.dateCreation = new Date().toISOString();
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
