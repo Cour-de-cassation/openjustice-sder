@@ -19,6 +19,7 @@ const ms = require('ms');
 let monthAgo = 1;
 
 if (process.env.NODE_ENV === 'preprod') {
+  console.log('OpenJustice - preprod context');
   monthAgo = 6;
 }
 
@@ -43,7 +44,7 @@ function kill(code) {
 }
 
 async function main() {
-  console.log('OpenJustice - Start "import" job:', new Date().toLocaleString());
+  console.log(`OpenJustice - Start "import" job on env ${process.env.NODE_ENV}:`, new Date().toLocaleString());
   try {
     await importJurinet();
   } catch (e) {
