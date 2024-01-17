@@ -921,6 +921,7 @@ async function syncJurinet() {
             'IND_COORDONNEE_ELECTRONIQUE',
             'IND_PRENOM_PROFESSIONEL',
             'IND_NOM_PROFESSIONEL',
+            'XML',
             'OCCULTATION_SUPPLEMENTAIRE',
             '_bloc_occultation',
             '_natureAffaireCivil',
@@ -1315,6 +1316,7 @@ async function syncJurica() {
           'IND_PRENOM_PROFESSIONEL',
           'IND_NOM_PROFESSIONEL',
           'JDEC_OCC_COMP',
+          'JDEC_HTML_SOURCE',
           'JDEC_OCC_COMP_LIBRE',
           '_bloc_occultation',
         ];
