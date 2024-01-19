@@ -929,13 +929,21 @@ async function syncJurinet() {
             '_codeMatiereCivil',
             // '_nao_code',
           ];
+          const sensitive = ['XML', '_partie', 'OCCULTATION_SUPPLEMENTAIRE'];
           diff.forEach((key) => {
             if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
               updated = true;
-              changelog[key] = {
-                old: JSON.stringify(rawDocument[key]),
-                new: JSON.stringify(row[key]),
-              };
+              if (sensitive.indexOf(key) !== -1) {
+                changelog[key] = {
+                  old: '[SENSITIVE]',
+                  new: '[SENSITIVE]',
+                };
+              } else {
+                changelog[key] = {
+                  old: JSON.stringify(rawDocument[key]),
+                  new: JSON.stringify(row[key]),
+                };
+              }
               if (anomaly.indexOf(key) !== -1) {
                 anomalyUpdated = true;
               }
@@ -1320,13 +1328,21 @@ async function syncJurica() {
           'JDEC_OCC_COMP_LIBRE',
           '_bloc_occultation',
         ];
+        const sensitive = ['JDEC_HTML_SOURCE', 'JDEC_COLL_PARTIES', 'JDEC_OCC_COMP_LIBRE'];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
             updated = true;
-            changelog[key] = {
-              old: JSON.stringify(rawDocument[key]),
-              new: JSON.stringify(row[key]),
-            };
+            if (sensitive.indexOf(key) !== -1) {
+              changelog[key] = {
+                old: '[SENSITIVE]',
+                new: '[SENSITIVE]',
+              };
+            } else {
+              changelog[key] = {
+                old: JSON.stringify(rawDocument[key]),
+                new: JSON.stringify(row[key]),
+              };
+            }
             if (anomaly.indexOf(key) !== -1) {
               anomalyUpdated = true;
             }
