@@ -821,6 +821,7 @@ async function syncJurinet() {
       ) {
         let rawDocument = await raw.findOne({ _id: row._id });
         let updated = false;
+        let diffCount = 0;
         let anomalyUpdated = false;
         let reprocessUpdated = false;
         let tooOld = false;
@@ -930,8 +931,66 @@ async function syncJurinet() {
             // '_nao_code',
           ];
           const sensitive = ['XML', '_partie', 'OCCULTATION_SUPPLEMENTAIRE'];
+          const doNotCount = ['DT_ANO', 'DT_MODIF', 'DT_MODIF_ANO', 'DT_ENVOI_DILA'];
           diff.forEach((key) => {
-            if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
+            if (key === 'XML') {
+              let oldXml = null;
+              try {
+                oldXml = JurinetUtils.CleanXML(rawDocument.XML);
+                oldXml = JurinetUtils.XMLToJSON(oldXml, {
+                  filter: false,
+                  htmlDecode: true,
+                  toLowerCase: true,
+                });
+                oldXml = `${oldXml.texte_arret}`
+                  .replace(/\*DEB[A-Z]*/gm, '')
+                  .replace(/\*FIN[A-Z]*/gm, '')
+                  .trim();
+              } catch (e) {
+                oldXml = null;
+              }
+              let newXml = null;
+              try {
+                newXml = JurinetUtils.CleanXML(row.XML);
+                newXml = JurinetUtils.XMLToJSON(newXml, {
+                  filter: false,
+                  htmlDecode: true,
+                  toLowerCase: true,
+                });
+                newXml = `${newXml.texte_arret}`
+                  .replace(/\*DEB[A-Z]*/gm, '')
+                  .replace(/\*FIN[A-Z]*/gm, '')
+                  .trim();
+              } catch (e) {
+                newXml = null;
+              }
+              if (newXml !== oldXml) {
+                if (doNotCount.indexOf(key) === -1) {
+                  diffCount++;
+                }
+                updated = true;
+                if (sensitive.indexOf(key) !== -1) {
+                  changelog[key] = {
+                    old: '[SENSITIVE]',
+                    new: '[SENSITIVE]',
+                  };
+                } else {
+                  changelog[key] = {
+                    old: JSON.stringify(rawDocument[key]),
+                    new: JSON.stringify(row[key]),
+                  };
+                }
+                if (anomaly.indexOf(key) !== -1) {
+                  anomalyUpdated = true;
+                }
+                if (reprocess.indexOf(key) !== -1) {
+                  reprocessUpdated = true;
+                }
+              }
+            } else if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
+              if (doNotCount.indexOf(key) === -1) {
+                diffCount++;
+              }
               updated = true;
               if (sensitive.indexOf(key) !== -1) {
                 changelog[key] = {
@@ -967,7 +1026,7 @@ async function syncJurinet() {
             errorCount++;
           }
           */
-          if (updated === true) {
+          if (updated === true && diffCount > 0) {
             try {
               let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
               inDate.setHours(inDate.getHours() + 2);
@@ -1089,7 +1148,7 @@ async function syncJurinet() {
             errorCount++;
           }
         } else if (normalized.locked === false) {
-          if (updated === true) {
+          if (updated === true && diffCount > 0) {
             try {
               let normDec = await JurinetUtils.Normalize(row, normalized);
               normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
@@ -1224,6 +1283,7 @@ async function syncJurica() {
       let row = juricaResult[i];
       let rawDocument = await raw.findOne({ _id: row._id });
       let updated = false;
+      let diffCount = 0;
       let anomalyUpdated = false;
       let reprocessUpdated = false;
       let duplicate = false;
@@ -1329,8 +1389,12 @@ async function syncJurica() {
           '_bloc_occultation',
         ];
         const sensitive = ['JDEC_HTML_SOURCE', 'JDEC_COLL_PARTIES', 'JDEC_OCC_COMP_LIBRE'];
+        const doNotCount = ['JDEC_DATE_MAJ', 'DT_ENVOI_ABONNES'];
         diff.forEach((key) => {
           if (JSON.stringify(row[key]) !== JSON.stringify(rawDocument[key])) {
+            if (doNotCount.indexOf(key) === -1) {
+              diffCount++;
+            }
             updated = true;
             if (sensitive.indexOf(key) !== -1) {
               changelog[key] = {
@@ -1352,7 +1416,7 @@ async function syncJurica() {
           }
         });
 
-        if (updated === true) {
+        if (updated === true && diffCount > 0) {
           try {
             let inDate = new Date();
             let dateDecisionElements = row.JDEC_DATE.split('-');
@@ -1456,7 +1520,7 @@ async function syncJurica() {
           errorCount++;
         }
       } else if (normalized.locked === false) {
-        if (updated === true) {
+        if (updated === true && diffCount > 0) {
           try {
             let normDec = await JuricaUtils.Normalize(row, normalized);
             normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
