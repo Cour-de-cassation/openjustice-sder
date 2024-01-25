@@ -82,7 +82,7 @@ async function reimportJurinet(n, resetContent) {
     jurinetResult = await jurinetSource.getLastNMonth(n);
   }
 
-  if (jurinetResult) {
+  if (jurinetResult && jurinetResult.length) {
     for (let i = 0; i < jurinetResult.length; i++) {
       let row = jurinetResult[i];
       let indexDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id}` });
@@ -141,13 +141,6 @@ async function reimportJurinet(n, resetContent) {
             updateCount++;
           }
           await jurinetSource.markAsImported(row._id);
-          /*
-          if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-            for (let d = 0; d < row._decatt.length; d++) {
-              await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-            }
-          }
-          */
         } catch (e) {
           console.error(e);
           await jurinetSource.markAsErroneous(row._id);
@@ -204,13 +197,6 @@ async function reimportJurinet(n, resetContent) {
             await JudilibreIndex.updateDecisionDocument(normDec, null, 'update in decisions (reimport)');
             normalizedCount++;
           }
-          /*
-          if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-            for (let d = 0; d < row._decatt.length; d++) {
-              await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-            }
-          }
-          */
         } catch (e) {
           console.error(e);
           await jurinetSource.markAsErroneous(row._id);
@@ -249,13 +235,11 @@ async function reimportJurinet(n, resetContent) {
   );
 
   await client.close();
-  // await juricaSource.close();
   await jurinetSource.close();
   return true;
 }
 
 async function reimportJurica(n, resetContent) {
-  // @TODO resetContent
   const client = new MongoClient(process.env.MONGO_URI, {
     useUnifiedTopology: true,
   });
@@ -282,141 +266,162 @@ async function reimportJurica(n, resetContent) {
     juricaResult = await juricaSource.getLastNMonth(n);
   }
 
-  if (juricaResult) {
+  if (juricaResult && juricaResult.length) {
     for (let i = 0; i < juricaResult.length; i++) {
       let row = juricaResult[i];
-    }
-  }
-
-  while ((resultRow = await rs.getRow())) {
-    let row = await juricaSource.buildRawData(resultRow, true);
-    let raw = await rawJurica.findOne({ _id: row._id });
-    if (raw === null) {
-      try {
-        row._indexed = null;
-        let duplicate = false;
-        let duplicateId = null;
+      let indexDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+      if (indexDoc && resetContent) {
+        await JudilibreIndex.deleteOne('mainIndex', { _id: `jurica:${row._id}` });
+      }
+      let raw = await rawJurica.findOne({ _id: row._id });
+      if (raw === null) {
         try {
-          duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
-          if (duplicateId !== null) {
-            duplicateId = `jurinet:${duplicateId}`;
-            duplicate = true;
-          } else {
+          row._indexed = null;
+          if (resetContent === true) {
+            row.HTMLA = null;
+            row.IND_ANO = 0;
+            row.AUT_ANO = null;
+            row.DT_ANO = null;
+            row.JDEC_DATE_MAJ = null;
+            row.DT_MODIF_ANO = null;
+            row.DT_ENVOI_ABONNES = null;
+          }
+          let duplicate = false;
+          let duplicateId = null;
+          try {
+            duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
+            if (duplicateId !== null) {
+              duplicateId = `jurinet:${duplicateId}`;
+              duplicate = true;
+            } else {
+              duplicate = false;
+            }
+          } catch (e) {
             duplicate = false;
           }
-        } catch (e) {
-          duplicate = false;
-        }
-        await rawJurica.insertOne(row, { bypassDocumentValidation: true });
-        await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
-        if (duplicate === false) {
-          let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-          if (normalized === null) {
-            let normDec = await JuricaUtils.Normalize(row);
-            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-            normDec._version = decisionsVersion;
-            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            normDec._id = insertResult.insertedId;
-            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions');
-            await juricaSource.markAsImported(row._id);
-            newCount++;
+          await rawJurica.insertOne(row, { bypassDocumentValidation: true });
+          await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'force import in rawJurica');
+          if (duplicate === false) {
+            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+            if (normalized === null) {
+              let normDec = await JuricaUtils.Normalize(row);
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec._version = decisionsVersion;
+              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              normDec._id = insertResult.insertedId;
+              await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'force import in decisions');
+              await juricaSource.markAsImported(row._id);
+              newCount++;
+            } else {
+              let normDec;
+              if (resetContent === true) {
+                normDec = await JuricaUtils.Normalize(row);
+              } else {
+                normDec = await JuricaUtils.Normalize(row, normalized, true);
+              }
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec._version = decisionsVersion;
+              normDec._id = normalized._id;
+              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
+                bypassDocumentValidation: true,
+              });
+              await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'force reimport in decisions');
+              await juricaSource.markAsImported(row._id);
+              updateCount++;
+            }
           } else {
-            let normDec = await JuricaUtils.Normalize(row, normalized, true);
-            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-            normDec._version = decisionsVersion;
-            normDec._id = normalized._id;
-            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
-              bypassDocumentValidation: true,
-            });
-            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'reimport in decisions');
             await juricaSource.markAsImported(row._id);
-            updateCount++;
+            duplicateCount++;
           }
-        } else {
-          await juricaSource.markAsImported(row._id);
-          duplicateCount++;
+        } catch (e) {
+          console.error(`Jurica force reimport error processing new decision ${row._id}`, e);
+          await juricaSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJuricaDocument(row, null, null, e);
+          errorCount++;
         }
-      } catch (e) {
-        console.error(`Jurica reimport error processing new decision ${row._id}`, e);
-        await juricaSource.markAsErroneous(row._id);
-        await JudilibreIndex.updateJuricaDocument(row, null, null, e);
-        errorCount++;
-      }
-    } else {
-      try {
-        row._indexed = null;
-        let duplicate = false;
-        let duplicateId = null;
+      } else {
         try {
-          duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
-          if (duplicateId !== null) {
-            duplicateId = `jurinet:${duplicateId}`;
-            duplicate = true;
-          } else {
+          row._indexed = null;
+          if (resetContent === true) {
+            row.HTMLA = null;
+            row.IND_ANO = 0;
+            row.AUT_ANO = null;
+            row.DT_ANO = null;
+            row.JDEC_DATE_MAJ = null;
+            row.DT_MODIF_ANO = null;
+            row.DT_ENVOI_ABONNES = null;
+          }
+          let duplicate = false;
+          let duplicateId = null;
+          try {
+            duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
+            if (duplicateId !== null) {
+              duplicateId = `jurinet:${duplicateId}`;
+              duplicate = true;
+            } else {
+              duplicate = false;
+            }
+          } catch (e) {
             duplicate = false;
           }
-        } catch (e) {
-          duplicate = false;
-        }
-        await rawJurica.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
-        await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'reimport in rawJurica');
-        if (duplicate === false) {
-          let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-          if (normalized === null) {
-            let normDec = await JuricaUtils.Normalize(row);
-            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-            normDec._version = decisionsVersion;
-            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            normDec._id = insertResult.insertedId;
-            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions');
-            await juricaSource.markAsImported(row._id);
-            newCount++;
+          await rawJurica.replaceOne({ _id: row[process.env.MONGO_ID] }, row, { bypassDocumentValidation: true });
+          await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'force reimport in rawJurica');
+          if (duplicate === false) {
+            let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
+            if (normalized === null) {
+              let normDec = await JuricaUtils.Normalize(row);
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec._version = decisionsVersion;
+              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              normDec._id = insertResult.insertedId;
+              await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'force import in decisions');
+              await juricaSource.markAsImported(row._id);
+              newCount++;
+            } else {
+              let normDec;
+              if (resetContent === true) {
+                normDec = await JuricaUtils.Normalize(row);
+              } else {
+                normDec = await JuricaUtils.Normalize(row, normalized, true);
+              }
+              normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
+              normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
+              normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
+              normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec._version = decisionsVersion;
+              normDec._id = normalized._id;
+              await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
+                bypassDocumentValidation: true,
+              });
+              await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'force reimport in decisions');
+              await juricaSource.markAsImported(row._id);
+              updateCount++;
+            }
           } else {
-            let normDec = await JuricaUtils.Normalize(row, normalized, true);
-            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-            normDec._version = decisionsVersion;
-            normDec._id = normalized._id;
-            await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
-              bypassDocumentValidation: true,
-            });
-            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'reimport in decisions');
             await juricaSource.markAsImported(row._id);
-            updateCount++;
+            duplicateCount++;
           }
-        } else {
-          await juricaSource.markAsImported(row._id);
-          duplicateCount++;
+        } catch (e) {
+          console.error(`Jurica force reimport error processing existing decision ${row._id}`, e);
+          await juricaSource.markAsErroneous(row._id);
+          await JudilibreIndex.updateJuricaDocument(row, null, null, e);
+          errorCount++;
         }
-      } catch (e) {
-        console.error(`Jurica reimport error processing existing decision ${row._id}`, e);
-        await juricaSource.markAsErroneous(row._id);
-        await JudilibreIndex.updateJuricaDocument(row, null, null, e);
-        errorCount++;
       }
     }
   }
-  await rs.close();
-
-  /*
-  if (juricaResult) {
-    for (let i = 0; i < juricaResult.length; i++) {}
-  }
-  */
 
   console.log(
-    `Done Reimporting Jurica - New: ${newCount}, Update: ${updateCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}).`,
+    `Done force reimporting Jurica - New: ${newCount}, Update: ${updateCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}).`,
   );
 
   await client.close();
