@@ -1027,6 +1027,7 @@ class JuricaUtils {
       natureAffaireCivil: null,
       natureAffairePenal: null,
       codeMatiereCivil: null,
+      recommandationOccultation: parseInt(`${document.JDEC_OCC_COMP}`, 10),
     };
 
     try {
