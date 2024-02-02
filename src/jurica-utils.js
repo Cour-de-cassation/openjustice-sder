@@ -48,6 +48,24 @@ class JuricaUtils {
     return found;
   }
 
+  static GetTopThemeByNAC(nac) {
+    let found = null;
+    let taxon = {};
+    // Copy of the judilibre-index/public/nac.json file
+    // manually generated using the judilibre-index/src/scripts/generateNACTaxon.js script:
+    try {
+      taxon = JSON.parse(fs.readFileSync(path.join(__dirname, 'static', 'nac.json')).toString());
+    } catch (ignore) {}
+    for (let top in taxon) {
+      for (let key in taxon[top].subs) {
+        if (found === null && key.toLowerCase() === nac.toLowerCase()) {
+          found = taxon[top].label;
+        }
+      }
+    }
+    return found;
+  }
+
   static GetUnconditionalNonPublicNAC() {
     return [
       '11A',
@@ -1187,9 +1205,27 @@ class JuricaUtils {
   static GetDecisionThemesForIndexing(decision) {
     let themes = null;
     if (decision.NACCode) {
-      const theme = JuricaUtils.GetThemeByNAC(`${decision.NACCode}`.trim());
+      const nac = `${decision.NACCode}`.trim();
+      const top = JuricaUtils.GetTopThemeByNAC(nac);
+      if (top) {
+        if (themes === null) {
+          themes = [];
+        }
+        themes.push(top);
+      }
+      const sub = JuricaUtils.GetThemeByNAC(nac.substring(0, 2));
+      if (sub) {
+        if (themes === null) {
+          themes = [];
+        }
+        themes.push(sub);
+      }
+      const theme = JuricaUtils.GetThemeByNAC(nac);
       if (theme) {
-        themes = [theme];
+        if (themes === null) {
+          themes = [];
+        }
+        themes.push(theme);
       }
     }
     return themes;
