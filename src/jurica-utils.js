@@ -1027,7 +1027,7 @@ class JuricaUtils {
       natureAffaireCivil: null,
       natureAffairePenal: null,
       codeMatiereCivil: null,
-      recommandationOccultation: parseInt(`${document.JDEC_OCC_COMP}`, 10),
+      recommandationOccultation: JuricaUtils.GetRecommandationOccultation(document),
     };
 
     try {
@@ -1159,6 +1159,20 @@ class JuricaUtils {
     }
 
     return normalizedDecision;
+  }
+
+  static GetRecommandationOccultation(decision) {
+    const correspondanceCodeRecommandation = {
+      0: 'aucune',
+      1: 'conforme',
+      2: 'substituant',
+      3: 'complément',
+    };
+    let code = parseInt(`${decision.JDEC_OCC_COMP}`, 10);
+    if (isNaN(code) || code < 0 || code > 3) {
+      code = 0;
+    }
+    return correspondanceCodeRecommandation[code];
   }
 
   static GetDecisionNumberForIndexing(decision) {
