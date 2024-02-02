@@ -467,6 +467,7 @@ class JurinetUtils {
       natureAffaireCivil: null,
       natureAffairePenal: null,
       codeMatiereCivil: null,
+      recommandationOccultation: null,
     };
 
     if (previousVersion) {
