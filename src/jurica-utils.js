@@ -11,7 +11,6 @@ const { DateTime } = require('luxon');
 const { ObjectId } = require('mongodb');
 
 const fs = require('fs');
-const path = require('path');
 
 const parserOptions = {
   attributeNamePrefix: '',
