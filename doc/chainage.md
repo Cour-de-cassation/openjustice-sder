@@ -31,7 +31,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
 
 ### API REST
 
-- **Point d'entrée** : `GET <judilibre-index-URL>/affaires?<param>=<value>[&timeline=1]`
+- **Point d'entrée** : `GET https://ind.opj.cour-de-cassation.justice.fr/affaires?<param>=<value>[&timeline=1]`
 - `param` :
   - `id` : recherche par identifiant SDER/Judilibre, Jurinet ou Jurica (format `sourceName:sourceId` pour Jurinet et Jurica, par exemple : `?id=jurinet:1784323`, ou simplement `?id=5fca2aeba73772b5776cb72b` pour SDER/Judilibre) ;
   - `number` : recherche par "numéro" plus ou moins normalisé (RG, pourvoi, etc., par exemple : `?number=U8121289`, `?number=81-21.289`, `?number=86/00182`, `?number=86/182`, etc.) ;
@@ -45,7 +45,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
 
 **Exemple d'utilisation de l'API REST**
 
-- `GET https://label.cour-de-cassation.justice.fr/index/affaires?number=P8910948` (ou `?number=8910948`, `?number=89-10.948`...):
+- `GET https://ind.opj.cour-de-cassation.justice.fr/affaires?number=P8910948` (ou `?number=8910948`, `?number=89-10.948`...):
 
 ```
 [
@@ -65,7 +65,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
 ]
 ```
 
-- `GET https://label.cour-de-cassation.justice.fr/index/affaires?number=P8910948&timeline=1` (ajout de la timeline) :
+- `GET https://ind.opj.cour-de-cassation.justice.fr/affaires?number=P8910948&timeline=1` (ajout de la timeline) :
 
 ```
 [

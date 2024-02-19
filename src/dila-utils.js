@@ -258,6 +258,7 @@ class DilaUtils {
       natureAffaireCivil: null,
       natureAffairePenal: null,
       codeMatiereCivil: null,
+      recommandationOccultation: null,
     };
 
     return normalizedDecision;
