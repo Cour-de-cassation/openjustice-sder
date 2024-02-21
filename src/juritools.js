@@ -5,6 +5,9 @@ class Juritools {
     if (host === undefined) {
       host = `${process.env.ZONING_PROTOCOL}://${process.env.ZONING_URI}`;
     }
+    console.warn(
+      `Juritools:GetZones uses ${host}/zonage to perform request (${process.env.ZONING_PROTOCOL}://${process.env.ZONING_URI}).`,
+    );
     if (`${process.env.ZONING_NORMALIZE_SOURCE}` === 'true') {
       switch (`${source}`.toLowerCase()) {
         case 'ca':
@@ -36,7 +39,7 @@ class Juritools {
     }
     if (!response || !response.body || !response.body.zones) {
       delete zoneData.text;
-      console.warn('GetZones failed for the given document.', zoneData);
+      console.error('GetZones failed for the given document.', zoneData);
       return null;
     }
     delete response.body.arret_id;
@@ -60,7 +63,7 @@ class Juritools {
       console.error(e);
     }
     if (!response || !response.body) {
-      console.warn('GetMetaJurinet failed for the given data', data);
+      console.error('GetMetaJurinet failed for the given data', data);
       return null;
     }
     return response.body;
@@ -83,7 +86,7 @@ class Juritools {
       console.error(e);
     }
     if (!response || !response.body) {
-      console.warn('GetMetaJurica failed for the given data', data);
+      console.error('GetMetaJurica failed for the given data', data);
       return null;
     }
     return response.body;
