@@ -39,7 +39,7 @@ class Juritools {
     }
     if (!response || !response.body || !response.body.zones) {
       delete zoneData.text;
-      console.error('GetZones failed for the given document.', zoneData);
+      console.error('GetZones failed for the given document.', zoneData, response);
       return null;
     }
     delete response.body.arret_id;
@@ -63,7 +63,7 @@ class Juritools {
       console.error(e);
     }
     if (!response || !response.body) {
-      console.error('GetMetaJurinet failed for the given data', data);
+      console.error('GetMetaJurinet failed for the given data', data, response);
       return null;
     }
     return response.body;
@@ -86,7 +86,7 @@ class Juritools {
       console.error(e);
     }
     if (!response || !response.body) {
-      console.error('GetMetaJurica failed for the given data', data);
+      console.error('GetMetaJurica failed for the given data', data, response);
       return null;
     }
     return response.body;
