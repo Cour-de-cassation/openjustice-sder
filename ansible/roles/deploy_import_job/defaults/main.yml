@@ -8,9 +8,6 @@ jobs_sder:
   - nom_image: "{{ import_image }}"
     nom_cronjob: import
     planification: "*/11 8-23 * * *"
-  - nom_image: "{{ import_judifiltre_image }}"
-    nom_cronjob: import-judifiltre
-    planification: "*/13 8-22 * * *"
   - nom_image: "{{ reinject_image }}"
     nom_cronjob: reinject
     planification: "*/5 13-18 * * *"

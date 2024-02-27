@@ -3,10 +3,9 @@ services:
   - docker:20.10.22-dind
 
 variables:
-  SCRIPT_NAMES: buildAffaires import import_judifiltre reinject
+  SCRIPT_NAMES: buildAffaires import reinject
   image_buildAffaires: $CI_REGISTRY/cour-de-cassation/openjustice-sder/build-affaires:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   image_import: $CI_REGISTRY/cour-de-cassation/openjustice-sder/import:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
-  image_import_judifiltre: $CI_REGISTRY/cour-de-cassation/openjustice-sder/import-judifiltre:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   image_reinject: $CI_REGISTRY/cour-de-cassation/openjustice-sder/reinject:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   dev: dev
   re7: preprod
@@ -54,7 +53,6 @@ deploy_openjustice_sder:
       ansible-playbook \
             -e build_affaires_image=$image_buildAffaires \
             -e import_image=$image_import \
-            -e import_judifiltre_image=$image_import_judifiltre \
             -e reinject_image=$image_reinject \
             -i ansible/inventory/$inventaire.yml \
             ansible/deploy_application.yml --vault-password-file=$ANSIBLE_VAULT_PASS
