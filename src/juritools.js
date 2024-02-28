@@ -5,9 +5,6 @@ class Juritools {
     if (host === undefined) {
       host = `${process.env.ZONING_PROTOCOL}://${process.env.ZONING_URI}`;
     }
-    console.warn(
-      `Juritools:GetZones uses ${host}/zonage to perform request (${process.env.ZONING_PROTOCOL}://${process.env.ZONING_URI}).`,
-    );
     if (`${process.env.ZONING_NORMALIZE_SOURCE}` === 'true') {
       switch (`${source}`.toLowerCase()) {
         case 'ca':
