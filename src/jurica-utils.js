@@ -1005,6 +1005,7 @@ class JuricaUtils {
       decatt: null,
       locked: false,
       labelStatus: pseudoText ? 'done' : 'toBeTreated',
+      publishStatus: 'toBePublished',
       labelTreatments: [],
       zoning: undefined,
       occultation: {
