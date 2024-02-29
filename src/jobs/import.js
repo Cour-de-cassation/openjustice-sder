@@ -226,6 +226,7 @@ async function importJurinet() {
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
                 bypassDocumentValidation: true,
               });
+              await jurinetSource.markAsImported(row._id);
             }
           } catch (e) {
             console.error(`Jurinet import error processing decision ${row._id}`, e);
@@ -672,6 +673,7 @@ async function importJurica() {
               } else {
                 normDec.labelStatus = 'toBeTreated';
                 normDec.publishStatus = 'toBePublished';
+                await juricaSource.markAsImported(row._id);
               }
               normDec.labelTreatments = [];
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
@@ -1118,6 +1120,7 @@ async function syncJurinet() {
                 normDec.labelStatus = 'toBeTreated';
                 normDec.publishStatus = 'toBePublished';
                 normDec.labelTreatments = [];
+                await jurinetSource.markAsImported(row._id);
               }
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
                 bypassDocumentValidation: true,
@@ -1611,6 +1614,7 @@ async function syncJurica() {
                   normDec.publishStatus = 'toBePublished';
                   normDec.labelTreatments = [];
                   normDec.zoning = null;
+                  await juricaSource.markAsImported(row._id);
                 } else if (duplicate === true) {
                   normDec.labelStatus = 'exported';
                 }

@@ -179,7 +179,7 @@ async function main(id) {
       if (doChange === 'oui') {
         rawDocument._indexed = null;
         if (sourceName === 'jurinet') {
-          rawDocument.IND_ANO = 0;
+          rawDocument.IND_ANO = 1;
           rawDocument.XMLA = null;
           await rawJurinet.replaceOne({ _id: rawDocument._id }, rawDocument, { bypassDocumentValidation: true });
           await JudilibreIndex.updateJurinetDocument(
@@ -198,6 +198,7 @@ async function main(id) {
           normDec.pseudoText = undefined;
           normDec.pseudoStatus = 0;
           normDec.labelStatus = 'toBeTreated';
+          normDec.publishStatus = 'toBePublished';
           normDec.labelTreatments = [];
           normDec.zoning = null;
           await decisions.replaceOne({ _id: decision._id }, normDec, {
@@ -227,7 +228,7 @@ async function main(id) {
             OCCULTATION_SUPPLEMENTAIRE=${
               rawDocument['OCCULTATION_SUPPLEMENTAIRE'] ? rawDocument['OCCULTATION_SUPPLEMENTAIRE'] : 'null'
             },
-            IND_ANO=0,
+            IND_ANO=1,
             AUT_ANO=null,
             DT_ANO=null,
             DT_MODIF=:datea,
@@ -237,7 +238,7 @@ async function main(id) {
           await jurinetSource.connection.execute(updateQuery, [now, decision.sourceId], { autoCommit: true });
           await jurinetSource.close();
         } else if (sourceName === 'jurica') {
-          rawDocument.IND_ANO = 0;
+          rawDocument.IND_ANO = 1;
           rawDocument.HTMLA = null;
           await rawJurica.replaceOne({ _id: rawDocument._id }, rawDocument, { bypassDocumentValidation: true });
           await JudilibreIndex.updateJuricaDocument(
@@ -256,6 +257,7 @@ async function main(id) {
           normDec.pseudoText = undefined;
           normDec.pseudoStatus = 0;
           normDec.labelStatus = 'toBeTreated';
+          normDec.publishStatus = 'toBePublished';
           normDec.labelTreatments = [];
           normDec.zoning = null;
           await decisions.replaceOne({ _id: decision._id }, normDec, {
@@ -275,7 +277,7 @@ async function main(id) {
           const juricaSource = new JuricaOracle();
           await juricaSource.connect();
           const updateQuery = `UPDATE JCA_DECISION
-            SET IND_ANO=0,
+            SET IND_ANO=1,
             IND_PM=${parseInt(rawDocument['IND_PM'], 10)},
             IND_ADRESSE=${parseInt(rawDocument['IND_ADRESSE'], 10)},
             IND_DT_NAISSANCE=${parseInt(rawDocument['IND_DT_NAISSANCE'], 10)},
