@@ -64,8 +64,13 @@ async function reinjectJurinet() {
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
-        console.log(`reinject decision ${decision.sourceId}...`);
-        await jurinetSource.reinject(decision);
+        let raw = await rawJurinet.findOne({ _id: decision.sourceId });
+        if (raw && raw.IND_ANO === 1) {
+          console.log(`reinject decision ${decision.sourceId}...`);
+          await jurinetSource.reinject(decision);
+        } else {
+          console.log(`skip reinject decision ${decision.sourceId}...`);
+        }
         const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;
         reinjected.DT_ANO = new Date();
@@ -78,7 +83,11 @@ async function reinjectJurinet() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
-        await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
+        if (raw && raw.IND_ANO === 1) {
+          await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
+        } else {
+          await JudilibreIndex.updateDecisionDocument(decision, null, 'skip reinject');
+        }
         successCount++;
       }
     } catch (e) {
@@ -114,7 +123,13 @@ async function reinjectJurica() {
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
-        await juricaSource.reinject(decision);
+        let raw = await rawJurica.findOne({ _id: decision.sourceId });
+        if (raw && raw.IND_ANO === 1) {
+          console.log(`reinject decision ${decision.sourceId}...`);
+          await juricaSource.reinject(decision);
+        } else {
+          console.log(`skip reinject decision ${decision.sourceId}...`);
+        }
         const reinjected = await juricaSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;
         reinjected.DT_ANO = new Date();
@@ -127,7 +142,11 @@ async function reinjectJurica() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
-        await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
+        if (raw && raw.IND_ANO === 1) {
+          await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
+        } else {
+          await JudilibreIndex.updateDecisionDocument(decision, null, 'skip reinject');
+        }
         successCount++;
       }
     } catch (e) {
