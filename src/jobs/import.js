@@ -43,7 +43,10 @@ function kill(code) {
 }
 
 async function main() {
-  console.log(`OpenJustice - Start "import" job on env ${process.env.NODE_ENV}:`, new Date().toLocaleString());
+  console.log(
+    `OpenJustice - Start "import" job v20240229_1 on env ${process.env.NODE_ENV}:`,
+    new Date().toLocaleString(),
+  );
   try {
     await importJurinet();
   } catch (e) {
@@ -54,8 +57,6 @@ async function main() {
   } catch (e) {
     console.error('Jurica import error', e);
   }
-  console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
-  console.log('OpenJustice - Start "sync2" job:', new Date().toLocaleString());
   try {
     await syncJurinet();
   } catch (e) {
@@ -66,7 +67,7 @@ async function main() {
   } catch (e) {
     console.error('Jurica sync2 error', e);
   }
-  console.log('OpenJustice - End "sync2" job:', new Date().toLocaleString());
+  console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
 }
 

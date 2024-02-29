@@ -27,7 +27,7 @@ function kill(code) {
 }
 
 async function main() {
-  console.log('OpenJustice - Start "reinject" job:', new Date().toLocaleString());
+  console.log('OpenJustice - Start "reinject" job v20240229_1:', new Date().toLocaleString());
   try {
     await reinjectJurinet();
   } catch (e) {
