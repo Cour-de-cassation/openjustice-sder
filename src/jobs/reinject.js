@@ -59,7 +59,7 @@ async function reinjectJurinet() {
     successCount = 0,
     errorCount = 0;
   const cursor = await decisions
-    .find({ labelStatus: 'done', sourceName: 'jurinet' }, { allowDiskUse: true })
+    .find({ labelStatus: 'done', publishStatus: 'toBePublished', sourceName: 'jurinet' }, { allowDiskUse: true })
     .sort({ sourceId: -1 });
   while ((decision = await cursor.next())) {
     try {
@@ -119,7 +119,10 @@ async function reinjectJurica() {
   let decision,
     successCount = 0,
     errorCount = 0;
-  const cursor = await decisions.find({ labelStatus: 'done', sourceName: 'jurica' }, { allowDiskUse: true });
+  const cursor = await decisions.find(
+    { labelStatus: 'done', publishStatus: 'toBePublished', sourceName: 'jurica' },
+    { allowDiskUse: true },
+  );
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
