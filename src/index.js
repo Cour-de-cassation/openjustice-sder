@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-console.info('Start main script.');
+console.info('Start main script v20240229_1.');
 
 if (!process.env.SKIP_JOBS) {
   const Graceful = require('@ladjs/graceful');
