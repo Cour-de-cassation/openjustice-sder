@@ -212,10 +212,12 @@ async function importJurinet() {
               normDec.pseudoText = undefined;
               normDec.pseudoStatus = 0;
               normDec.labelStatus = 'toBeTreated';
+              normDec.publishStatus = 'toBePublished';
               normDec.labelTreatments = [];
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
                 bypassDocumentValidation: true,
               });
+              await jurinetSource.markAsImported(row._id);
             }
           } catch (e) {
             console.error(`Jurinet import error processing decision ${row._id}`, e);
@@ -714,10 +716,12 @@ async function importJurica() {
                 normDec.pseudoText = undefined;
                 normDec.pseudoStatus = 0;
                 normDec.labelStatus = 'toBeTreated';
+                normDec.publishStatus = 'toBePublished';
                 normDec.labelTreatments = [];
                 await decisions.replaceOne({ _id: normalized._id }, normDec, {
                   bypassDocumentValidation: true,
                 });
+                await juricaSource.markAsImported(row._id);
               }
             }
           } else {

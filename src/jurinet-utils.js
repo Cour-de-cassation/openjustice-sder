@@ -450,6 +450,7 @@ class JurinetUtils {
       decatt: null,
       locked: false,
       labelStatus: pseudoText ? 'done' : 'toBeTreated',
+      publishStatus: 'toBePublished',
       labelTreatments: [],
       zoning: undefined,
       occultation: {
