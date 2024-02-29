@@ -18,31 +18,9 @@ async function main() {
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  /*
-  const failedDocs = await JudilibreIndex.find('mainIndex', {
-    $or: [
-      {
-        'log.msg': /service unavailable/i,
-      },
-      {
-        'log.msg': /bad gateway/i,
-      },
-    ],
-  });
-  */
-
   const failedDocs = await JudilibreIndex.find('mainIndex', { dateJudifiltre: { $ne: null } });
   console.log(failedDocs.length);
   for (let i = 0; i < failedDocs.length; i++) {
-    /*
-    if (failedDocs[i]._id === 'jurica:2483944') {
-      continue;
-    }
-    if (failedDocs[i]._id === 'jurica:2483947') {
-      continue;
-    }
-    */
-
     console.log(`retry ${failedDocs[i]._id} (${i + 1}/${failedDocs.length})...`);
     try {
       let row = await rawJurica.findOne({ _id: parseInt(failedDocs[i]._id.split(':')[1], 10) });
@@ -62,32 +40,6 @@ async function main() {
         } else {
           console.log(`${row._id} skipped (already in decisions).`);
         }
-        /*
-        const judifiltreResult = await Judifiltre.SendBatch([
-          {
-            sourceId: row._id,
-            sourceDb: 'jurica',
-            decisionDate: row.JDEC_DATE,
-            jurisdictionName: row.JDEC_CODE_JURIDICTION,
-            fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
-            publicityClerkRequest:
-              row.JDEC_IND_DEC_PUB === null
-                ? 'unspecified'
-                : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
-                ? 'public'
-                : 'notPublic',
-          },
-        ]);
-        const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
-        if (existingDoc !== null) {
-          let dateJudifiltre = DateTime.now();
-          existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
-          await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
-            bypassDocumentValidation: true,
-          });
-        }
-        console.log(judifiltreResult);
-        */
       } else {
         console.log(`${row._id} skipped (not there)).`);
       }
