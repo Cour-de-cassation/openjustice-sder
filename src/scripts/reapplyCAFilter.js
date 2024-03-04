@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
@@ -7,7 +6,6 @@ const { JuricaOracle } = require('../jurica-oracle');
 const { JuricaUtils } = require('../jurica-utils');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
-const { Juritools } = require('../juritools');
 const { DateTime } = require('luxon');
 
 const ms = require('ms');
@@ -92,18 +90,25 @@ async function processJurica() {
           bypassDocumentValidation: true,
         });
       } else {
+        const IsPartiallyPublic = JuricaUtils.IsPartiallyPublic(
+          row.JDEC_CODNAC,
+          row.JDEC_CODNACPART,
+          row.JDEC_IND_DEC_PUB,
+        );
         const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
           row.JDEC_CODNAC,
           row.JDEC_CODNACPART,
           row.JDEC_IND_DEC_PUB,
         );
-        if (ShouldBeSentToJudifiltre === true) {
-          console.warn(`reapplyCAFilter decision ${row._id} to be controlled.`);
+        if (IsPartiallyPublic === true || ShouldBeSentToJudifiltre === true) {
+          console.warn(
+            `reapplyCAFilter decision ${row._id} to be controlled: IsPartiallyPublic: ${IsPartiallyPublic}, ShouldBeSentToJudifiltre: ${ShouldBeSentToJudifiltre}`,
+          );
           await juricaSource.markAsImported(row._id);
           await JudilibreIndex.updateJuricaDocument(row, null, `IGNORED_CONTROLE_REQUIS`);
           const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
           if (existingDoc) {
-            let dateJudifiltre = DateTime.now();
+            const dateJudifiltre = DateTime.now();
             existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
             await JudilibreIndex.replaceOne('mainIndex', { _id: existingDoc._id }, existingDoc, {
               bypassDocumentValidation: true,
@@ -118,7 +123,6 @@ async function processJurica() {
           await decisions.replaceOne({ _id: normalized._id }, normalized, {
             bypassDocumentValidation: true,
           });
-        } else {
         }
       }
     } catch (e) {
