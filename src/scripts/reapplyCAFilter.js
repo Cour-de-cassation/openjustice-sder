@@ -61,6 +61,10 @@ async function processJurica() {
   while ((row = await cursor.next())) {
     try {
       let hadNormalized = true;
+      const indexed = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+      if (!indexed) {
+        await JudilibreIndex.indexJuricaDocument(row, null, 'indexed during reapplyCAFilter', null);
+      }
       let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
       if (normalized === null) {
         hadNormalized = false;
@@ -83,6 +87,13 @@ async function processJurica() {
         nonPublicCount++;
         if (row._indexed === true && hadNormalized && normalized.labelStatus === 'exported') {
           toDepublish.push(row._id);
+          const existingIndexedDoc1 = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+          if (existingIndexedDoc1) {
+            existingIndexedDoc1.deleted = true;
+            await JudilibreIndex.replaceOne('mainIndex', { _id: existingIndexedDoc1._id }, existingIndexedDoc1, {
+              bypassDocumentValidation: true,
+            });
+          }
         }
         normalized.labelStatus = 'ignored_codeNACdeDecisionNonPublique';
         normalized.publishStatus = 'blocked';
@@ -117,6 +128,13 @@ async function processJurica() {
           toBeControlledCount++;
           if (row._indexed === true && hadNormalized && normalized.labelStatus === 'exported') {
             toDepublish.push(row._id);
+            const existingIndexedDoc2 = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+            if (existingIndexedDoc2) {
+              existingIndexedDoc2.deleted = true;
+              await JudilibreIndex.replaceOne('mainIndex', { _id: existingIndexedDoc2._id }, existingIndexedDoc2, {
+                bypassDocumentValidation: true,
+              });
+            }
           }
           normalized.labelStatus = 'ignored_controleRequis';
           normalized.publishStatus = 'blocked';
@@ -132,8 +150,6 @@ async function processJurica() {
       errorCount++;
     }
   }
-
-  /* @TODO PROCESS toDepublish */
 
   console.log(
     `Done processing Jurica - Non-Public: ${nonPublicCount}, To Be Controlled: ${toBeControlledCount}, To Depublish: ${toDepublish.length}, Error: ${errorCount}.`,
