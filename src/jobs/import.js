@@ -174,6 +174,7 @@ async function importJurinet() {
                 }
                 newCount++;
               } else {
+                await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
                 console.warn(
                   `Jurinet import issue: { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
                 );
@@ -215,6 +216,7 @@ async function importJurinet() {
                 wincicaCount++;
               }
             } else {
+              await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
               console.warn(
                 `Jurinet import issue: normalized decision { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
               );
@@ -478,6 +480,7 @@ async function importJurica() {
                 await juricaSource.markAsImported(row._id);
                 newCount++;
               } else {
+                await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
                 console.warn(`Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
               }
             } else {
@@ -664,6 +667,7 @@ async function importJurica() {
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
               await juricaSource.markAsImported(row._id);
             } else {
+              await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
               console.warn(`Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
               normDec.zoning = null;
               normDec.pseudoText = undefined;
@@ -1095,6 +1099,7 @@ async function syncJurinet() {
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (sync2)');
               normalizeCount++;
             } else {
+              await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip sync (already inserted)');
               console.warn(`Jurinet sync issue: { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`);
             }
           } catch (e) {
@@ -1585,6 +1590,7 @@ async function syncJurica() {
               await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (sync2)');
               normalizeCount++;
             } else {
+              await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
               console.warn(`Jurica sync issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
             }
           } catch (e) {

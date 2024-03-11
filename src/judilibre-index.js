@@ -446,8 +446,9 @@ class JudilibreIndex {
   }
 
   async updateDecisionDocument(doc, duplicateId, msg, err) {
-    const existingDoc = await this.findOne('mainIndex', { sderId: doc._id });
+    const existingDoc = await this.findOne('mainIndex', { _id: `${doc.sourceName}:${doc.sourceId}` });
     if (existingDoc) {
+      existingDoc.sderId = doc._id;
       if (duplicateId) {
         if (Array.isArray(duplicateId)) {
           duplicateId.forEach((item) => {
