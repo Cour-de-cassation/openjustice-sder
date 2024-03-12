@@ -203,23 +203,15 @@ class JuricaUtils {
       '97E',
       '97G',
       '97P',
+      '0',
+      '000',
+      '00A',
+      '00X',
     ];
   }
 
   static GetConditionalNonPublicNAC() {
     return ['4AC', '4AD', '4AE', '4AF', '4AL', '4AM', '4AN', '4AO', '4AP', '4EC'];
-  }
-
-  static GetNonPublicNACWithAdditionalCheck(all) {
-    if (!all) {
-      return ['00A'];
-    } else {
-      return ['0', '000', '00A', '00X']; // 0A
-    }
-  }
-
-  static GetAdditionalCheck(code) {
-    return /^9[0-9a-t]$/i.test(code) === true;
   }
 
   static GetPartiallyPublicNAC() {
@@ -270,7 +262,6 @@ class JuricaUtils {
       '26A',
       '26B',
       '26C',
-      // '26D',
       '26E',
       '26F',
       '26G',
@@ -764,7 +755,6 @@ class JuricaUtils {
 
   static IsNonPublic(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
-    const cleanedNp = `${np}`.replace(/\W/gim, '').toUpperCase().trim();
     publicCheckbox = parseInt(`${publicCheckbox}`, 10);
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
       return true;
@@ -781,25 +771,6 @@ class JuricaUtils {
       } else {
         throw new Error(`public or non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set`);
       }
-    } else if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true /* TEMP */).indexOf(cleanedNac) !== -1) {
-      /* Finalement non...
-      if (publicCheckbox === 1) {
-        throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
-      }
-      */
-      return true;
-      /* TEMP
-      if (!cleanedNp || cleanedNp === 'NULL' || !np) {
-        throw new Error(`invalid NP code (${np})`);
-      } else if (JuricaUtils.GetAdditionalCheck(cleanedNp) === true) {
-        if (publicCheckbox === 1) {
-          throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
-        }
-        return true;
-      } else {
-        return false;
-      }
-      */
     }
     return false;
   }
@@ -869,12 +840,6 @@ class JuricaUtils {
           `contradictory public status #3 (public: ${isPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
         );
       }
-      /* TEMP
-      if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true).indexOf(cleanedNac) !== -1) {
-        throw new Error(`NAC code requires manual check (${nac})`);
-      }
-      */
-      // @FIXME TEMPORARY:
       if (partiallyPublic) {
         return true;
       }
