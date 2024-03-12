@@ -26,7 +26,20 @@ function kill(code) {
   process.exit(code);
 }
 
-const ids = ['jurinet:1952728', 'jurinet:1952729', 'jurinet:1952730', 'jurinet:1952731', 'jurinet:1952634'];
+const ids = [
+  'jurinet:1952533',
+  'jurinet:1952723',
+  'jurinet:1952534',
+  'jurinet:1952725',
+  'jurinet:1952535',
+  'jurinet:1952732',
+  'jurinet:1952733',
+  'jurinet:1952734',
+  'jurinet:1952537',
+  'jurinet:1952538',
+  'jurinet:1952539',
+  'jurinet:1952540',
+];
 
 async function main() {
   console.log('OpenJustice - Start "reinject" job:', new Date().toLocaleString());
