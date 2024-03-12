@@ -764,12 +764,10 @@ class JuricaUtils {
       }
       return true;
     } else if (JuricaUtils.GetConditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
-      if (publicCheckbox === 0) {
+      if (publicCheckbox === 0 || isNaN(publicCheckbox)) {
         return true;
       } else if (publicCheckbox === 1) {
         return false;
-      } else {
-        throw new Error(`public or non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set`);
       }
     }
     return false;
@@ -794,8 +792,8 @@ class JuricaUtils {
     const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
     publicCheckbox = parseInt(`${publicCheckbox}`, 10);
     if (!nonPublic && !partiallyPublic) {
-      if (publicCheckbox !== 1) {
-        throw new Error(`public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set to 1`);
+      if (publicCheckbox === 0) {
+        throw new Error(`public NAC code (${nac}), but JDEC_IND_DEC_PUB is set to 0`);
       }
       return true;
     } else {
