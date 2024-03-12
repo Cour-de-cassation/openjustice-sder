@@ -26,7 +26,7 @@ function kill(code) {
   process.exit(code);
 }
 
-const ids = ['jurinet:1952727'];
+const ids = ['jurinet:1952728', 'jurinet:1952729', 'jurinet:1952730', 'jurinet:1952731', 'jurinet:1952634'];
 
 async function main() {
   console.log('OpenJustice - Start "reinject" job:', new Date().toLocaleString());
