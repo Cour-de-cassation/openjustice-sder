@@ -77,7 +77,7 @@ async function reinjectJurinet(id) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
         let raw = await rawJurinet.findOne({ _id: decision.sourceId });
-        if (raw && raw.IND_ANO === 1) {
+        if (raw && raw.IND_ANO !== 2) {
           console.log(`reinject decision ${decision.sourceId}...`);
           await jurinetSource.reinject(decision);
         } else {
@@ -92,7 +92,7 @@ async function reinjectJurinet(id) {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
-        if (raw && raw.IND_ANO === 1) {
+        if (raw && raw.IND_ANO !== 2) {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         } else {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'skip reinject');
