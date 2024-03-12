@@ -163,6 +163,7 @@ class JuricaUtils {
       '24K',
       '24L',
       '24M',
+      '24N',
       '24Z',
       '26D',
       '27A',
@@ -177,10 +178,15 @@ class JuricaUtils {
       '27J',
       '27K',
       '27L',
+      '27M',
+      '27N',
       '27Z',
       '33Z',
       '3AG',
       '3AZ',
+      '4AA',
+      '4AB',
+      '4EA',
       '4JF',
       '4JH',
       '4JI',
@@ -188,50 +194,50 @@ class JuricaUtils {
       '4JK',
       '4JL',
       '70G',
-      '97B',
-      '97E',
-      '97G',
-      '97P',
-    ];
-  }
-
-  static GetConditionalNonPublicNAC() {
-    return [
-      '4AA',
-      '4AB',
-      '4AC',
-      '4AD',
-      '4AE',
-      '4AF',
-      '4AL',
-      '4AM',
-      '4AN',
-      '4AO',
-      '4AP',
-      '4EA',
-      '4EC',
       '70J',
       '78S',
       '78T',
       '78U',
       '97A',
+      '97B',
+      '97E',
+      '97G',
+      '97P',
+      '0',
+      '000',
+      '00A',
+      '00X',
     ];
   }
 
-  static GetNonPublicNACWithAdditionalCheck(all) {
-    if (!all) {
-      return ['00A'];
-    } else {
-      return ['0', '000', '00A', '00X']; // 0A
-    }
-  }
-
-  static GetAdditionalCheck(code) {
-    return /^9[0-9a-t]$/i.test(code) === true;
+  static GetConditionalNonPublicNAC() {
+    return ['4AC', '4AD', '4AE', '4AF', '4AL', '4AM', '4AN', '4AO', '4AP', '4EC'];
   }
 
   static GetPartiallyPublicNAC() {
     return [
+      '2AA',
+      '2AB',
+      '2AC',
+      '2AD',
+      '2AE',
+      '2AF',
+      '2AG',
+      '2AH',
+      '2AI',
+      '2AJ',
+      '2AK',
+      '2AM',
+      '2AN',
+      '2AO',
+      '2AP',
+      '2AQ',
+      '2AR',
+      '2AS',
+      '2AT',
+      '2AU',
+      '2AV',
+      '2AZ',
       '20A',
       '20B',
       '20C',
@@ -253,6 +259,36 @@ class JuricaUtils {
       '21J',
       '21K',
       '21X',
+      '26A',
+      '26B',
+      '26C',
+      '26E',
+      '26F',
+      '26G',
+      '26H',
+      '26I',
+      '26J',
+      '26K',
+      '26Y',
+      '26Z',
+      '20H',
+      '21G',
+      '23A',
+      '23B',
+      '23I',
+      '23J',
+      '23K',
+      '24G',
+      '24H',
+      '25A',
+      '25B',
+      '25C',
+      '25D',
+      '25E',
+      '25F',
+      '25G',
+      '25H',
+      '25i',
       '64D',
     ];
   }
@@ -719,7 +755,6 @@ class JuricaUtils {
 
   static IsNonPublic(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
-    const cleanedNp = `${np}`.replace(/\W/gim, '').toUpperCase().trim();
     publicCheckbox = parseInt(`${publicCheckbox}`, 10);
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
       return true;
@@ -729,32 +764,11 @@ class JuricaUtils {
       }
       return true;
     } else if (JuricaUtils.GetConditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
-      if (publicCheckbox === 0) {
+      if (publicCheckbox === 0 || isNaN(publicCheckbox)) {
         return true;
       } else if (publicCheckbox === 1) {
         return false;
-      } else {
-        throw new Error(`public or non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set`);
       }
-    } else if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true /* TEMP */).indexOf(cleanedNac) !== -1) {
-      /* Finalement non...
-      if (publicCheckbox === 1) {
-        throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
-      }
-      */
-      return true;
-      /* TEMP
-      if (!cleanedNp || cleanedNp === 'NULL' || !np) {
-        throw new Error(`invalid NP code (${np})`);
-      } else if (JuricaUtils.GetAdditionalCheck(cleanedNp) === true) {
-        if (publicCheckbox === 1) {
-          throw new Error(`non-public NAC code for special procedure (${nac}-${np}), but JDEC_IND_DEC_PUB is set to 1`);
-        }
-        return true;
-      } else {
-        return false;
-      }
-      */
     }
     return false;
   }
@@ -778,8 +792,8 @@ class JuricaUtils {
     const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
     publicCheckbox = parseInt(`${publicCheckbox}`, 10);
     if (!nonPublic && !partiallyPublic) {
-      if (publicCheckbox !== 1) {
-        throw new Error(`public NAC code (${nac}), but JDEC_IND_DEC_PUB is not set to 1`);
+      if (publicCheckbox === 0) {
+        throw new Error(`public NAC code (${nac}), but JDEC_IND_DEC_PUB is set to 0`);
       }
       return true;
     } else {
@@ -824,12 +838,6 @@ class JuricaUtils {
           `contradictory public status #3 (public: ${isPublic}, partially public: ${partiallyPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
         );
       }
-      /* TEMP
-      if (JuricaUtils.GetNonPublicNACWithAdditionalCheck(true).indexOf(cleanedNac) !== -1) {
-        throw new Error(`NAC code requires manual check (${nac})`);
-      }
-      */
-      // @FIXME TEMPORARY:
       if (partiallyPublic) {
         return true;
       }
