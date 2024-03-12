@@ -115,6 +115,8 @@ async function reimportJurinet(n, resetContent) {
             normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
+            normDec.labelStatus = 'toBeTreated';
+            normDec.publishStatus = 'toBePublished';
             normDec._version = decisionsVersion;
             const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
             normDec._id = insertResult.insertedId;
@@ -131,6 +133,8 @@ async function reimportJurinet(n, resetContent) {
             normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
+            normDec.labelStatus = 'toBeTreated';
+            normDec.publishStatus = 'toBePublished';
             normDec._version = decisionsVersion;
             normDec.dateCreation = new Date().toISOString();
             await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
@@ -172,6 +176,8 @@ async function reimportJurinet(n, resetContent) {
             normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
+            normDec.labelStatus = 'toBeTreated';
+            normDec.publishStatus = 'toBePublished';
             normDec._version = decisionsVersion;
             const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
             normDec._id = insertResult.insertedId;
@@ -188,6 +194,8 @@ async function reimportJurinet(n, resetContent) {
             normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
+            normDec.labelStatus = 'toBeTreated';
+            normDec.publishStatus = 'toBePublished';
             normDec._version = decisionsVersion;
             normDec.dateCreation = new Date().toISOString();
             await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
@@ -309,6 +317,8 @@ async function reimportJurica(n, resetContent) {
               normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
               normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
               normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec.labelStatus = 'toBeTreated';
+              normDec.publishStatus = 'toBePublished';
               normDec._version = decisionsVersion;
               const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
               normDec._id = insertResult.insertedId;
@@ -326,6 +336,8 @@ async function reimportJurica(n, resetContent) {
               normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
               normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
               normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec.labelStatus = 'toBeTreated';
+              normDec.publishStatus = 'toBePublished';
               normDec._version = decisionsVersion;
               normDec._id = normalized._id;
               await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
@@ -380,6 +392,8 @@ async function reimportJurica(n, resetContent) {
               normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
               normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
               normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec.labelStatus = 'toBeTreated';
+              normDec.publishStatus = 'toBePublished';
               normDec._version = decisionsVersion;
               const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
               normDec._id = insertResult.insertedId;
@@ -397,6 +411,8 @@ async function reimportJurica(n, resetContent) {
               normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
               normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
               normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec.labelStatus = 'toBeTreated';
+              normDec.publishStatus = 'toBePublished';
               normDec._version = decisionsVersion;
               normDec._id = normalized._id;
               await decisions.replaceOne({ _id: normalized[process.env.MONGO_ID] }, normDec, {
