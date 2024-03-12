@@ -27,51 +27,18 @@ function kill(code) {
 }
 
 const ids = [
-  'jurinet:1922905',
-  'jurinet:1922906',
-  'jurinet:1922907',
-  'jurinet:1922908',
-  'jurinet:1922909',
-  'jurinet:1929267',
-  'jurinet:1925133',
-  'jurinet:1925134',
-  'jurinet:1925135',
-  'jurinet:1925136',
-  'jurinet:1925138',
-  'jurinet:1925139',
-  'jurinet:1925140',
-  'jurinet:1925141',
-  'jurinet:1927291',
-  'jurinet:1927292',
-  'jurinet:1927293',
-  'jurinet:1927294',
-  'jurinet:1927295',
-  'jurinet:1927296',
-  'jurinet:1927297',
-  'jurinet:1927298',
-  'jurinet:1927299',
-  'jurinet:1929407',
-  'jurinet:1929408',
-  'jurinet:1929409',
-  'jurinet:1929410',
-  'jurinet:1929412',
-  'jurinet:1929413',
-  'jurinet:1929415',
-  'jurinet:1929416',
-  'jurinet:1929417',
-  'jurinet:1929419',
-  'jurinet:1929420',
-  'jurinet:1929421',
-  'jurinet:1929422',
-  'jurinet:1929423',
-  'jurinet:1929424',
-  'jurinet:1929411',
-  'jurinet:1929414',
-  'jurinet:1927300',
-  'jurinet:1927307',
-  'jurinet:1922689',
-  'jurinet:1929280',
-  'jurinet:1922677',
+  'jurinet:1952533',
+  'jurinet:1952723',
+  'jurinet:1952534',
+  'jurinet:1952725',
+  'jurinet:1952535',
+  'jurinet:1952732',
+  'jurinet:1952733',
+  'jurinet:1952734',
+  'jurinet:1952537',
+  'jurinet:1952538',
+  'jurinet:1952539',
+  'jurinet:1952540',
 ];
 
 async function main() {
@@ -122,8 +89,13 @@ async function reinjectJurinet(id) {
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
-        console.log(`reinject decision ${decision.sourceId}...`);
-        await jurinetSource.reinject(decision);
+        let raw = await rawJurinet.findOne({ _id: decision.sourceId });
+        if (raw && raw.IND_ANO !== 2) {
+          console.log(`reinject decision ${decision.sourceId}...`);
+          await jurinetSource.reinject(decision);
+        } else {
+          console.log(`skip reinject decision ${decision.sourceId}...`);
+        }
         const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
         reinjected.DT_ANO = new Date();
         reinjected.DT_MODIF = new Date();
@@ -133,7 +105,11 @@ async function reinjectJurinet(id) {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
-        await JudilibreIndex.updateDecisionDocument(decision, null, 'force reinject');
+        if (raw && raw.IND_ANO !== 2) {
+          await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
+        } else {
+          await JudilibreIndex.updateDecisionDocument(decision, null, 'skip reinject');
+        }
         successCount++;
       }
     } catch (e) {
