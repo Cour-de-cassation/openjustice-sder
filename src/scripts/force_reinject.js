@@ -79,7 +79,7 @@ async function main() {
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
     let raw;
     let count = 0;
-    const cursor = await rawJurinet.find({ IND_ANO: 1 }, { allowDiskUse: true });
+    const cursor = await rawJurinet.find({ IND_ANO: 1, XMLA: null }, { allowDiskUse: true });
     while ((raw = await cursor.next())) {
       const decision = await decisions.findOne({ sourceId: raw._id, sourceName: 'jurinet' });
       if (decision.labelStatus === 'exported') {
