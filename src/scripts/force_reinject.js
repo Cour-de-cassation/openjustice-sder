@@ -90,8 +90,9 @@ async function main() {
       } catch (ignore) {
         exists = false;
       }
-      if (exists && decision.labelStatus === 'exported' && decision.solution !== 'Rejet non spécialement motivé') {
-        console.log(raw._id);
+      if (exists && decision.labelStatus === 'exported' /*&& decision.solution !== 'Rejet non spécialement motivé'*/) {
+        // console.log(raw._id);
+        await reinjectJurinet(raw._id);
         count++;
       }
     }
