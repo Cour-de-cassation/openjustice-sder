@@ -86,10 +86,7 @@ async function main() {
       const decision = await decisions.findOne({ sourceId: raw._id, sourceName: 'jurinet' });
       let exists = false;
       try {
-        const source = await jurinetSource.getDecisionByID(raw._id);
-        if (source && source._id === raw._id) {
-          exists = true;
-        }
+        exists = await jurinetSource.testDecisionByID(raw._id);
       } catch (ignore) {
         exists = false;
       }
