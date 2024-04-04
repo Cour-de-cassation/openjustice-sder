@@ -77,18 +77,30 @@ async function main() {
     const database = client.db(process.env.MONGO_DBNAME);
     const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+    const jurinetSource = new JurinetOracle();
+    await jurinetSource.connect();
     let raw;
     let count = 0;
     const cursor = await rawJurinet.find({ IND_ANO: 1, XMLA: null }, { allowDiskUse: true });
     while ((raw = await cursor.next())) {
       const decision = await decisions.findOne({ sourceId: raw._id, sourceName: 'jurinet' });
-      if (decision.labelStatus === 'exported') {
+      let exists = false;
+      try {
+        const source = await jurinetSource.getDecisionByID(raw._id);
+        if (source && source._id === raw._id) {
+          exists = true;
+        }
+      } catch (ignore) {
+        exists = false;
+      }
+      if (exists && decision.labelStatus === 'exported' && decision.solution !== 'Rejet non spécialement motivé') {
         console.log(raw._id);
         count++;
       }
     }
     await cursor.close();
     await client.close();
+    await jurinetSource.close();
     console.log(count);
   }
   console.log('OpenJustice - End "reinject" job:', new Date().toLocaleString());
