@@ -17,7 +17,7 @@ On collecte chaque matin (entre 8h et 12h) toutes les décisions qui remplissent
 
 Chaque décision qui remplit ces critères subit alors les traitements suivants :
 
-- Normalisation et intégration dans la base SDER, avec les états déclenchant sa prise en compte par Label :
+- Normalisation (dont le transcodage de `CP1252` vers `UTF-8` du texte de la décision) et intégration dans la base SDER, avec les états déclenchant sa prise en compte par Label :
   - `labelStatus` = `toBeTreated` ;
   - `publishStatus` = `toBePublished`.
 - Passage du champ `IND_ANO` à `1` dans la base documentaire (Oracle/Jurinet) : le statut de pseudonymisation devient "en cours de traitement".
@@ -94,7 +94,7 @@ Les règles du filtre en entrée sont détaillées dans le document [Judifiltre]
 
 Chaque décision qui passe le filtre en entrée subit alors les traitements suivants :
 
-- Normalisation et intégration dans la base SDER, avec les états déclenchant sa prise en compte par Label :
+- Normalisation (dont le transcodage de `CP1252` vers `UTF-8` du texte de la décision) et intégration dans la base SDER, avec les états déclenchant sa prise en compte par Label :
   - `labelStatus` = `toBeTreated` ;
   - `publishStatus` = `toBePublished`.
 - Passage du champ `IND_ANO` à `1` dans la base documentaire (Oracle/JuriCA) : le statut de pseudonymisation devient "en cours de traitement".
