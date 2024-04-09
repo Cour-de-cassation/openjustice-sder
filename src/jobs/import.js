@@ -1355,8 +1355,6 @@ async function syncJurica() {
           }
           row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
         }
-        await raw.insertOne(row, { bypassDocumentValidation: true });
-        await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
         await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
         const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
           row.JDEC_CODNAC,
