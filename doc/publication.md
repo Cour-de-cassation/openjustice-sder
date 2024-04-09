@@ -100,7 +100,7 @@ Les décisions présentes dans la base SDER et prêtes à être publiées satisf
 - `labelStatus`= `done` : état positionné par Label une fois la décision validée et prête à être publiée ;
 - `publishStatus`= `toBePublished` : état positionné lors de la collecte pour les décisions publiques.
 
-La décision subit alors cette suite de traitements (pas de vérification supplémentaire des critères d'entrée) :
+Chaque décision satisfaisant ces critères subit alors cette suite de traitements (pas de vérification supplémentaire des critères d'entrée) :
 
 1. `publishStatus` = `pending` : le statut de publication devient "en attente" ;
 1. Préparation du document à indexer dans la base Judilibre (normalisation finale, incluant la création du contenu dans lequel les catégories `professionnelMagistratGreffier` et `professionnelAvocat` sont occultées) ;
