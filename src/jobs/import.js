@@ -1355,7 +1355,6 @@ async function syncJurica() {
           }
           row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
         }
-        await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
         const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
           row.JDEC_CODNAC,
           row.JDEC_CODNACPART,
