@@ -525,7 +525,7 @@ class JuricaOracle {
     for (let ii = 0; ii < infos.length; ii++) {
       let info = infos[ii];
       if (!info || !info['NUM_RG'] || !info['DT_DECATT']) {
-        console.error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
+        // console.error('Jurica.getDecisionIdByDecattInfo - invalid "decatt" info:\n' + JSON.stringify(info, null, 2));
       } else if (this.connected === true && this.connection !== null) {
         let decattDate = new Date(Date.parse(info['DT_DECATT']));
         decattDate.setHours(decattDate.getHours() + 2);
@@ -552,10 +552,12 @@ class JuricaOracle {
             results.push(decisionResult.rows[i]['JDEC_ID']);
           }
         } else {
+          /*
           console.error(
             'Jurica.getDecisionIdByDecattInfo - no decision related to the given "decatt" info:\n' +
               JSON.stringify(info, null, 2),
           );
+          */
         }
       } else {
         throw new Error('Jurica.getDecisionIdByDecattInfo: not connected.');

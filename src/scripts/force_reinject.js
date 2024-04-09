@@ -27,6 +27,7 @@ function kill(code) {
 }
 
 const ids = [
+  /*
   'jurinet:1952533',
   'jurinet:1952723',
   'jurinet:1952534',
@@ -39,32 +40,66 @@ const ids = [
   'jurinet:1952538',
   'jurinet:1952539',
   'jurinet:1952540',
+  */
 ];
 
 async function main() {
   console.log('OpenJustice - Start "reinject" job:', new Date().toLocaleString());
-  for (let i = 0; i < ids.length; i++) {
-    let id = ids[i];
-    id = `${id}`.split(':');
-    if (id && id.length == 2) {
-      if (id[0] === 'jurinet') {
-        try {
-          await reinjectJurinet(parseInt(id[1], 10));
-        } catch (e) {
-          console.error('Jurinet reinject error', e);
-        }
-      } else if (id[0] === 'jurica') {
-        try {
-          await reinjectJurica(parseInt(id[1], 10));
-        } catch (e) {
-          console.error('Jurica reinject error', e);
+  if (ids.length > 0) {
+    for (let i = 0; i < ids.length; i++) {
+      let id = ids[i];
+      id = `${id}`.split(':');
+      if (id && id.length == 2) {
+        if (id[0] === 'jurinet') {
+          try {
+            await reinjectJurinet(parseInt(id[1], 10));
+          } catch (e) {
+            console.error('Jurinet reinject error', e);
+          }
+        } else if (id[0] === 'jurica') {
+          try {
+            await reinjectJurica(parseInt(id[1], 10));
+          } catch (e) {
+            console.error('Jurica reinject error', e);
+          }
+        } else {
+          console.error(`Cannot process id ${id[0]}:${id[1]}.`);
         }
       } else {
-        console.error(`Cannot process id ${id[0]}:${id[1]}.`);
+        console.error(`Cannot process id ${id}.`);
       }
-    } else {
-      console.error(`Cannot process id ${id}.`);
     }
+  } else {
+    const client = new MongoClient(process.env.MONGO_URI, {
+      useUnifiedTopology: true,
+    });
+    await client.connect();
+    const database = client.db(process.env.MONGO_DBNAME);
+    const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
+    const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
+    const jurinetSource = new JurinetOracle();
+    await jurinetSource.connect();
+    let raw;
+    let count = 0;
+    const cursor = await rawJurinet.find({ IND_ANO: 1, XMLA: null }, { allowDiskUse: true });
+    while ((raw = await cursor.next())) {
+      const decision = await decisions.findOne({ sourceId: raw._id, sourceName: 'jurinet' });
+      let exists = false;
+      try {
+        exists = await jurinetSource.testDecisionByID(raw._id);
+      } catch (ignore) {
+        exists = false;
+      }
+      if (exists && decision.labelStatus === 'exported' /*&& decision.solution !== 'Rejet non spécialement motivé'*/) {
+        // console.log(raw._id);
+        await reinjectJurinet(raw._id);
+        count++;
+      }
+    }
+    await cursor.close();
+    await client.close();
+    await jurinetSource.close();
+    console.log(count);
   }
   console.log('OpenJustice - End "reinject" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));

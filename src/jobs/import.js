@@ -1115,6 +1115,7 @@ async function syncJurinet() {
               normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
               normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
               normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
+              normDec.publishStatus = 'toBePublished';
               normDec._version = decisionsVersion;
               normDec.dateCreation = new Date().toISOString();
               normDec.zoning = null;
@@ -1124,7 +1125,6 @@ async function syncJurinet() {
                 normDec.pseudoText = undefined;
                 normDec.pseudoStatus = 0;
                 normDec.labelStatus = 'toBeTreated';
-                normDec.publishStatus = 'toBePublished';
                 normDec.labelTreatments = [];
                 await jurinetSource.markAsImported(row._id);
               }
@@ -1612,13 +1612,13 @@ async function syncJurica() {
                 normDec.labelStatus = 'ignored_controleRequis';
                 normDec.publishStatus = 'blocked';
               } else {
+                normDec.publishStatus = 'toBePublished';
                 if (tooOld === true || tooEarly === true) {
                   normDec.labelStatus = 'locked';
                 } else if (reprocessUpdated === true) {
                   normDec.pseudoText = undefined;
                   normDec.pseudoStatus = 0;
                   normDec.labelStatus = 'toBeTreated';
-                  normDec.publishStatus = 'toBePublished';
                   normDec.labelTreatments = [];
                   normDec.zoning = null;
                   await juricaSource.markAsImported(row._id);

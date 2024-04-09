@@ -858,6 +858,31 @@ class JurinetOracle {
       throw new Error('Jurinet.getDecisionByID: not connected.');
     }
   }
+
+  /**
+   * Method to test if a decision exists by its ID.
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+  async testDecisionByID(id) {
+    if (!id) {
+      throw new Error(`Jurinet.testDecisionByID: invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      const decisionQuery = `SELECT ${process.env.DB_ID_FIELD}
+        FROM ${process.env.DB_TABLE}
+        WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
+      const decisionResult = await this.connection.execute(decisionQuery, [id]);
+      if (decisionResult && decisionResult.rows && decisionResult.rows.length > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      throw new Error('Jurinet.testDecisionByID: not connected.');
+    }
+  }
 }
 
 exports.JurinetOracle = JurinetOracle;
