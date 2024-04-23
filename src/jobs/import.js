@@ -303,6 +303,7 @@ async function importJurica() {
           const exception = await JudilibreIndex.findOne('exceptions', {
             decisionId: `jurica:${row._id}`,
             collected: false,
+            published: false,
             reason: { $ne: null },
           });
           if (exception !== null) {
@@ -1275,6 +1276,7 @@ async function syncJurica() {
       const exception = await JudilibreIndex.findOne('exceptions', {
         decisionId: `jurica:${row._id}`,
         collected: false,
+        published: false,
         reason: { $ne: null },
       });
       if (exception !== null) {
