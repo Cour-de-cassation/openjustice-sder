@@ -295,10 +295,20 @@ async function importJurica() {
       let row = juricaResult[i];
       let tooOld = false;
       let tooEarly = false;
+      let hasException = false;
 
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
         try {
+          const exception = await JudilibreIndex.findOne('exceptions', {
+            decisionId: `jurica:${row._id}`,
+            collected: false,
+            reason: { $ne: null },
+          });
+          if (exception !== null) {
+            hasException = true;
+          }
+
           let inDate = new Date();
           let dateDecisionElements = row.JDEC_DATE.split('-');
           inDate.setFullYear(parseInt(dateDecisionElements[0], 10));
@@ -319,11 +329,11 @@ async function importJurica() {
             tooEarly = true;
           }
 
-          if (tooOld === true) {
+          if (tooOld === true && hasException === false) {
             throw new Error(
               `Cannot import decision ${row._id} because it is too old (${Math.abs(dateDiff.months)} months).`,
             );
-          } else if (tooEarly === true) {
+          } else if (tooEarly === true && hasException === false) {
             throw new Error(`Cannot import decision ${row._id} because it is too early (${dateDiff2.days} days).`);
           }
 
@@ -482,6 +492,13 @@ async function importJurica() {
               } else {
                 await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
                 console.warn(`Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
+              }
+              if (exception && hasException === true) {
+                hasException = false;
+                exception.collected = true;
+                await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+                  bypassDocumentValidation: true,
+                });
               }
             } else {
               console.warn(
@@ -1252,6 +1269,20 @@ async function syncJurica() {
       let duplicateId = null;
       let tooOld = false;
       let tooEarly = false;
+      let hasException = false;
+      let hasExceptionToReprocess = false;
+
+      const exception = await JudilibreIndex.findOne('exceptions', {
+        decisionId: `jurica:${row._id}`,
+        collected: false,
+        reason: { $ne: null },
+      });
+      if (exception !== null) {
+        hasException = true;
+        if (exception.resetPseudo === true) {
+          hasExceptionToReprocess = true;
+        }
+      }
 
       try {
         duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
@@ -1505,14 +1536,14 @@ async function syncJurica() {
                 tooEarly = true;
               }
 
-              if (tooOld === true) {
+              if (tooOld === true && hasException === false) {
                 updateCount++;
                 await JudilibreIndex.updateJuricaDocument(
                   row,
                   duplicateId,
                   `update in rawJurica (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
                 );
-              } else if (tooEarly === true) {
+              } else if (tooEarly === true && hasException === false) {
                 updateCount++;
                 await JudilibreIndex.updateJuricaDocument(
                   row,
@@ -1524,7 +1555,7 @@ async function syncJurica() {
                 if (ShouldBeSentToJudifiltre === true) {
                   row._indexed = false;
                 }
-                if (reprocessUpdated === true) {
+                if (reprocessUpdated === true || hasExceptionToReprocess === true) {
                   row.IND_ANO = 0;
                   row.HTMLA = null;
                 }
@@ -1576,7 +1607,7 @@ async function syncJurica() {
               if (duplicate === true) {
                 normDec.labelStatus = 'exported';
               }
-              if (tooOld === true || tooEarly === true) {
+              if ((tooOld === true || tooEarly === true) && hasException === false) {
                 normDec.labelStatus = 'locked';
               }
             }
@@ -1610,9 +1641,9 @@ async function syncJurica() {
                 normDec.publishStatus = 'blocked';
               } else {
                 normDec.publishStatus = 'toBePublished';
-                if (tooOld === true || tooEarly === true) {
+                if ((tooOld === true || tooEarly === true) && hasException === false) {
                   normDec.labelStatus = 'locked';
-                } else if (reprocessUpdated === true) {
+                } else if (reprocessUpdated === true || hasExceptionToReprocess === true) {
                   normDec.pseudoText = undefined;
                   normDec.pseudoStatus = 0;
                   normDec.labelStatus = 'toBeTreated';
@@ -1627,7 +1658,7 @@ async function syncJurica() {
                 bypassDocumentValidation: true,
               });
               normDec._id = normalized._id;
-              if (reprocessUpdated === true && tooOld === false && tooEarly === false) {
+              if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
                 await JudilibreIndex.indexDecisionDocument(
                   normDec,
                   duplicateId,
@@ -1647,6 +1678,14 @@ async function syncJurica() {
               errorCount++;
             }
           }
+        }
+
+        if (exception && hasException === true) {
+          hasException = false;
+          exception.collected = true;
+          await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+            bypassDocumentValidation: true,
+          });
         }
 
         let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
