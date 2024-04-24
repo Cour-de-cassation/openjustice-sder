@@ -296,11 +296,11 @@ async function importJurica() {
       let tooOld = false;
       let tooEarly = false;
       let hasException = false;
-
+      let exception = null;
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
         try {
-          const exception = await JudilibreIndex.findOne('exceptions', {
+          exception = await JudilibreIndex.findOne('exceptions', {
             decisionId: `jurica:${row._id}`,
             collected: false,
             published: false,
@@ -309,7 +309,8 @@ async function importJurica() {
           if (exception !== null) {
             hasException = true;
           }
-
+        } catch (ignore) {}
+        try {
           let inDate = new Date();
           let dateDecisionElements = row.JDEC_DATE.split('-');
           inDate.setFullYear(parseInt(dateDecisionElements[0], 10));
@@ -496,10 +497,12 @@ async function importJurica() {
               }
               if (exception && hasException === true) {
                 hasException = false;
-                exception.collected = true;
-                await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
-                  bypassDocumentValidation: true,
-                });
+                try {
+                  exception.collected = true;
+                  await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+                    bypassDocumentValidation: true,
+                  });
+                } catch (ignore) {}
               }
             } else {
               console.warn(
@@ -1272,20 +1275,21 @@ async function syncJurica() {
       let tooEarly = false;
       let hasException = false;
       let hasExceptionToReprocess = false;
-
-      const exception = await JudilibreIndex.findOne('exceptions', {
-        decisionId: `jurica:${row._id}`,
-        collected: false,
-        published: false,
-        reason: { $ne: null },
-      });
-      if (exception !== null) {
-        hasException = true;
-        if (exception.resetPseudo === true) {
-          hasExceptionToReprocess = true;
+      let exception = null;
+      try {
+        exception = await JudilibreIndex.findOne('exceptions', {
+          decisionId: `jurica:${row._id}`,
+          collected: false,
+          published: false,
+          reason: { $ne: null },
+        });
+        if (exception !== null) {
+          hasException = true;
+          if (exception.resetPseudo === true) {
+            hasExceptionToReprocess = true;
+          }
         }
-      }
-
+      } catch (ignore) {}
       try {
         duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
         if (duplicateId !== null) {
@@ -1684,10 +1688,13 @@ async function syncJurica() {
 
         if (exception && hasException === true) {
           hasException = false;
-          exception.collected = true;
-          await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
-            bypassDocumentValidation: true,
-          });
+          hasExceptionToReprocess = false;
+          try {
+            exception.collected = true;
+            await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+              bypassDocumentValidation: true,
+            });
+          } catch (ignore) {}
         }
 
         let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
