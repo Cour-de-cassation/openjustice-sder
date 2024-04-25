@@ -72,7 +72,7 @@ class JuricaUtils {
       });
       return nacs
         .map((item) => {
-          item.codeNAC;
+          return item.codeNAC;
         })
         .sort();
     } catch (e) {
@@ -252,7 +252,7 @@ class JuricaUtils {
       });
       return nacs
         .map((item) => {
-          item.codeNAC;
+          return item.codeNAC;
         })
         .sort();
     } catch (e) {
@@ -269,7 +269,7 @@ class JuricaUtils {
       });
       return nacs
         .map((item) => {
-          item.codeNAC;
+          return item.codeNAC;
         })
         .sort();
     } catch (e) {
