@@ -70,10 +70,12 @@ class JuricaUtils {
         indicateurDecisionRenduePubliquement: false,
         indicateurDebatsPublics: false,
       });
-      return nacs
-        .map((item) => {
-          return item.codeNAC;
-        })
+      return ['0', '000', '00A', '00X']
+        .concat(
+          nacs.map((item) => {
+            return item.codeNAC;
+          }),
+        )
         .sort();
     } catch (e) {
       console.error(e);
@@ -264,8 +266,17 @@ class JuricaUtils {
   static async GetPartiallyPublicNAC() {
     try {
       const nacs = await Database.find('sder.codenacs', {
-        indicateurDecisionRenduePubliquement: true,
-        indicateurDebatsPublics: false,
+        $or: [
+          {
+            indicateurDecisionRenduePubliquement: true,
+            indicateurDebatsPublics: false,
+          },
+          {
+            indicateurDecisionRenduePubliquement: { $ne: false },
+            indicateurDebatsPublics: false,
+            indicateurAffaireSignalee: true,
+          },
+        ],
       });
       return nacs
         .map((item) => {
