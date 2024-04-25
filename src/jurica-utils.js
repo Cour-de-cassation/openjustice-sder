@@ -73,12 +73,11 @@ class JuricaUtils {
       return ['0', '000', '00A', '00X']
         .concat(
           nacs.map((item) => {
-            return item.codeNAC;
+            return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
           }),
         )
         .sort();
     } catch (e) {
-      console.error(e);
       return [
         '11A',
         '11B',
@@ -254,11 +253,10 @@ class JuricaUtils {
       });
       return nacs
         .map((item) => {
-          return item.codeNAC;
+          return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
         })
         .sort();
     } catch (e) {
-      console.error(e);
       return ['4AC', '4AD', '4AE', '4AF', '4AL', '4AM', '4AN', '4AO', '4AP', '4EC'].sort();
     }
   }
@@ -280,11 +278,10 @@ class JuricaUtils {
       });
       return nacs
         .map((item) => {
-          return item.codeNAC;
+          return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
         })
         .sort();
     } catch (e) {
-      console.error(e);
       return [
         '2AA',
         '2AB',
