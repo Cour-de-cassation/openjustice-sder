@@ -1,4 +1,6 @@
-# Règles de filtrage du flux en provenance de JuriCA
+# Règles de filtrage des décisions des cours d'appel
+
+Ces règles sont appliquées lors de la [collecte](./collecte.md), mais aussi par sécurité lors de la [publication](./publication.md) des décisions des cours d'appel (JuriCA).
 
 ## Critères de base
 

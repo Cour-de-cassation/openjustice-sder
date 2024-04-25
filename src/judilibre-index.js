@@ -12,6 +12,7 @@ class JudilibreIndex {
       collections: {
         mainIndex: null,
         affaires: null,
+        exceptions: null,
       },
     };
   }

@@ -79,7 +79,11 @@ async function processJurica() {
         normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
         await JudilibreIndex.indexDecisionDocument(normalized, null, 'import in decisions during reapplyCAFilter');
       }
-      const ShouldBeRejected = JuricaUtils.ShouldBeRejected(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+      const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
+        row.JDEC_CODNAC,
+        row.JDEC_CODNACPART,
+        row.JDEC_IND_DEC_PUB,
+      );
       if (ShouldBeRejected) {
         console.warn(`reapplyCAFilter reject decision ${row._id}.`);
         await juricaSource.markAsErroneous(row._id);
@@ -101,12 +105,12 @@ async function processJurica() {
           bypassDocumentValidation: true,
         });
       } else {
-        const IsPartiallyPublic = JuricaUtils.IsPartiallyPublic(
+        const IsPartiallyPublic = await JuricaUtils.IsPartiallyPublic(
           row.JDEC_CODNAC,
           row.JDEC_CODNACPART,
           row.JDEC_IND_DEC_PUB,
         );
-        const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+        const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
           row.JDEC_CODNAC,
           row.JDEC_CODNACPART,
           row.JDEC_IND_DEC_PUB,

@@ -120,7 +120,7 @@ async function importJurica(id) {
         } catch (e) {
           duplicate = false;
         }
-        const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
+        const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
           row.JDEC_CODNAC,
           row.JDEC_CODNACPART,
           row.JDEC_IND_DEC_PUB,
@@ -128,7 +128,11 @@ async function importJurica(id) {
         if (ShouldBeRejected === false && duplicate === false) {
           let partiallyPublic = false;
           try {
-            partiallyPublic = JuricaUtils.IsPartiallyPublic(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+            partiallyPublic = await JuricaUtils.IsPartiallyPublic(
+              row.JDEC_CODNAC,
+              row.JDEC_CODNACPART,
+              row.JDEC_IND_DEC_PUB,
+            );
           } catch (ignore) {}
           if (partiallyPublic) {
             let trimmedText;
@@ -223,7 +227,7 @@ async function importJurica(id) {
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #1');
           await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
-          const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+          const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,

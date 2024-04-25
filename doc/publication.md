@@ -1,5 +1,25 @@
 # Règles de publication dans Judilibre
 
+- [Cour de Cassation](#cour-de-cassation)
+
+  - [Pré-publication](#pr%C3%A9-publication)
+  - [Publication](#publication)
+
+- [Cours d'appel](#cours-dappel)
+
+  - [Pré-publication](#pr%C3%A9-publication-1)
+  - [Publication](#publication-1)
+
+- [Tribunaux judiciaires](#tribunaux-judiciaires)
+
+  - [Pré-publication](#pr%C3%A9-publication-2)
+  - [Publication](#publication-2)
+
+  Voir aussi :
+
+  - [Règles de collecte](./collecte.md)
+  - [Règles de filtrage](./judifiltre.md)
+
 ## Cour de Cassation
 
 ### Pré-publication
@@ -34,7 +54,7 @@ Les décisions présentes dans la base SDER et prêtes à être publiées satisf
 - `labelStatus`= `exported` : état positionné lors de la pré-publication ;
 - `publishStatus`= `toBePublished` : état positionné lors de la collecte pour les décisions publiques.
 
-Pour chaque décision, par sécurité, on vérifie une nouvelle fois les principaux critères de [collecte](./collecte.md) (`TYPE_ARRET`, `ID_CHAMBRE`, `JURIDICTION`, etc.). Si la décision remplit les critères, alors elle subit cette suite de traitements :
+Pour chaque décision, par sécurité, on vérifie une nouvelle fois les principaux critères de [collecte](./collecte.md) (`TYPE_ARRET`, `ID_CHAMBRE`, `JURIDICTION`, _restreintes aux décisions de la Cour de Cassation_). Si la décision remplit les critères, alors elle subit cette suite de traitements :
 
 1. `publishStatus` = `pending` : le statut de publication devient "en attente" ;
 1. Préparation du document à indexer dans la base Judilibre (normalisation finale, incluant la création du contenu dans lequel les catégories `professionnelMagistratGreffier` et `professionnelAvocat` sont occultées) ;
@@ -77,7 +97,7 @@ Les décisions présentes dans la base SDER et prêtes à être publiées satisf
 - `labelStatus`= `exported` : état positionné lors de la pré-publication ;
 - `publishStatus`= `toBePublished` : état positionné lors de la collecte pour les décisions publiques.
 
-Pour chaque décision, par sécurité, on vérifie une nouvelle fois les principaux critères de [collecte](./collecte.md) (`JDEC_CODNAC`, `JDEC_IND_DEC_PUB`, etc.). Si la décision remplit les critères, alors elle subit cette suite de traitements :
+Pour chaque décision, par sécurité, on vérifie une nouvelle fois les principaux critères de [collecte](./collecte.md) (`JDEC_CODNAC`, `JDEC_IND_DEC_PUB`, suivant le document détaillant les [règles de filtrage](./judifiltre.md)). Si la décision remplit les critères, alors elle subit cette suite de traitements :
 
 1. `publishStatus` = `pending` : le statut de publication devient "en attente" ;
 1. Préparation du document à indexer dans la base Judilibre (normalisation finale, incluant la création du contenu dans lequel les catégories `professionnelMagistratGreffier` et `professionnelAvocat` sont occultées) ;
