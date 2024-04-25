@@ -60,14 +60,14 @@ async function main() {
             let isPublic = false;
             let isPartiallyPublic = false;
             try {
-              isPublic = JuricaUtils.IsPublic(
+              isPublic = await JuricaUtils.IsPublic(
                 rawJuricaDoc.JDEC_CODNAC,
                 rawJuricaDoc.JDEC_CODNACPART,
                 rawJuricaDoc.JDEC_IND_DEC_PUB,
               );
             } catch (ignore) {}
             try {
-              isPartiallyPublic = JuricaUtils.IsPartiallyPublic(
+              isPartiallyPublic = await JuricaUtils.IsPartiallyPublic(
                 rawJuricaDoc.JDEC_CODNAC,
                 rawJuricaDoc.JDEC_CODNACPART,
                 rawJuricaDoc.JDEC_IND_DEC_PUB,

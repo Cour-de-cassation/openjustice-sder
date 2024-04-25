@@ -179,13 +179,6 @@ async function importJurinet() {
                   `Jurinet import issue: { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
                 );
               }
-              /*
-              if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-                for (let d = 0; d < row._decatt.length; d++) {
-                  await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-                }
-              }
-              */
             }
           } catch (e) {
             console.error(`Jurinet import error processing decision ${row._id}`, e);
@@ -353,7 +346,7 @@ async function importJurica() {
           } catch (e) {
             duplicate = false;
           }
-          const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
+          const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,
@@ -361,7 +354,7 @@ async function importJurica() {
           if (ShouldBeRejected === false && duplicate === false) {
             let partiallyPublic = false;
             try {
-              partiallyPublic = JuricaUtils.IsPartiallyPublic(
+              partiallyPublic = await JuricaUtils.IsPartiallyPublic(
                 row.JDEC_CODNAC,
                 row.JDEC_CODNACPART,
                 row.JDEC_IND_DEC_PUB,
@@ -456,7 +449,7 @@ async function importJurica() {
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
-            const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
               row.JDEC_IND_DEC_PUB,
@@ -552,7 +545,7 @@ async function importJurica() {
           } catch (e) {
             duplicate = false;
           }
-          const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
+          const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,
@@ -560,7 +553,7 @@ async function importJurica() {
           if (ShouldBeRejected === false && duplicate === false) {
             let partiallyPublic = false;
             try {
-              partiallyPublic = JuricaUtils.IsPartiallyPublic(
+              partiallyPublic = await JuricaUtils.IsPartiallyPublic(
                 row.JDEC_CODNAC,
                 row.JDEC_CODNACPART,
                 row.JDEC_IND_DEC_PUB,
@@ -653,7 +646,7 @@ async function importJurica() {
               row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
-            const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
               row.JDEC_IND_DEC_PUB,
@@ -830,18 +823,6 @@ async function syncJurinet() {
             console.error(e);
             errorCount++;
           }
-          /*
-          try {
-            if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-              for (let d = 0; d < row._decatt.length; d++) {
-                await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-              }
-            }
-          } catch (e) {
-            console.error(e);
-            errorCount++;
-          }
-          */
         } else {
           const diff = [
             'XML',
@@ -991,21 +972,6 @@ async function syncJurinet() {
               }
             }
           });
-          /*
-          try {
-            if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-              for (let d = 0; d < row._decatt.length; d++) {
-                const needUpdate = await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-                if (needUpdate) {
-                  updated = true;
-                }
-              }
-            }
-          } catch (e) {
-            console.error(e);
-            errorCount++;
-          }
-          */
           if (updated === true && diffCount > 0) {
             try {
               let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
@@ -1306,12 +1272,20 @@ async function syncJurica() {
         duplicateCount++;
       }
 
-      const ShouldBeRejected = JuricaUtils.ShouldBeRejected(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+      const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
+        row.JDEC_CODNAC,
+        row.JDEC_CODNACPART,
+        row.JDEC_IND_DEC_PUB,
+      );
 
       if (ShouldBeRejected === false && duplicate === false) {
         let partiallyPublic = false;
         try {
-          partiallyPublic = JuricaUtils.IsPartiallyPublic(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+          partiallyPublic = await JuricaUtils.IsPartiallyPublic(
+            row.JDEC_CODNAC,
+            row.JDEC_CODNACPART,
+            row.JDEC_IND_DEC_PUB,
+          );
         } catch (ignore) {}
         if (partiallyPublic) {
           let trimmedText;
@@ -1392,7 +1366,7 @@ async function syncJurica() {
           }
           row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
         }
-        const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+        const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
           row.JDEC_CODNAC,
           row.JDEC_CODNACPART,
           row.JDEC_IND_DEC_PUB,
