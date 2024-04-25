@@ -89,11 +89,19 @@ async function getJuricaInfo(id) {
     } catch (e) {
       duplicate = false;
     }
-    const ShouldBeRejected = JuricaUtils.ShouldBeRejected(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+    const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
+      row.JDEC_CODNAC,
+      row.JDEC_CODNACPART,
+      row.JDEC_IND_DEC_PUB,
+    );
     if (ShouldBeRejected === false && duplicate === false) {
       let partiallyPublic = false;
       try {
-        partiallyPublic = JuricaUtils.IsPartiallyPublic(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+        partiallyPublic = await JuricaUtils.IsPartiallyPublic(
+          row.JDEC_CODNAC,
+          row.JDEC_CODNACPART,
+          row.JDEC_IND_DEC_PUB,
+        );
       } catch (ignore) {}
       if (partiallyPublic) {
         let trimmedText;
@@ -180,7 +188,7 @@ async function getJuricaInfo(id) {
       require('fs').writeFileSync('zones.json', JSON.stringify(zoning.zones, null, 2));
       require('fs').writeFileSync('partial.txt', row.JDEC_HTML_SOURCE);
 
-      const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+      const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
         row.JDEC_CODNAC,
         row.JDEC_CODNACPART,
         row.JDEC_IND_DEC_PUB,

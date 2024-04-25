@@ -241,7 +241,7 @@ async function retryImportJurica() {
           } catch (e) {
             duplicate = false;
           }
-          const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
+          const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,
@@ -249,7 +249,7 @@ async function retryImportJurica() {
           if (ShouldBeRejected === false && duplicate === false) {
             let partiallyPublic = false;
             try {
-              partiallyPublic = JuricaUtils.IsPartiallyPublic(
+              partiallyPublic = await JuricaUtils.IsPartiallyPublic(
                 row.JDEC_CODNAC,
                 row.JDEC_CODNACPART,
                 row.JDEC_IND_DEC_PUB,
@@ -346,7 +346,7 @@ async function retryImportJurica() {
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #1');
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
             */
-            const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
               row.JDEC_IND_DEC_PUB,
@@ -468,7 +468,7 @@ async function retryImportJurica() {
           } catch (e) {
             duplicate = false;
           }
-          const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
+          const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,
@@ -476,7 +476,7 @@ async function retryImportJurica() {
           if (ShouldBeRejected === false && duplicate === false) {
             let partiallyPublic = false;
             try {
-              partiallyPublic = JuricaUtils.IsPartiallyPublic(
+              partiallyPublic = await JuricaUtils.IsPartiallyPublic(
                 row.JDEC_CODNAC,
                 row.JDEC_CODNACPART,
                 row.JDEC_IND_DEC_PUB,
@@ -575,7 +575,7 @@ async function retryImportJurica() {
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #2');
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
             */
-            const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
               row.JDEC_IND_DEC_PUB,

@@ -1,14 +1,13 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 const parser = require('fast-xml-parser');
 const he = require('he');
 
 const { Juritools } = require('./juritools');
-const { Judifiltre } = require('./judifiltre');
 const { DateTime } = require('luxon');
 const { ObjectId } = require('mongodb');
+const { Database } = require('./database');
 
 const fs = require('fs');
 
@@ -65,254 +64,301 @@ class JuricaUtils {
     return found;
   }
 
-  static GetUnconditionalNonPublicNAC() {
-    return [
-      '11A',
-      '11B',
-      '11D',
-      '11E',
-      '11Z',
-      '13A',
-      '13B',
-      '13C',
-      '13D',
-      '13E',
-      '13Z',
-      '14F',
-      '15A',
-      '15B',
-      '15C',
-      '15D',
-      '15E',
-      '15F',
-      '15G',
-      '15H',
-      '15Z',
-      '16A',
-      '16B',
-      '16C',
-      '16D',
-      '16E',
-      '16F',
-      '16G',
-      '16H',
-      '16I',
-      '16J',
-      '16K',
-      '16M',
-      '16N',
-      '16O',
-      '16P',
-      '16Q',
-      '16R',
-      '16S',
-      '16X',
-      '17A',
-      '17B',
-      '17C',
-      '17D',
-      '17E',
-      '17F',
-      '17G',
-      '17H',
-      '17I',
-      '17J',
-      '17K',
-      '17L',
-      '17M',
-      '17N',
-      '17O',
-      '17P',
-      '17Q',
-      '17R',
-      '17S',
-      '17T',
-      '17X',
-      '18A',
-      '18B',
-      '18C',
-      '18D',
-      '18E',
-      '18F',
-      '18G',
-      '18H',
-      '18X',
-      '18Z',
-      '20G',
-      '21F',
-      '22A',
-      '22B',
-      '22C',
-      '22D',
-      '22E',
-      '22F',
-      '23C',
-      '23D',
-      '23E',
-      '23F',
-      '23G',
-      '23Z',
-      '24A',
-      '24B',
-      '24C',
-      '24D',
-      '24E',
-      '24F',
-      '24I',
-      '24J',
-      '24K',
-      '24L',
-      '24M',
-      '24N',
-      '24Z',
-      '26D',
-      '27A',
-      '27B',
-      '27C',
-      '27D',
-      '27E',
-      '27F',
-      '27G',
-      '27H',
-      '27I',
-      '27J',
-      '27K',
-      '27L',
-      '27M',
-      '27N',
-      '27Z',
-      '2A1',
-      '2A2',
-      '2A3',
-      '2A4',
-      '2A5',
-      '2A6',
-      '2A7',
-      '2B1',
-      '2B2',
-      '2B3',
-      '2B4',
-      '2B5',
-      '2C1',
-      '2C2',
-      '2C3',
-      '2C4',
-      '2C5',
-      '2D1',
-      '2D2',
-      '2D3',
-      '2D4',
-      '2D5',
-      '33Z',
-      '3AG',
-      '3AZ',
-      '4AA',
-      '4AB',
-      '4EA',
-      '4JF',
-      '4JH',
-      '4JI',
-      '4JJ',
-      '4JK',
-      '4JL',
-      '70G',
-      '70J',
-      '78S',
-      '78T',
-      '78U',
-      '97A',
-      '97B',
-      '97E',
-      '97G',
-      '97P',
-      '0',
-      '000',
-      '00A',
-      '00X',
-    ];
+  static async GetUnconditionalNonPublicNAC() {
+    try {
+      const nacs = await Database.find('sder.codenacs', {
+        indicateurDecisionRenduePubliquement: false,
+        indicateurDebatsPublics: false,
+      });
+      return ['0', '000', '00A', '00X']
+        .concat(
+          nacs.map((item) => {
+            return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
+          }),
+        )
+        .sort();
+    } catch (e) {
+      return [
+        '11A',
+        '11B',
+        '11D',
+        '11E',
+        '11Z',
+        '13A',
+        '13B',
+        '13C',
+        '13D',
+        '13E',
+        '13Z',
+        '14F',
+        '15A',
+        '15B',
+        '15C',
+        '15D',
+        '15E',
+        '15F',
+        '15G',
+        '15H',
+        '15Z',
+        '16A',
+        '16B',
+        '16C',
+        '16D',
+        '16E',
+        '16F',
+        '16G',
+        '16H',
+        '16I',
+        '16J',
+        '16K',
+        '16M',
+        '16N',
+        '16O',
+        '16P',
+        '16Q',
+        '16R',
+        '16S',
+        '16X',
+        '17A',
+        '17B',
+        '17C',
+        '17D',
+        '17E',
+        '17F',
+        '17G',
+        '17H',
+        '17I',
+        '17J',
+        '17K',
+        '17L',
+        '17M',
+        '17N',
+        '17O',
+        '17P',
+        '17Q',
+        '17R',
+        '17S',
+        '17T',
+        '17X',
+        '18A',
+        '18B',
+        '18C',
+        '18D',
+        '18E',
+        '18F',
+        '18G',
+        '18H',
+        '18X',
+        '18Z',
+        '20G',
+        '21F',
+        '22A',
+        '22B',
+        '22C',
+        '22D',
+        '22E',
+        '22F',
+        '23C',
+        '23D',
+        '23E',
+        '23F',
+        '23G',
+        '23Z',
+        '24A',
+        '24B',
+        '24C',
+        '24D',
+        '24E',
+        '24F',
+        '24I',
+        '24J',
+        '24K',
+        '24L',
+        '24M',
+        '24N',
+        '24Z',
+        '26D',
+        '27A',
+        '27B',
+        '27C',
+        '27D',
+        '27E',
+        '27F',
+        '27G',
+        '27H',
+        '27I',
+        '27J',
+        '27K',
+        '27L',
+        '27M',
+        '27N',
+        '27Z',
+        '2A1',
+        '2A2',
+        '2A3',
+        '2A4',
+        '2A5',
+        '2A6',
+        '2A7',
+        '2B1',
+        '2B2',
+        '2B3',
+        '2B4',
+        '2B5',
+        '2C1',
+        '2C2',
+        '2C3',
+        '2C4',
+        '2C5',
+        '2D1',
+        '2D2',
+        '2D3',
+        '2D4',
+        '2D5',
+        '33Z',
+        '3AG',
+        '3AZ',
+        '4AA',
+        '4AB',
+        '4EA',
+        '4JF',
+        '4JH',
+        '4JI',
+        '4JJ',
+        '4JK',
+        '4JL',
+        '70G',
+        '70J',
+        '78S',
+        '78T',
+        '78U',
+        '97A',
+        '97B',
+        '97E',
+        '97G',
+        '97P',
+        '0',
+        '000',
+        '00A',
+        '00X',
+      ].sort();
+    }
   }
 
-  static GetConditionalNonPublicNAC() {
-    return ['4AC', '4AD', '4AE', '4AF', '4AL', '4AM', '4AN', '4AO', '4AP', '4EC'];
+  static async GetConditionalNonPublicNAC() {
+    try {
+      const nacs = await Database.find('sder.codenacs', {
+        indicateurDecisionRenduePubliquement: false,
+        indicateurDebatsPublics: true,
+      });
+      return nacs
+        .map((item) => {
+          return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
+        })
+        .sort();
+    } catch (e) {
+      return ['4AC', '4AD', '4AE', '4AF', '4AL', '4AM', '4AN', '4AO', '4AP', '4EC'].sort();
+    }
   }
 
-  static GetPartiallyPublicNAC() {
-    return [
-      '2AA',
-      '2AB',
-      '2AC',
-      '2AD',
-      '2AE',
-      '2AF',
-      '2AG',
-      '2AH',
-      '2AI',
-      '2AJ',
-      '2AK',
-      '2AM',
-      '2AN',
-      '2AO',
-      '2AP',
-      '2AQ',
-      '2AR',
-      '2AS',
-      '2AT',
-      '2AU',
-      '2AV',
-      '2AZ',
-      '20A',
-      '20B',
-      '20C',
-      '20D',
-      '20E',
-      '20F',
-      '20I',
-      '20J',
-      '20K',
-      '20L',
-      '20X',
-      '21A',
-      '21B',
-      '21C',
-      '21D',
-      '21E',
-      '21H',
-      '21I',
-      '21J',
-      '21K',
-      '21X',
-      '26A',
-      '26B',
-      '26C',
-      '26E',
-      '26F',
-      '26G',
-      '26H',
-      '26I',
-      '26J',
-      '26K',
-      '26Y',
-      '26Z',
-      '20H',
-      '21G',
-      '23A',
-      '23B',
-      '23I',
-      '23J',
-      '23K',
-      '24G',
-      '24H',
-      '25A',
-      '25B',
-      '25C',
-      '25D',
-      '25E',
-      '25F',
-      '25G',
-      '25H',
-      '25i',
-      '64D',
-    ];
+  static async GetPartiallyPublicNAC() {
+    try {
+      const nacs = await Database.find('sder.codenacs', {
+        $or: [
+          {
+            indicateurDecisionRenduePubliquement: true,
+            indicateurDebatsPublics: false,
+          },
+          {
+            indicateurDecisionRenduePubliquement: { $ne: false },
+            indicateurDebatsPublics: false,
+            indicateurAffaireSignalee: true,
+          },
+        ],
+      });
+      return nacs
+        .map((item) => {
+          return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
+        })
+        .sort();
+    } catch (e) {
+      return [
+        '2AA',
+        '2AB',
+        '2AC',
+        '2AD',
+        '2AE',
+        '2AF',
+        '2AG',
+        '2AH',
+        '2AI',
+        '2AJ',
+        '2AK',
+        '2AM',
+        '2AN',
+        '2AO',
+        '2AP',
+        '2AQ',
+        '2AR',
+        '2AS',
+        '2AT',
+        '2AU',
+        '2AV',
+        '2AZ',
+        '20A',
+        '20B',
+        '20C',
+        '20D',
+        '20E',
+        '20F',
+        '20I',
+        '20J',
+        '20K',
+        '20L',
+        '20X',
+        '21A',
+        '21B',
+        '21C',
+        '21D',
+        '21E',
+        '21H',
+        '21I',
+        '21J',
+        '21K',
+        '21X',
+        '26A',
+        '26B',
+        '26C',
+        '26E',
+        '26F',
+        '26G',
+        '26H',
+        '26I',
+        '26J',
+        '26K',
+        '26Y',
+        '26Z',
+        '20H',
+        '21G',
+        '23A',
+        '23B',
+        '23I',
+        '23J',
+        '23K',
+        '24G',
+        '24H',
+        '25A',
+        '25B',
+        '25C',
+        '25D',
+        '25E',
+        '25F',
+        '25G',
+        '25H',
+        '25I',
+        '64D',
+      ].sort();
+    }
   }
 
   static GetELMSTRLocationFromJuricaLocation(juricaLocation) {
@@ -775,17 +821,17 @@ class JuricaUtils {
     return res;
   }
 
-  static IsNonPublic(nac, np, publicCheckbox) {
+  static async IsNonPublic(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
     publicCheckbox = parseInt(`${publicCheckbox}`, 10);
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
       return true;
-    } else if (JuricaUtils.GetUnconditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
+    } else if ((await JuricaUtils.GetUnconditionalNonPublicNAC()).indexOf(cleanedNac) !== -1) {
       if (publicCheckbox === 1) {
         throw new Error(`non-public NAC code (${nac}), but JDEC_IND_DEC_PUB is set to 1`);
       }
       return true;
-    } else if (JuricaUtils.GetConditionalNonPublicNAC().indexOf(cleanedNac) !== -1) {
+    } else if ((await JuricaUtils.GetConditionalNonPublicNAC()).indexOf(cleanedNac) !== -1) {
       if (publicCheckbox === 0 || isNaN(publicCheckbox)) {
         return true;
       } else if (publicCheckbox === 1) {
@@ -795,23 +841,23 @@ class JuricaUtils {
     return false;
   }
 
-  static IsPartiallyPublic(nac, np, publicCheckbox) {
+  static async IsPartiallyPublic(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
       return false;
-    } else if (JuricaUtils.GetPartiallyPublicNAC().indexOf(cleanedNac) !== -1) {
+    } else if ((await JuricaUtils.GetPartiallyPublicNAC()).indexOf(cleanedNac) !== -1) {
       return true;
     }
     return false;
   }
 
-  static IsPublic(nac, np, publicCheckbox) {
+  static async IsPublic(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
       return false;
     }
-    const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
-    const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+    const nonPublic = await JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+    const partiallyPublic = await JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
     publicCheckbox = parseInt(`${publicCheckbox}`, 10);
     if (!nonPublic && !partiallyPublic) {
       if (publicCheckbox === 0) {
@@ -823,30 +869,30 @@ class JuricaUtils {
     }
   }
 
-  static ShouldBeRejected(nac, np, publicCheckbox) {
+  static async ShouldBeRejected(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
       return true;
     }
     try {
-      const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
-      const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
-      const isPublic = JuricaUtils.IsPublic(nac, np, publicCheckbox);
+      const nonPublic = await JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+      const partiallyPublic = await JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+      const isPublic = await JuricaUtils.IsPublic(nac, np, publicCheckbox);
       return nonPublic && !isPublic && !partiallyPublic;
     } catch (anomaly) {
       return false;
     }
   }
 
-  static ShouldBeSentToJudifiltre(nac, np, publicCheckbox) {
+  static async ShouldBeSentToJudifiltre(nac, np, publicCheckbox) {
     const cleanedNac = `${nac}`.replace(/\W/gim, '').toUpperCase().trim();
     if (!cleanedNac || cleanedNac === 'NULL' || !nac) {
       return false;
     }
     try {
-      const nonPublic = JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
-      const partiallyPublic = JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
-      const isPublic = JuricaUtils.IsPublic(nac, np, publicCheckbox);
+      const nonPublic = await JuricaUtils.IsNonPublic(nac, np, publicCheckbox);
+      const partiallyPublic = await JuricaUtils.IsPartiallyPublic(nac, np, publicCheckbox);
+      const isPublic = await JuricaUtils.IsPublic(nac, np, publicCheckbox);
       if (nonPublic === isPublic) {
         throw new Error(
           `contradictory public status #1 (public: ${isPublic}, non-public: ${nonPublic}) for the given data (${nac}, ${np}, ${publicCheckbox})`,
@@ -1329,108 +1375,6 @@ class JuricaUtils {
     await client.close();
     return found;
   }
-
-  /* should not be needed anymore
-  static async ImportDecatt(id, juricaSource, rawJurica, decisions) {
-    const { JudilibreIndex } = require('./judilibre-index');
-
-    let hasChanges = false;
-    try {
-      let row = await juricaSource.getDecisionByID(id);
-      if (row && row._id && row.IND_ANO === 0) {
-        let duplicate = false;
-        let duplicateId = null;
-        try {
-          duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
-          if (duplicateId !== null) {
-            duplicateId = `jurinet:${duplicateId}`;
-            duplicate = true;
-          } else {
-            duplicate = false;
-          }
-        } catch (e) {
-          duplicate = false;
-        }
-        let raw = await rawJurica.findOne({ _id: row._id });
-        if (raw === null) {
-          row._indexed = null;
-          await rawJurica.insertOne(row, { bypassDocumentValidation: true });
-          await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica (decatt)');
-          hasChanges = true;
-          // import stuff
-        } else {
-          row._indexed = null;
-          await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-          await JudilibreIndex.updateJuricaDocument(row, duplicateId, 'update in rawJurica (decatt)');
-        }
-        let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-        if (normalized === null) {
-          const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
-            row.JDEC_CODNAC,
-            row.JDEC_CODNACPART,
-            row.JDEC_IND_DEC_PUB,
-          );
-          if (duplicate === false && ShouldBeSentToJudifiltre === true) {
-            // XXX TEMP BEGIN
-            let normDec = await JuricaUtils.Normalize(row);
-            normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
-            normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
-            normDec.pseudoText = JuricaUtils.removeMultipleSpace(normDec.pseudoText);
-            normDec.pseudoText = JuricaUtils.replaceErroneousChars(normDec.pseudoText);
-            normDec._version = decisionsVersion;
-            const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-            normDec._id = insertResult.insertedId;
-            await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (decatt)');
-            // XXX TEMP END
-            TOO EARLY
-            try {
-              const judifiltreResult = await Judifiltre.SendBatch([
-                {
-                  sourceId: row._id,
-                  sourceDb: 'jurica',
-                  decisionDate: row.JDEC_DATE,
-                  jurisdictionName: row.JDEC_CODE_JURIDICTION,
-                  fieldCode: row.JDEC_CODNAC + (row.JDEC_CODNACPART ? '-' + row.JDEC_CODNACPART : ''),
-                  publicityClerkRequest:
-                    row.JDEC_IND_DEC_PUB === null
-                      ? 'unspecified'
-                      : parseInt(`${row.JDEC_IND_DEC_PUB}`, 10) === 1
-                      ? 'public'
-                      : 'notPublic',
-                },
-              ]);
-              await JudilibreIndex.updateJuricaDocument(
-                row,
-                duplicateId,
-                `submitted to Judifiltre (decatt): ${JSON.stringify(judifiltreResult)}`,
-              );
-            } catch (e) {
-              console.error(`Jurica import to Judifiltre error processing decision ${row._id} (decatt)`, e);
-              await JudilibreIndex.updateJuricaDocument(row, duplicateId, null, e);
-            }
-            hasChanges = true;
-          }
-        } else {
-          let normDec = await JuricaUtils.Normalize(row, normalized);
-          normDec._version = decisionsVersion;
-          await decisions.replaceOne({ _id: normalized._id }, normDec, {
-            bypassDocumentValidation: true,
-          });
-          normDec._id = normalized._id;
-          await JudilibreIndex.updateDecisionDocument(normDec, duplicateId, 'update in decisions (decatt)');
-        }
-        await juricaSource.markAsImported(row._id);
-      }
-    } catch (e) {
-      console.error(`Could not process decatt ${id}`, e);
-      try {
-        await juricaSource.markAsErroneous(id);
-      } catch (e) {}
-    }
-
-    return hasChanges;
-  }
-  */
 }
 
 function ConvertOccultationBlockInCategoriesToOmit(occultationBlock) {

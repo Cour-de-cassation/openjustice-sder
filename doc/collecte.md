@@ -1,5 +1,20 @@
 # Règles de collecte
 
+- [Cour de Cassation](#cour-de-cassation)
+
+  - [Nouvelles décisions](#nouvelles-d%C3%A9cisions)
+  - [Décisions mises à jour](#d%C3%A9cisions-mises-%C3%A0-jour)
+
+- [Cours d'appel](#cours-dappel)
+
+  - [Nouvelles décisions](#nouvelles-d%C3%A9cisions-1)
+  - [Décisions mises à jour](#d%C3%A9cisions-mises-%C3%A0-jour-1)
+
+  Voir aussi :
+
+  - [Règles de filtrage](./judifiltre.md)
+  - [Règles de publication](./publication.md)
+
 ## Cour de Cassation
 
 ### Nouvelles décisions
@@ -13,7 +28,7 @@ On collecte chaque matin (entre 8h et 12h) toutes les décisions qui remplissent
 - Champ `DT_DECISION` supérieur ou égal à `jour J - 6 mois` **ET** strictement inférieur à `jour J + 1` : la date de rendu de la décision n'est pas antérieure de 6 mois, ni postérieure, à la date du jour ;
 - **ET** :
   - Champ `TYPE_ARRET` égal à `CC` : décision de la Cour de Cassation ;
-  - **OU** champ `TYPE_ARRET` égal à `AUTRE` **ET** (champ `ID_CHAMBRE` égal à `T.CFL` **OU** champ `JURIDICTION` contient `judiciaire de paris` ) : décision du Tribunal des Conflits ou du Tribunal Judiciaire de Paris (décisions collectées pour traitement par Label mais pas forcément plubliées, cf. documentation des règles de publication).
+  - **OU** champ `TYPE_ARRET` égal à `AUTRE` **ET** (champ `ID_CHAMBRE` égal à `T.CFL` **OU** champ `JURIDICTION` contient `judiciaire de paris` ) : décision du Tribunal des Conflits ou du Tribunal Judiciaire de Paris (décisions collectées pour traitement par Label mais pas forcément plubliées, cf. documentation des [règles de publication](./publication.md)).
 
 Chaque décision qui remplit ces critères subit alors les traitements suivants :
 
@@ -90,7 +105,7 @@ Chaque décision qui remplit ces critères est ensuite soumise à un filtre en e
 - `JDEC_CODNACPART` : le code de nature particulière ;
 - `JDEC_IND_DEC_PUB` : l'indicateur de caractère public de la décision (valant `0`, `1` ou `null` pour les décisions anciennes ou mal saisies).
 
-Les règles du filtre en entrée sont détaillées dans le document [Judifiltre](./judifiltre.md).
+Voir le document détaillant les [règles de filtrage](./judifiltre.md).
 
 Chaque décision qui passe le filtre en entrée subit alors les traitements suivants :
 
@@ -109,7 +124,7 @@ En complément, durant le même créneau (chaque matin entre 8h et 12h), on coll
 - Champ `JDEC_DATE_MAJ` supérieur à `date de dernière collecte` : la décision a été modifiée (en amont) postérieurement à la dernière collecte ;
 - Champ `JDEC_DATE` supérieur ou égal à `jour J - 6 mois` **ET** strictement inférieur à `jour J + 1` : la date de rendu de la décision n'est pas antérieure de 6 mois, ni postérieure, à la date du jour.
 
-Ces décisions, déjà collectées (parfois le jour même), ont potentiellement été mises à jour en amont (via WinciCA). Elles sont soumises au même filtre en entrée que pour la collecte (ces règles sont détaillées dans le document [Judifiltre](./judifiltre.md)).
+Ces décisions, déjà collectées (parfois le jour même), ont potentiellement été mises à jour en amont (via WinciCA). Elles sont soumises au même filtre en entrée que pour la collecte (voir le document détaillant les [règles de filtrage](./judifiltre.md)).
 
 La suite du (re)traitement que ces décisions doivent subir dépend des champs effectivement modifiés.
 

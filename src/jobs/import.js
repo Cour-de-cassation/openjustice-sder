@@ -179,13 +179,6 @@ async function importJurinet() {
                   `Jurinet import issue: { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
                 );
               }
-              /*
-              if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-                for (let d = 0; d < row._decatt.length; d++) {
-                  await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-                }
-              }
-              */
             }
           } catch (e) {
             console.error(`Jurinet import error processing decision ${row._id}`, e);
@@ -295,9 +288,21 @@ async function importJurica() {
       let row = juricaResult[i];
       let tooOld = false;
       let tooEarly = false;
-
+      let hasException = false;
+      let exception = null;
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
+        try {
+          exception = await JudilibreIndex.findOne('exceptions', {
+            decisionId: `jurica:${row._id}`,
+            collected: false,
+            published: false,
+            reason: { $ne: null },
+          });
+          if (exception !== null) {
+            hasException = true;
+          }
+        } catch (ignore) {}
         try {
           let inDate = new Date();
           let dateDecisionElements = row.JDEC_DATE.split('-');
@@ -319,11 +324,11 @@ async function importJurica() {
             tooEarly = true;
           }
 
-          if (tooOld === true) {
+          if (tooOld === true && hasException === false) {
             throw new Error(
               `Cannot import decision ${row._id} because it is too old (${Math.abs(dateDiff.months)} months).`,
             );
-          } else if (tooEarly === true) {
+          } else if (tooEarly === true && hasException === false) {
             throw new Error(`Cannot import decision ${row._id} because it is too early (${dateDiff2.days} days).`);
           }
 
@@ -341,7 +346,7 @@ async function importJurica() {
           } catch (e) {
             duplicate = false;
           }
-          const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
+          const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,
@@ -349,7 +354,7 @@ async function importJurica() {
           if (ShouldBeRejected === false && duplicate === false) {
             let partiallyPublic = false;
             try {
-              partiallyPublic = JuricaUtils.IsPartiallyPublic(
+              partiallyPublic = await JuricaUtils.IsPartiallyPublic(
                 row.JDEC_CODNAC,
                 row.JDEC_CODNACPART,
                 row.JDEC_IND_DEC_PUB,
@@ -444,7 +449,7 @@ async function importJurica() {
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
-            const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
               row.JDEC_IND_DEC_PUB,
@@ -482,6 +487,15 @@ async function importJurica() {
               } else {
                 await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
                 console.warn(`Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
+              }
+              if (exception && hasException === true) {
+                hasException = false;
+                try {
+                  exception.collected = true;
+                  await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+                    bypassDocumentValidation: true,
+                  });
+                } catch (ignore) {}
               }
             } else {
               console.warn(
@@ -531,7 +545,7 @@ async function importJurica() {
           } catch (e) {
             duplicate = false;
           }
-          const ShouldBeRejected = JuricaUtils.ShouldBeRejected(
+          const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,
@@ -539,7 +553,7 @@ async function importJurica() {
           if (ShouldBeRejected === false && duplicate === false) {
             let partiallyPublic = false;
             try {
-              partiallyPublic = JuricaUtils.IsPartiallyPublic(
+              partiallyPublic = await JuricaUtils.IsPartiallyPublic(
                 row.JDEC_CODNAC,
                 row.JDEC_CODNACPART,
                 row.JDEC_IND_DEC_PUB,
@@ -632,7 +646,7 @@ async function importJurica() {
               row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
-            const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+            const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
               row.JDEC_IND_DEC_PUB,
@@ -809,18 +823,6 @@ async function syncJurinet() {
             console.error(e);
             errorCount++;
           }
-          /*
-          try {
-            if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-              for (let d = 0; d < row._decatt.length; d++) {
-                await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-              }
-            }
-          } catch (e) {
-            console.error(e);
-            errorCount++;
-          }
-          */
         } else {
           const diff = [
             'XML',
@@ -970,21 +972,6 @@ async function syncJurinet() {
               }
             }
           });
-          /*
-          try {
-            if (row._decatt && Array.isArray(row._decatt) && row._decatt.length > 0) {
-              for (let d = 0; d < row._decatt.length; d++) {
-                const needUpdate = await JuricaUtils.ImportDecatt(row._decatt[d], juricaSource, rawJurica, decisions);
-                if (needUpdate) {
-                  updated = true;
-                }
-              }
-            }
-          } catch (e) {
-            console.error(e);
-            errorCount++;
-          }
-          */
           if (updated === true && diffCount > 0) {
             try {
               let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
@@ -1252,7 +1239,23 @@ async function syncJurica() {
       let duplicateId = null;
       let tooOld = false;
       let tooEarly = false;
-
+      let hasException = false;
+      let hasExceptionToReprocess = false;
+      let exception = null;
+      try {
+        exception = await JudilibreIndex.findOne('exceptions', {
+          decisionId: `jurica:${row._id}`,
+          collected: false,
+          published: false,
+          reason: { $ne: null },
+        });
+        if (exception !== null) {
+          hasException = true;
+          if (exception.resetPseudo === true) {
+            hasExceptionToReprocess = true;
+          }
+        }
+      } catch (ignore) {}
       try {
         duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
         if (duplicateId !== null) {
@@ -1269,12 +1272,20 @@ async function syncJurica() {
         duplicateCount++;
       }
 
-      const ShouldBeRejected = JuricaUtils.ShouldBeRejected(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+      const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
+        row.JDEC_CODNAC,
+        row.JDEC_CODNACPART,
+        row.JDEC_IND_DEC_PUB,
+      );
 
       if (ShouldBeRejected === false && duplicate === false) {
         let partiallyPublic = false;
         try {
-          partiallyPublic = JuricaUtils.IsPartiallyPublic(row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB);
+          partiallyPublic = await JuricaUtils.IsPartiallyPublic(
+            row.JDEC_CODNAC,
+            row.JDEC_CODNACPART,
+            row.JDEC_IND_DEC_PUB,
+          );
         } catch (ignore) {}
         if (partiallyPublic) {
           let trimmedText;
@@ -1355,7 +1366,7 @@ async function syncJurica() {
           }
           row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
         }
-        const ShouldBeSentToJudifiltre = JuricaUtils.ShouldBeSentToJudifiltre(
+        const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
           row.JDEC_CODNAC,
           row.JDEC_CODNACPART,
           row.JDEC_IND_DEC_PUB,
@@ -1505,14 +1516,14 @@ async function syncJurica() {
                 tooEarly = true;
               }
 
-              if (tooOld === true) {
+              if (tooOld === true && hasException === false) {
                 updateCount++;
                 await JudilibreIndex.updateJuricaDocument(
                   row,
                   duplicateId,
                   `update in rawJurica (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
                 );
-              } else if (tooEarly === true) {
+              } else if (tooEarly === true && hasException === false) {
                 updateCount++;
                 await JudilibreIndex.updateJuricaDocument(
                   row,
@@ -1524,7 +1535,7 @@ async function syncJurica() {
                 if (ShouldBeSentToJudifiltre === true) {
                   row._indexed = false;
                 }
-                if (reprocessUpdated === true) {
+                if (reprocessUpdated === true || hasExceptionToReprocess === true) {
                   row.IND_ANO = 0;
                   row.HTMLA = null;
                 }
@@ -1576,7 +1587,7 @@ async function syncJurica() {
               if (duplicate === true) {
                 normDec.labelStatus = 'exported';
               }
-              if (tooOld === true || tooEarly === true) {
+              if ((tooOld === true || tooEarly === true) && hasException === false) {
                 normDec.labelStatus = 'locked';
               }
             }
@@ -1610,9 +1621,9 @@ async function syncJurica() {
                 normDec.publishStatus = 'blocked';
               } else {
                 normDec.publishStatus = 'toBePublished';
-                if (tooOld === true || tooEarly === true) {
+                if ((tooOld === true || tooEarly === true) && hasException === false) {
                   normDec.labelStatus = 'locked';
-                } else if (reprocessUpdated === true) {
+                } else if (reprocessUpdated === true || hasExceptionToReprocess === true) {
                   normDec.pseudoText = undefined;
                   normDec.pseudoStatus = 0;
                   normDec.labelStatus = 'toBeTreated';
@@ -1627,7 +1638,7 @@ async function syncJurica() {
                 bypassDocumentValidation: true,
               });
               normDec._id = normalized._id;
-              if (reprocessUpdated === true && tooOld === false && tooEarly === false) {
+              if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
                 await JudilibreIndex.indexDecisionDocument(
                   normDec,
                   duplicateId,
@@ -1647,6 +1658,17 @@ async function syncJurica() {
               errorCount++;
             }
           }
+        }
+
+        if (exception && hasException === true) {
+          hasException = false;
+          hasExceptionToReprocess = false;
+          try {
+            exception.collected = true;
+            await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+              bypassDocumentValidation: true,
+            });
+          } catch (ignore) {}
         }
 
         let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
