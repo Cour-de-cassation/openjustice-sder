@@ -240,7 +240,7 @@ class JuricaUtils {
         '000',
         '00A',
         '00X',
-      ];
+      ].sort();
     }
   }
 
@@ -257,7 +257,7 @@ class JuricaUtils {
         .sort();
     } catch (e) {
       console.error(e);
-      return ['4AC', '4AD', '4AE', '4AF', '4AL', '4AM', '4AN', '4AO', '4AP', '4EC'];
+      return ['4AC', '4AD', '4AE', '4AF', '4AL', '4AM', '4AN', '4AO', '4AP', '4EC'].sort();
     }
   }
 
@@ -347,9 +347,9 @@ class JuricaUtils {
         '25F',
         '25G',
         '25H',
-        '25i',
+        '25I',
         '64D',
-      ];
+      ].sort();
     }
   }
 
