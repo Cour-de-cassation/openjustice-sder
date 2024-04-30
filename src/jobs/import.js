@@ -15,13 +15,6 @@ const { DateTime } = require('luxon');
 
 const ms = require('ms');
 
-let monthAgo = 1;
-
-if (process.env.NODE_ENV === 'preprod') {
-  console.log('OpenJustice - preprod context');
-  monthAgo = 6;
-}
-
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
 let selfKill = setTimeout(cancel, ms('1h'));
@@ -102,7 +95,7 @@ async function importJurinet() {
   let errorCount = 0;
   let wincicaCount = 0;
 
-  const jurinetResult = await jurinetSource.getNew(monthAgo);
+  const jurinetResult = await jurinetSource.getNew(1);
 
   if (jurinetResult) {
     console.log(`Jurinet has ${jurinetResult.length} new decision(s)`);
@@ -279,7 +272,7 @@ async function importJurica() {
   let duplicateCount = 0;
   let nonPublicCount = 0;
 
-  const juricaResult = await juricaSource.getNew(monthAgo);
+  const juricaResult = await juricaSource.getNew(6);
 
   if (juricaResult) {
     console.log(`Jurica has ${juricaResult.length} new decision(s)`);
