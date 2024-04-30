@@ -272,7 +272,29 @@ async function importJurica() {
   let duplicateCount = 0;
   let nonPublicCount = 0;
 
-  const juricaResult = await juricaSource.getNew(3);
+  let juricaResult = await juricaSource.getNew(1);
+
+  try {
+    const exceptions = await JudilibreIndex.find('exceptions', {
+      decisionId: /^jurica:/,
+      collected: false,
+      published: false,
+      reason: { $ne: null },
+    });
+    if (exceptions !== null) {
+      if (Array.isArray(juricaResult) === false) {
+        juricaResult = [];
+      }
+      for (let i = 0; i < exceptions.length; i++) {
+        try {
+          const _row = await juricaSource.getDecisionByID(exceptions[i].decisionId.split(':')[1]);
+          if (_row) {
+            juricaResult.push(_row);
+          }
+        } catch (ignore) {}
+      }
+    }
+  } catch (ignore) {}
 
   if (juricaResult) {
     console.log(`Jurica has ${juricaResult.length} new decision(s)`);

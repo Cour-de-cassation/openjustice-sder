@@ -96,7 +96,7 @@ On collecte chaque matin (entre 8h et 12h) toutes les décisions qui remplissent
 - Champ `JDEC_HTML_SOURCE` non vide : le document possède _a priori_ une décision au format texte brut au sein de ce champ complexe (il arrive cependant que ce texte finalement soit vide, ce qui constitue une anomalie entraînant le rejet de la décision) ;
 - Champ `HTMLA` vide : pas de contenu pseudonymisé ;
 - Champ `IND_ANO` égal à `0` : le statut de pseudonymisation est "non traité" ;
-- Champ `JDEC_DATE_CREATION` supérieur ou égal à `jour J - 6 mois` : la décision a été intégrée dans la base documentaire il y a _au plus_ six mois ;
+- Champ `JDEC_DATE_CREATION` supérieur ou égal à `jour J - 1 mois` : la décision a été intégrée dans la base documentaire il y a _au plus_ un mois ;
 - Champ `JDEC_DATE` supérieur ou égal à `jour J - 6 mois` **ET** strictement inférieur à `jour J + 1` : la date de rendu de la décision n'est pas antérieure de 6 mois, ni postérieure, à la date du jour.
 
 Chaque décision qui remplit ces critères est ensuite soumise à un filtre en entrée basé sur trois informations :
