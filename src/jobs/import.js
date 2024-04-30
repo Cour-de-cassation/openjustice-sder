@@ -37,7 +37,7 @@ function kill(code) {
 
 async function main() {
   console.log(
-    `OpenJustice - Start "import" job v20240430_1 on env ${process.env.NODE_ENV}:`,
+    `OpenJustice - Start "import" job v20240430_2 on env ${process.env.NODE_ENV}:`,
     new Date().toLocaleString(),
   );
   try {
@@ -287,14 +287,20 @@ async function importJurica() {
       }
       for (let i = 0; i < exceptions.length; i++) {
         try {
+          console.log(`found exception ${exceptions[i].decisionId}`);
           const _row = await juricaSource.getDecisionByID(exceptions[i].decisionId.split(':')[1]);
           if (_row) {
+            console.log(`adding exception ${_row._id}`);
             juricaResult.push(_row);
           }
-        } catch (ignore) {}
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
-  } catch (ignore) {}
+  } catch (e) {
+    console.error(e);
+  }
 
   if (juricaResult) {
     console.log(`Jurica has ${juricaResult.length} new decision(s)`);
