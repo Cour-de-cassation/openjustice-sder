@@ -160,7 +160,7 @@ class JuricaOracle {
    */
   async getNew(monthAgo) {
     if (monthAgo === undefined) {
-      monthAgo = 1;
+      monthAgo = 6;
     }
     if (this.connected === true && this.connection !== null) {
       // Source DBs are full of "holes" so we need to set a limit
@@ -169,15 +169,15 @@ class JuricaOracle {
       ago.setMonth(ago.getMonth() - monthAgo);
       ago.setHours(0, 0, 0, 0);
       let strAgo = ago.getFullYear();
-      strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
-      strAgo += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
+      strAgo += ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1;
+      strAgo += ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
 
       const query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
         AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
         AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 0
-        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
+        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= ${strAgo}
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
 
       const result = await this.connection.execute(query, [], {
@@ -291,13 +291,13 @@ class JuricaOracle {
       ago.setMonth(ago.getMonth() - NMonth);
       ago.setHours(0, 0, 0, 0);
       let strAgo = ago.getFullYear();
-      strAgo += '-' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
-      strAgo += '-' + (ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate());
+      strAgo += ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1;
+      strAgo += ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
 
       const query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
-        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= '${strAgo}'
+        AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= ${strAgo}
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
       //         AND ${process.env.DB_TABLE_JURICA}.JDEC_IND_DEC_PUB IS NOT NULL
 
