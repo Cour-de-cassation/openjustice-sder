@@ -272,7 +272,7 @@ async function importJurica() {
   let duplicateCount = 0;
   let nonPublicCount = 0;
 
-  const juricaResult = await juricaSource.getNew(6);
+  const juricaResult = await juricaSource.getNew(3);
 
   if (juricaResult) {
     console.log(`Jurica has ${juricaResult.length} new decision(s)`);
