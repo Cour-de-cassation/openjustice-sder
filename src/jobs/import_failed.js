@@ -120,10 +120,14 @@ async function importJurinet() {
 
             if (tooOld === true) {
               throw new Error(
-                `Cannot import decision ${row._id} because it is too old (${Math.abs(dateDiff.months)} months).`,
+                `Cannot import decision ${row._id} because it is too old (${Math.round(
+                  Math.abs(dateDiff.months),
+                )} months).`,
               );
             } else if (tooEarly === true) {
-              throw new Error(`Cannot import decision ${row._id} because it is too early (${dateDiff2.days} days).`);
+              throw new Error(
+                `Cannot import decision ${row._id} because it is too early (${Math.round(dateDiff2.days)} days).`,
+              );
             }
 
             row._indexed = null;
@@ -310,10 +314,14 @@ async function importJurica() {
 
           if (tooOld === true) {
             throw new Error(
-              `Cannot import decision ${row._id} because it is too old (${Math.abs(dateDiff.months)} months).`,
+              `Cannot import decision ${row._id} because it is too old (${Math.round(
+                Math.abs(dateDiff.months),
+              )} months).`,
             );
           } else if (tooEarly === true) {
-            throw new Error(`Cannot import decision ${row._id} because it is too early (${dateDiff2.days} days).`);
+            throw new Error(
+              `Cannot import decision ${row._id} because it is too early (${Math.round(dateDiff2.days)} days).`,
+            );
           }
 
           row._indexed = null;
