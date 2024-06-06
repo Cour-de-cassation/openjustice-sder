@@ -326,6 +326,9 @@ async function importJurica() {
         } catch (ignore) {}
         try {
           let inDate = new Date();
+          if (!row.JDEC_DATE) {
+            throw new Error(`Cannot import decision ${row._id} because it has no date (${row.JDEC_DATE}).`);
+          }
           let dateDecisionElements = row.JDEC_DATE.split('-');
           inDate.setFullYear(parseInt(dateDecisionElements[0], 10));
           inDate.setMonth(parseInt(dateDecisionElements[1], 10) - 1);
@@ -1227,7 +1230,6 @@ async function syncJurica() {
 
   await juricaSource.connect();
   const juricaResult = await juricaSource.getModifiedSince(juricaLastDate.toJSDate()); // @TODO
-  await juricaSource.close();
 
   if (juricaResult) {
     const client = new MongoClient(process.env.MONGO_URI, {
@@ -1750,6 +1752,8 @@ async function syncJurica() {
   } else {
     console.log(`Done Syncing Jurica - Empty round.`);
   }
+
+  await juricaSource.close();
 
   fs.writeFileSync(path.join(__dirname, 'data', 'jurica.lastDate'), juricaLastDate.toISO());
 
