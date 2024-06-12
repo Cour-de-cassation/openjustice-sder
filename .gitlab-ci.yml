@@ -39,7 +39,7 @@ build_openjustice_sder:
 
 deploy_openjustice_sder:
   stage: deploy
-  image: alpine/ansible:latest
+  image: alpine/ansible:2.16.1
   variables:
     DOLLAR: $$
   script:
