@@ -95,7 +95,35 @@ async function importJurinet() {
   let errorCount = 0;
   let wincicaCount = 0;
 
-  const jurinetResult = await jurinetSource.getNew(1);
+  let jurinetResult = await jurinetSource.getNew(1);
+
+  try {
+    const exceptions = await JudilibreIndex.find('exceptions', {
+      decisionId: /^jurinet:/,
+      collected: false,
+      published: false,
+      reason: { $ne: null },
+    });
+    if (exceptions !== null) {
+      if (Array.isArray(jurinetResult) === false) {
+        jurinetResult = [];
+      }
+      for (let i = 0; i < exceptions.length; i++) {
+        try {
+          console.log(`found exception ${exceptions[i].decisionId}`);
+          const _row = await jurinetSource.getDecisionByID(exceptions[i].decisionId.split(':')[1]);
+          if (_row) {
+            console.log(`adding exception ${_row._id}`);
+            jurinetResult.push(_row);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
 
   if (jurinetResult) {
     console.log(`Jurinet has ${jurinetResult.length} new decision(s)`);
@@ -104,7 +132,8 @@ async function importJurinet() {
       let row = jurinetResult[i];
       let tooOld = false;
       let tooEarly = false;
-
+      let hasException = false;
+      let exception = null;
       // SKIP CA AND OTHER STUFF
       if (
         row['TYPE_ARRET'] === 'CC' ||
@@ -113,6 +142,17 @@ async function importJurinet() {
       ) {
         let raw = await rawJurinet.findOne({ _id: row._id });
         if (raw === null) {
+          try {
+            exception = await JudilibreIndex.findOne('exceptions', {
+              decisionId: `jurinet:${row._id}`,
+              collected: false,
+              published: false,
+              reason: { $ne: null },
+            });
+            if (exception !== null) {
+              hasException = true;
+            }
+          } catch (ignore) {}
           try {
             let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
             inDate.setHours(inDate.getHours() + 2);
@@ -127,13 +167,13 @@ async function importJurinet() {
               tooEarly = true;
             }
 
-            if (tooOld === true) {
+            if (tooOld === true && hasException === false) {
               throw new Error(
                 `Cannot import decision ${row._id} because it is too old (${Math.round(
                   Math.abs(dateDiff.months),
                 )} months).`,
               );
-            } else if (tooEarly === true) {
+            } else if (tooEarly === true && hasException === false) {
               throw new Error(
                 `Cannot import decision ${row._id} because it is too early (${Math.round(dateDiff2.days)} days).`,
               );
@@ -175,6 +215,15 @@ async function importJurinet() {
                 console.warn(
                   `Jurinet import issue: { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
                 );
+              }
+              if (exception && hasException === true) {
+                hasException = false;
+                try {
+                  exception.collected = true;
+                  await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+                    bypassDocumentValidation: true,
+                  });
+                } catch (ignore) {}
               }
             }
           } catch (e) {
@@ -831,7 +880,23 @@ async function syncJurinet() {
         let reprocessUpdated = false;
         let tooOld = false;
         let tooEarly = false;
-
+        let hasException = false;
+        let hasExceptionToReprocess = false;
+        let exception = null;
+        try {
+          exception = await JudilibreIndex.findOne('exceptions', {
+            decisionId: `jurinet:${row._id}`,
+            collected: false,
+            published: false,
+            reason: { $ne: null },
+          });
+          if (exception !== null) {
+            hasException = true;
+            if (exception.resetPseudo === true) {
+              hasExceptionToReprocess = true;
+            }
+          }
+        } catch (ignore) {}
         if (rawDocument === null) {
           try {
             row._indexed = null;
@@ -1019,7 +1084,7 @@ async function syncJurinet() {
                 tooEarly = true;
               }
 
-              if (tooOld === true) {
+              if (tooOld === true && hasException === false) {
                 if (row['TYPE_ARRET'] === 'CC') {
                   await JurinetUtils.IndexAffaire(
                     row,
@@ -1039,7 +1104,7 @@ async function syncJurinet() {
                   null,
                   `update in rawJurinet (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
                 );
-              } else if (tooEarly === true) {
+              } else if (tooEarly === true && hasException === false) {
                 updateCount++;
                 if (row['TYPE_ARRET'] !== 'CC') {
                   wincicaCount++;
@@ -1051,7 +1116,7 @@ async function syncJurinet() {
                 );
               } else {
                 row._indexed = null;
-                if (reprocessUpdated === true) {
+                if (reprocessUpdated === true || hasExceptionToReprocess === true) {
                   row.IND_ANO = 0;
                   row.XMLA = null;
                 }
@@ -1108,7 +1173,7 @@ async function syncJurinet() {
             normDec.pseudoText = JurinetUtils.removeMultipleSpace(normDec.pseudoText);
             normDec.pseudoText = JurinetUtils.replaceErroneousChars(normDec.pseudoText);
             normDec._version = decisionsVersion;
-            if (tooOld === true || tooEarly === true) {
+            if ((tooOld === true || tooEarly === true) && hasException === false) {
               normDec.labelStatus = 'locked';
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
@@ -1138,9 +1203,9 @@ async function syncJurinet() {
               normDec._version = decisionsVersion;
               normDec.dateCreation = new Date().toISOString();
               normDec.zoning = null;
-              if (tooOld === true || tooEarly === true) {
+              if ((tooOld === true || tooEarly === true) && hasException === false) {
                 normDec.labelStatus = 'locked';
-              } else if (reprocessUpdated === true) {
+              } else if (reprocessUpdated === true || hasExceptionToReprocess === true) {
                 normDec.pseudoText = undefined;
                 normDec.pseudoStatus = 0;
                 normDec.labelStatus = 'toBeTreated';
@@ -1151,7 +1216,7 @@ async function syncJurinet() {
                 bypassDocumentValidation: true,
               });
               normDec._id = normalized._id;
-              if (reprocessUpdated === true && tooOld === false && tooEarly === false) {
+              if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
                 await JudilibreIndex.indexDecisionDocument(
                   normDec,
                   null,
@@ -1172,6 +1237,18 @@ async function syncJurinet() {
             }
           }
         }
+
+        if (exception && hasException === true) {
+          hasException = false;
+          hasExceptionToReprocess = false;
+          try {
+            exception.collected = true;
+            await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+              bypassDocumentValidation: true,
+            });
+          } catch (ignore) {}
+        }
+
         let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id}` });
         if (existingDoc === null) {
           rawDocument = await raw.findOne({ _id: row._id });
