@@ -140,19 +140,19 @@ async function importJurinet() {
         (row['TYPE_ARRET'] === 'AUTRE' &&
           (/^t\.cfl$/i.test(row['ID_CHAMBRE']) === true || /judiciaire.*paris$/i.test(row['JURIDICTION'])))
       ) {
+        try {
+          exception = await JudilibreIndex.findOne('exceptions', {
+            decisionId: `jurinet:${row._id}`,
+            collected: false,
+            published: false,
+            reason: { $ne: null },
+          });
+          if (exception !== null) {
+            hasException = true;
+          }
+        } catch (ignore) {}
         let raw = await rawJurinet.findOne({ _id: row._id });
         if (raw === null) {
-          try {
-            exception = await JudilibreIndex.findOne('exceptions', {
-              decisionId: `jurinet:${row._id}`,
-              collected: false,
-              published: false,
-              reason: { $ne: null },
-            });
-            if (exception !== null) {
-              hasException = true;
-            }
-          } catch (ignore) {}
           try {
             let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
             inDate.setHours(inDate.getHours() + 2);
@@ -232,7 +232,7 @@ async function importJurinet() {
             await JudilibreIndex.updateJurinetDocument(row, null, null, e);
             errorCount++;
           }
-        } else if (process.env.NODE_ENV === 'preprod') {
+        } else if (hasException === true) {
           console.log(`Jurinet overwrite already inserted CC decision ${row._id}`);
           try {
             row._indexed = null;
@@ -269,6 +269,15 @@ async function importJurinet() {
                 bypassDocumentValidation: true,
               });
               await jurinetSource.markAsImported(row._id);
+            }
+            if (exception && hasException === true) {
+              hasException = false;
+              try {
+                exception.collected = true;
+                await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+                  bypassDocumentValidation: true,
+                });
+              } catch (ignore) {}
             }
           } catch (e) {
             console.error(`Jurinet import error processing decision ${row._id}`, e);
@@ -364,19 +373,19 @@ async function importJurica() {
       let tooEarly = false;
       let hasException = false;
       let exception = null;
+      try {
+        exception = await JudilibreIndex.findOne('exceptions', {
+          decisionId: `jurica:${row._id}`,
+          collected: false,
+          published: false,
+          reason: { $ne: null },
+        });
+        if (exception !== null) {
+          hasException = true;
+        }
+      } catch (ignore) {}
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
-        try {
-          exception = await JudilibreIndex.findOne('exceptions', {
-            decisionId: `jurica:${row._id}`,
-            collected: false,
-            published: false,
-            reason: { $ne: null },
-          });
-          if (exception !== null) {
-            hasException = true;
-          }
-        } catch (ignore) {}
         try {
           let inDate = new Date();
           if (!row.JDEC_DATE) {
@@ -608,7 +617,7 @@ async function importJurica() {
           await JudilibreIndex.updateJuricaDocument(row, null, null, e);
           errorCount++;
         }
-      } else if (process.env.NODE_ENV === 'preprod') {
+      } else if (hasException === true) {
         console.log(`Jurica overwrite already inserted CA decision ${row._id}`);
         try {
           row._indexed = null;
@@ -779,6 +788,15 @@ async function importJurica() {
               await decisions.replaceOne({ _id: normalized._id }, normDec, {
                 bypassDocumentValidation: true,
               });
+            }
+            if (exception && hasException === true) {
+              hasException = false;
+              try {
+                exception.collected = true;
+                await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
+                  bypassDocumentValidation: true,
+                });
+              } catch (ignore) {}
             }
           } else {
             console.warn(
