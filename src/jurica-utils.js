@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const parser = require('fast-xml-parser');
+const { XMLParser, XMLValidator } = require('fast-xml-parser');
 const he = require('he');
 
 const { Juritools } = require('./juritools');
@@ -26,6 +26,8 @@ const parserOptions = {
   arrayMode: true,
   trimValues: true,
 };
+
+const parser = new XMLParser(parserOptions);
 
 class JuricaUtils {
   static GetThemeByNAC(nac) {
@@ -1109,9 +1111,9 @@ class JuricaUtils {
 
     try {
       const xml = `<document>${document.JDEC_COLL_PARTIES}</document>`;
-      const valid = parser.validate(xml);
+      const valid = XMLValidator.validate(xml);
       if (valid === true) {
-        const json = parser.parse(xml, parserOptions);
+        const json = parser.parse(xml);
         if (
           json &&
           json.document &&
