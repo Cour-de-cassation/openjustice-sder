@@ -150,6 +150,17 @@ async function importJurinet() {
         let raw = await rawJurinet.findOne({ _id: row._id });
         if (raw === null) {
           try {
+            exception = await JudilibreIndex.findOne('exceptions', {
+              decisionId: `jurinet:${row._id}`,
+              collected: false,
+              published: false,
+              reason: { $ne: null },
+            });
+            if (exception !== null) {
+              hasException = true;
+            }
+          } catch (ignore) {}
+          try {
             let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
             inDate.setHours(inDate.getHours() + 2);
             inDate = DateTime.fromJSDate(inDate);
