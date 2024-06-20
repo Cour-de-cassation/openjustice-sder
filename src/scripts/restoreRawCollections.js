@@ -49,9 +49,7 @@ async function main() {
 }
 
 async function restoreJurinet(n, resetContent) {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);
@@ -111,9 +109,7 @@ async function restoreJurinet(n, resetContent) {
 }
 
 async function restoreJurica() {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);

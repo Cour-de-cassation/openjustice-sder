@@ -485,9 +485,7 @@ async function store(source) {
   const { MongoClient } = require('mongodb');
   const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);

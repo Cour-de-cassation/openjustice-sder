@@ -11,9 +11,7 @@ const { JurinetOracle } = require('../jurinet-oracle');
 const { JuricaOracle } = require('../jurica-oracle');
 
 async function main(id) {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
@@ -71,7 +69,7 @@ async function main(id) {
       rawDocument = await rawJurica.findOne({ _id: sourceId });
       decision = await decisions.findOne({ sourceName: sourceName, sourceId: sourceId });
     } else if (/^judilibre:[a-z0-9]+$/.test(id) === true) {
-      decision = await decisions.findOne({ _id: ObjectId(id.split(':')[1]) });
+      decision = await decisions.findOne({ _id: new ObjectId(`${id.split(':')[1]}`) });
       if (decision && decision.sourceName && decision.sourceId) {
         sourceName = decision.sourceName;
         sourceId = decision.sourceId;

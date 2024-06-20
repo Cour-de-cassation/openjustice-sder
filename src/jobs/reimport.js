@@ -55,9 +55,7 @@ async function main(kind, n, resetContent) {
 }
 
 async function reimportJurinet(n, resetContent) {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);
@@ -248,9 +246,7 @@ async function reimportJurinet(n, resetContent) {
 }
 
 async function reimportJurica(n, resetContent) {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);

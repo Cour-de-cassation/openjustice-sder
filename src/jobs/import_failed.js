@@ -53,9 +53,7 @@ async function main() {
 }
 
 async function importJurinet() {
-  const client = new MongoClient('mongodb://openjustice-sder:openjustice-sder@10.227.11.205:27017/SDER', {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient('mongodb://openjustice-sder:openjustice-sder@10.227.11.205:27017/SDER');
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
@@ -64,9 +62,6 @@ async function importJurinet() {
 
   const jIndexConnection = new MongoClient(
     'mongodb://judilibre-index:judilibre-index@10.227.11.205:27017/judilibre-index',
-    {
-      useUnifiedTopology: true,
-    },
   );
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
@@ -248,9 +243,7 @@ async function importJurinet() {
 }
 
 async function importJurica() {
-  const client = new MongoClient('mongodb://openjustice-sder:openjustice-sder@10.227.11.205:27017/SDER', {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient('mongodb://openjustice-sder:openjustice-sder@10.227.11.205:27017/SDER');
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
@@ -259,9 +252,6 @@ async function importJurica() {
 
   const jIndexConnection = new MongoClient(
     'mongodb://judilibre-index:judilibre-index@10.227.11.205:27017/judilibre-index',
-    {
-      useUnifiedTopology: true,
-    },
   );
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
