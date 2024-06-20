@@ -489,44 +489,84 @@ class JurinetUtils {
       }
     }
 
-    if (cleanedXml && cleanedXml.numpourvois) {
-      if (Array.isArray(cleanedXml.numpourvois)) {
-        if (cleanedXml.numpourvois[0] && cleanedXml.numpourvois[0].numpourvoi) {
-          normalizedDecision.appeals = cleanedXml.numpourvois[0].numpourvoi[0]['$value'].split(',');
-        }
-      } else {
-        if (cleanedXml.numpourvois && cleanedXml.numpourvois.numpourvoi[0]) {
-          normalizedDecision.appeals = cleanedXml.numpourvois.numpourvoi[0]['$value'].split(',');
+    try {
+      if (cleanedXml && cleanedXml.numpourvois) {
+        if (Array.isArray(cleanedXml.numpourvois)) {
+          if (cleanedXml.numpourvois[0] && cleanedXml.numpourvois[0].numpourvoi) {
+            if (Array.isArray(cleanedXml.numpourvois[0].numpourvoi)) {
+              normalizedDecision.appeals = cleanedXml.numpourvois[0].numpourvoi[0]['$value'].split(',');
+            } else {
+              normalizedDecision.appeals = cleanedXml.numpourvois[0].numpourvoi['$value'].split(',');
+            }
+          }
+        } else {
+          if (cleanedXml.numpourvois && cleanedXml.numpourvois.numpourvoi) {
+            if (Array.isArray(cleanedXml.numpourvois.numpourvoi)) {
+              normalizedDecision.appeals = cleanedXml.numpourvois.numpourvoi[0]['$value'].split(',');
+            } else {
+              normalizedDecision.appeals = cleanedXml.numpourvois.numpourvoi['$value'].split(',');
+            }
+          }
         }
       }
+    } catch (e) {
+      console.warn(e);
     }
 
-    if (cleanedXml && cleanedXml.analyses) {
-      if (Array.isArray(cleanedXml.analyses)) {
-        if (cleanedXml.analyses[0].analyse) {
-          normalizedDecision.analysis.title = cleanedXml.analyses[0].analyse[0].titre_principal
-            .split('*')
-            .map((x) => {
-              return x.trim();
-            })
-            .filter((x) => {
-              return x.length > 0;
-            });
-          normalizedDecision.analysis.summary = cleanedXml.analyses[0].analyse[0].sommaire;
-        }
-      } else {
-        if (cleanedXml.analyses.analyse) {
-          normalizedDecision.analysis.title = cleanedXml.analyses.analyse[0].titre_principal
-            .split('*')
-            .map((x) => {
-              return x.trim();
-            })
-            .filter((x) => {
-              return x.length > 0;
-            });
-          normalizedDecision.analysis.summary = cleanedXml.analyses.analyse[0].sommaire;
+    try {
+      if (cleanedXml && cleanedXml.analyses) {
+        if (Array.isArray(cleanedXml.analyses)) {
+          if (cleanedXml.analyses[0].analyse) {
+            if (Array.isArray(cleanedXml.analyses[0].analyse)) {
+              normalizedDecision.analysis.title = cleanedXml.analyses[0].analyse[0].titre_principal
+                .split('*')
+                .map((x) => {
+                  return x.trim();
+                })
+                .filter((x) => {
+                  return x.length > 0;
+                });
+              normalizedDecision.analysis.summary = cleanedXml.analyses[0].analyse[0].sommaire;
+            } else {
+              normalizedDecision.analysis.title = cleanedXml.analyses[0].analyse.titre_principal
+                .split('*')
+                .map((x) => {
+                  return x.trim();
+                })
+                .filter((x) => {
+                  return x.length > 0;
+                });
+              normalizedDecision.analysis.summary = cleanedXml.analyses[0].analyse.sommaire;
+            }
+          }
+        } else {
+          if (cleanedXml.analyses.analyse) {
+            if (Array.isArray(cleanedXml.analyses.analyse && cleanedXml.analyses.analyse[0])) {
+              normalizedDecision.analysis.title = cleanedXml.analyses.analyse[0].titre_principal
+                .split('*')
+                .map((x) => {
+                  return x.trim();
+                })
+                .filter((x) => {
+                  return x.length > 0;
+                });
+              normalizedDecision.analysis.summary = cleanedXml.analyses.analyse[0].sommaire;
+            } else if ((normalizedDecision.analysis.title = cleanedXml.analyses.analyse)) {
+              normalizedDecision.analysis.title = cleanedXml.analyses.analyse.titre_principal
+                .split('*')
+                .map((x) => {
+                  return x.trim();
+                })
+                .filter((x) => {
+                  return x.length > 0;
+                });
+              normalizedDecision.analysis.summary = cleanedXml.analyses.analyse.sommaire;
+            }
+          }
         }
       }
+    } catch (e) {
+      console.warn(e);
     }
 
     if (document._titrage && document._titrage.length) {
