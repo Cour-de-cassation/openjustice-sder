@@ -42,9 +42,7 @@ async function main() {
 }
 
 async function checkZoningJurinet() {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
@@ -79,9 +77,7 @@ async function checkZoningJurinet() {
 }
 
 async function checkZoningJurica() {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);

@@ -8,9 +8,7 @@ async function main() {
 }
 
 async function checkLabel() {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
 
   const database = client.db('labelDb');

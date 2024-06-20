@@ -7,9 +7,7 @@ async function main() {
   const { JuricaUtils } = require('../jurica-utils');
   const { MongoClient, ObjectId } = require('mongodb');
 
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
-    useUnifiedTopology: true,
-  });
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI);
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexMain = jIndexClient.collection('mainIndex');
