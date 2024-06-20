@@ -1,4 +1,4 @@
-const parser = require('fast-xml-parser');
+const { XMLParser, XMLValidator } = require('fast-xml-parser');
 const iconv = require('iconv-lite');
 const he = require('he');
 iconv.skipDecodeWarning = true;
@@ -20,6 +20,8 @@ const parserOptions = {
   tagValueProcessor: (val) => he.decode(he.decode(val)),
   attrValueProcessor: (val) => he.decode(he.decode(val)),
 };
+
+const parser = new XMLParser(parserOptions);
 
 class DilaUtils {
   static CleanString(str, removeNumbers) {
@@ -149,10 +151,10 @@ class DilaUtils {
     opt.filter = opt.filter || false;
     let valid = false;
 
-    valid = parser.validate(xml);
+    valid = XMLValidator.validate(xml);
     if (valid === true) {
       // Convert the XML document to JSON:
-      let finalData = parser.parse(xml, parserOptions);
+      let finalData = parser.parse(xml);
       finalData = finalData[Object.keys(finalData)[0]];
       if (opt.filter === true) {
         // Remove some undesirable data:

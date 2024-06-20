@@ -1,4 +1,4 @@
-const parser = require('fast-xml-parser');
+const { XMLParser, XMLValidator } = require('fast-xml-parser');
 const he = require('he');
 
 const { JuricaUtils } = require('./jurica-utils');
@@ -21,6 +21,8 @@ const parserOptions = {
   arrayMode: true,
   trimValues: true,
 };
+
+const parser = new XMLParser(parserOptions);
 
 class JurinetUtils {
   static CleanXML(xml) {
@@ -147,10 +149,10 @@ class JurinetUtils {
     opt.toLowerCase = opt.toLowerCase || false;
     let valid = false;
 
-    valid = parser.validate(xml);
+    valid = XMLValidator.validate(xml);
     if (valid === true) {
       // Convert the XML document to JSON:
-      let finalData = parser.parse(xml, parserOptions);
+      let finalData = parser.parse(xml);
 
       finalData = finalData.DOCUMENT[0];
 
