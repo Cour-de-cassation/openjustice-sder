@@ -154,6 +154,8 @@ class JurinetUtils {
       // Convert the XML document to JSON:
       let finalData = parser.parse(xml);
 
+      console.log(finalData);
+
       finalData = finalData.DOCUMENT[0];
 
       if (opt.filter === true) {
