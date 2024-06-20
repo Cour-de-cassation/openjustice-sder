@@ -47,9 +47,7 @@ async function main() {
 }
 
 async function retryImportJurica() {
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
-    useUnifiedTopology: true,
-  });
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI);
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexMain = jIndexClient.collection('mainIndex');
@@ -65,18 +63,14 @@ async function retryImportJurica() {
 }
 
 async function importJurica(id) {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
 
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION); // XXX TEMP
 
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
-    useUnifiedTopology: true,
-  });
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI);
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexMain = jIndexClient.collection('mainIndex');

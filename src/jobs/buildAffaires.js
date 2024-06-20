@@ -54,43 +54,13 @@ async function main() {
 
   const { MongoClient } = require('mongodb');
 
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, {
-    useUnifiedTopology: true,
-  });
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI);
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexMain = jIndexClient.collection('mainIndex');
   const jIndexAffaires = jIndexClient.collection('affaires');
 
-  // Ensure indexes:
-  /*
-  await jIndexAffaires.createIndex({ numbers: 1 });
-  await jIndexAffaires.createIndex({ ids: 1 });
-  await jIndexAffaires.createIndex({ affaires: 1 });
-  await jIndexAffaires.createIndex({ dates: 1 });
-  await jIndexAffaires.createIndex({ jurisdictions: 1 });
-  await jIndexAffaires.createIndex({ _id: 1, numbers: 1 });
-  await jIndexAffaires.createIndex({ _id: 1, ids: 1 });
-  await jIndexAffaires.createIndex({ _id: 1, affaires: 1 });
-  await jIndexAffaires.createIndex({ _id: 1, dates: 1 });
-  await jIndexAffaires.createIndex({ _id: 1, jurisdictions: 1 });
-  */
-
-  // _id : specific ID (mongo ObjectId())
-  // numbers: array of numbers (RG, pourvoi, etc.)
-  // ids: array of decision ids (jurinet, jurica, etc.)
-  // affaires: array of ID_AFFAIRE (GPCIV.AFF, GPCIV.DECATT)
-  // dates: array of decision dates
-  // jurisdictions: array of decision jurisdictions
-  // numbers_ids: mapping number <-> decision ID (e.g. 'U8121289' -> 'jurinet:1784323')
-  // numbers_affaires: mapping number <-> affaire ID (e.g. 'U8121289' -> 11122154)
-  // numbers_dates: mapping number <-> date (e.g. 'U8121289' -> '2018-07-12')
-  // numbers_jurisdictions: mapping number <-> jurisdiction (e.g. '09/01206' -> 'Cour d'appel de Caen')
-  // dates_jurisdictions: mapping date <-> jurisdiction (e.g. '2018-07-12' -> 'Conseil de prud'hommes de Caen') <-- required because some dependencies don't have a recognizable number
-
-  const DBSDERConnection = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const DBSDERConnection = new MongoClient(process.env.MONGO_URI);
   await DBSDERConnection.connect();
   const DBSDERClient = DBSDERConnection.db(process.env.MONGO_DBNAME);
   const rawJurinet = DBSDERClient.collection('rawJurinet');

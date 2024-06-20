@@ -106,7 +106,7 @@ class Database {
     const handler = this.getHandler(collection);
     if (handler.isMongo === true) {
       if (handler.connected === false) {
-        handler.connection = new MongoClient(this.getDbURI(collection), { useUnifiedTopology: true });
+        handler.connection = new MongoClient(this.getDbURI(collection));
         await handler.connection.connect();
         handler.client = handler.connection.db(this.getDbName(collection));
         for (let coll in handler.collections) {
@@ -555,7 +555,7 @@ class Database {
   retrieveObjectId(document) {
     Object.keys(document).forEach(function (key) {
       if (/id/i.test(key) && typeof document[key] === 'string' && ObjectId.isValid(document[key])) {
-        document[key] = new ObjectId(document[key]);
+        document[key] = new ObjectId(`${document[key]}`);
       }
     });
     return document;

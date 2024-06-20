@@ -36,9 +36,7 @@ async function main() {
 }
 
 async function patch() {
-  const client = new MongoClient(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);
