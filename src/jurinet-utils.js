@@ -491,20 +491,44 @@ class JurinetUtils {
       }
     }
 
-    if (cleanedXml && cleanedXml.numpourvois && cleanedXml.numpourvois[0] && cleanedXml.numpourvois[0].numpourvoi) {
-      normalizedDecision.appeals = cleanedXml.numpourvois[0].numpourvoi[0]['$value'].split(',');
+    if (cleanedXml && cleanedXml.numpourvois) {
+      if (Array.isArray(cleanedXml.numpourvois)) {
+        if (cleanedXml.numpourvois[0] && cleanedXml.numpourvois[0].numpourvoi) {
+          normalizedDecision.appeals = cleanedXml.numpourvois[0].numpourvoi[0]['$value'].split(',');
+        }
+      } else {
+        if (cleanedXml.numpourvois && cleanedXml.numpourvois.numpourvoi) {
+          normalizedDecision.appeals = cleanedXml.numpourvois.numpourvoi['$value'].split(',');
+        }
+      }
     }
 
-    if (cleanedXml && cleanedXml.analyses && cleanedXml.analyses[0].analyse) {
-      normalizedDecision.analysis.title = cleanedXml.analyses[0].analyse[0].titre_principal
-        .split('*')
-        .map((x) => {
-          return x.trim();
-        })
-        .filter((x) => {
-          return x.length > 0;
-        });
-      normalizedDecision.analysis.summary = cleanedXml.analyses[0].analyse[0].sommaire;
+    if (cleanedXml && cleanedXml.analyses) {
+      if (Array.isArray(cleanedXml.analyses)) {
+        if (cleanedXml.analyses[0].analyse) {
+          normalizedDecision.analysis.title = cleanedXml.analyses[0].analyse[0].titre_principal
+            .split('*')
+            .map((x) => {
+              return x.trim();
+            })
+            .filter((x) => {
+              return x.length > 0;
+            });
+          normalizedDecision.analysis.summary = cleanedXml.analyses[0].analyse[0].sommaire;
+        }
+      } else {
+        if (cleanedXml.analyses.analyse) {
+          normalizedDecision.analysis.title = cleanedXml.analyses.analyse.titre_principal
+            .split('*')
+            .map((x) => {
+              return x.trim();
+            })
+            .filter((x) => {
+              return x.length > 0;
+            });
+          normalizedDecision.analysis.summary = cleanedXml.analyses.analyse.sommaire;
+        }
+      }
     }
 
     if (document._titrage && document._titrage.length) {
