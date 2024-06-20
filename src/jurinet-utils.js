@@ -156,7 +156,11 @@ class JurinetUtils {
 
       console.log(finalData);
 
-      finalData = finalData.DOCUMENT[0];
+      if (Array.isArray(finalData.DOCUMENT)) {
+        finalData = finalData.DOCUMENT[0];
+      } else {
+        finalData = finalData.DOCUMENT;
+      }
 
       if (opt.filter === true) {
         // Remove some undesirable data:
