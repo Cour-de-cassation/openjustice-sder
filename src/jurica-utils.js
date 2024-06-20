@@ -1124,6 +1124,15 @@ class JuricaUtils {
           json.document[0].partie.length > 0
         ) {
           normalizedDecision.parties = json.document[0].partie;
+        } else if (
+          json &&
+          json.document &&
+          !Array.isArray(json.document) &&
+          json.document.partie &&
+          Array.isArray(json.document.partie) &&
+          json.document.partie.length > 0
+        ) {
+          normalizedDecision.parties = json.document.partie;
         }
       }
     } catch (e) {}
