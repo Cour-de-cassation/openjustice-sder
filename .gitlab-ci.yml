@@ -15,6 +15,9 @@ stages:
   - build
   - deploy
 
+before_script:
+  - docker login -u $PUBLIC_DOCKER_USERNAME -p $PUBLIC_DOCKER_PASSWORD
+
 build_openjustice_sder:
   stage: build
   variables:
