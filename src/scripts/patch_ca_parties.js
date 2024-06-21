@@ -60,6 +60,7 @@ async function patch() {
     }
     if (changed === true) {
       decision.parties = parties;
+      decision.labelStatus = 'toBeTreated';
       await decisions.replaceOne({ _id: decision._id }, decision);
     }
   }
