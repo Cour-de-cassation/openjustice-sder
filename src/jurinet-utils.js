@@ -541,7 +541,7 @@ class JurinetUtils {
           }
         } else {
           if (cleanedXml.analyses.analyse) {
-            if (Array.isArray(cleanedXml.analyses.analyse && cleanedXml.analyses.analyse[0])) {
+            if (Array.isArray(cleanedXml.analyses.analyse)) {
               normalizedDecision.analysis.title = cleanedXml.analyses.analyse[0].titre_principal
                 .split('*')
                 .map((x) => {
@@ -551,7 +551,7 @@ class JurinetUtils {
                   return x.length > 0;
                 });
               normalizedDecision.analysis.summary = cleanedXml.analyses.analyse[0].sommaire;
-            } else if ((normalizedDecision.analysis.title = cleanedXml.analyses.analyse)) {
+            } else {
               normalizedDecision.analysis.title = cleanedXml.analyses.analyse.titre_principal
                 .split('*')
                 .map((x) => {
