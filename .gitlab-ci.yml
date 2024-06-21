@@ -15,8 +15,6 @@ stages:
   - build
   - deploy
 
-before_script:
-  - docker login -u $PUBLIC_DOCKER_USERNAME -p $PUBLIC_DOCKER_PASSWORD
 
 build_openjustice_sder:
   stage: build
@@ -24,6 +22,7 @@ build_openjustice_sder:
     HTTP_PROXY: $HTTP_PROXY_DEV
     HTTPS_PROXY: $HTTP_PROXY_DEV
   script:
+    - docker login -u $PUBLIC_DOCKER_USERNAME -p $PUBLIC_DOCKER_PASSWORD
     - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - |
       for script_name in $SCRIPT_NAMES; do
