@@ -1112,6 +1112,8 @@ class JuricaUtils {
     try {
       const xml = `<document>${document.JDEC_COLL_PARTIES}</document>`;
       const valid = XMLValidator.validate(xml);
+      let _parties = [];
+      normalizedDecision.parties = [];
       if (valid === true) {
         const json = parser.parse(xml);
         if (
@@ -1123,7 +1125,7 @@ class JuricaUtils {
           Array.isArray(json.document[0].partie) &&
           json.document[0].partie.length > 0
         ) {
-          normalizedDecision.parties = json.document[0].partie;
+          _parties = json.document[0].partie;
         } else if (
           json &&
           json.document &&
@@ -1132,10 +1134,28 @@ class JuricaUtils {
           Array.isArray(json.document.partie) &&
           json.document.partie.length > 0
         ) {
-          normalizedDecision.parties = json.document.partie;
+          _parties = json.document.partie;
+        }
+        for (let ip = 0; ip < _parties.length; ip++) {
+          if (_parties[ip].attributes === undefined && _parties[ip].qualitePartie && _parties[ip].typePersonne) {
+            normalizedDecision.parties.push({
+              attributes: {
+                qualitePartie: _parties[ip].qualitePartie,
+                typePersonne: _parties[ip].typePersonne,
+              },
+              identite: _parties[ip].identite,
+            });
+          } else if (_parties[ip].attributes !== undefined) {
+            normalizedDecision.parties.push({
+              attributes: _parties[ip].attributes,
+              identite: _parties[ip].identite,
+            });
+          }
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn(e);
+    }
 
     if (previousVersion) {
       if (previousVersion.labelStatus) {
