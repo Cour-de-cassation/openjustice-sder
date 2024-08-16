@@ -105,7 +105,7 @@ async function importJurinet() {
             inDate = DateTime.fromJSDate(inDate);
             const dateDiff = inDate.diffNow('months').toObject();
             if (dateDiff.months <= -6) {
-              tooOld = true;
+              // tooOld = true;
             }
 
             const dateDiff2 = inDate.diffNow('days').toObject();
@@ -294,7 +294,7 @@ async function importJurica() {
           inDate = DateTime.fromJSDate(inDate);
           const dateDiff = inDate.diffNow('months').toObject();
           if (dateDiff.months <= -6) {
-            tooOld = true;
+            // tooOld = true;
           }
 
           const dateDiff2 = inDate.diffNow('days').toObject();
