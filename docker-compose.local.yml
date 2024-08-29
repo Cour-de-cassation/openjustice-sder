@@ -1,0 +1,31 @@
+services:
+  dsi-db:
+    image: oracle/database:18.4.0-xe
+    container_name: dsi-db
+    ports:
+      - "51521:1521"
+    environment:
+      - ORACLE_PWD=ADMIN
+      - ORACLE_CHARACTERSET=WE8MSWIN1252
+    volumes:
+      - ./data/oracle:/opt/oracle/oradata
+      - ./oracle_local_init/oracle_init.sql:/opt/oracle/scripts/startup/oracle_init.sql
+    networks: 
+      - judilibre-local
+          
+  openjustice-sder:
+    build: 
+      target: openjustice-sder-local
+      context: .
+    container_name: openjustice-sder
+    depends_on:
+      - dsi-db
+    volumes: 
+      - .:/home/node
+    networks: 
+      - judilibre-local
+
+networks:
+  judilibre-local:
+    external: true  
+  

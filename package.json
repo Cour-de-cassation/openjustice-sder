@@ -26,7 +26,15 @@
     "walkdir": "^0.4.1"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start:watch": "nodemon src/index.js",
+    "docker:start": "node oracle_local_init/replace.js && docker compose -f docker-compose.local.yml up -d",
+    "docker:stop": "docker compose -f docker-compose.local.yml stop",
+    "docker:logs": "docker compose -f docker-compose.local.yml logs --follow",
+    "docker:kill": "docker compose -f docker-compose.local.yml down --remove-orphans --volumes --rmi local",
+    "docker:oracle:env": "docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/replace.js",
+    "docker:oracle:up": "npm run docker:oracle:env && docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/migrate.js up",
+    "docker:oracle:down": "docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/migrate.js down"
   },
   "repository": {
     "type": "git",
@@ -37,5 +45,8 @@
   "bugs": {
     "url": "https://github.com/Cour-de-cassation/openjustice-sder/issues"
   },
-  "homepage": "https://github.com/Cour-de-cassation/openjustice-sder#readme"
+  "homepage": "https://github.com/Cour-de-cassation/openjustice-sder#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
 }
