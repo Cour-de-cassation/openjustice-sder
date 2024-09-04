@@ -105,4 +105,4 @@ async function main(count) {
   return true;
 }
 
-main();
+main(parseInt(process.argv[2], 10));
