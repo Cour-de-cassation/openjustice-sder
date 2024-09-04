@@ -1,6 +1,24 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
+const { XMLParser, XMLValidator } = require('fast-xml-parser');
+const parserOptions = {
+  attributeNamePrefix: '',
+  attrNodeName: 'attributes',
+  textNodeName: 'value',
+  ignoreAttributes: false,
+  ignoreNameSpace: true,
+  allowBooleanAttributes: false,
+  parseNodeValue: false,
+  parseAttributeValue: false,
+  trimValues: true,
+  cdataTagName: false,
+  parseTrueNumberOnly: false,
+  arrayMode: true,
+  trimValues: true,
+};
+const parser = new XMLParser(parserOptions);
+
 const prompt = require('prompt');
 const { parentPort } = require('worker_threads');
 const { JuricaOracle } = require('../jurica-oracle');
@@ -93,10 +111,58 @@ async function main(count) {
       )}</body></html>`;
       decision.JDEC_HTML_SOURCE = decision.HTMLA;
       decision.JDEC_OCC_COMP_LIBRE = null;
-      decision.JDEC_COLL_PARTIES = `${decision.JDEC_COLL_PARTIES}`.replace(
-        /<partie[^>]*typepersonne=\"pp\">(?!<partie).*<\/partie>/gims,
-        '',
-      );
+      const xmlParties = `<document>${decision.JDEC_COLL_PARTIES}</document>`;
+      const validParties = XMLValidator.validate(xml);
+      if (validParties === true) {
+        let safePartiesXML = '';
+        const safeParties = [];
+        const jsonParties = parser.parse(xmlParties);
+        if (
+          jsonParties &&
+          jsonParties.document &&
+          Array.isArray(jsonParties.document) &&
+          jsonParties.document[0] &&
+          jsonParties.document[0].partie &&
+          Array.isArray(jsonParties.document[0].partie) &&
+          jsonParties.document[0].partie.length > 0
+        ) {
+          safeParties = jsonParties.document[0].partie;
+        } else if (
+          jsonParties &&
+          jsonParties.document &&
+          !Array.isArray(jsonParties.document) &&
+          jsonParties.document.partie &&
+          Array.isArray(jsonParties.document.partie) &&
+          jsonParties.document.partie.length > 0
+        ) {
+          safeParties = jsonParties.document.partie;
+        }
+        for (let ip = 0; ip < safeParties.length; ip++) {
+          if (
+            safeParties[ip].attributes === undefined &&
+            safeParties[ip].qualitePartie &&
+            safeParties[ip].typePersonne
+          ) {
+            if (safeParties[ip].typePersonne !== 'PP') {
+              safePartiesXML = `${safePartiesXML}\n\t<partie qualitePartie="${safeParties[ip].qualitePartie}" typePersonne="${safeParties[ip].typePersonne}">\n\t\t<identite>${safeParties[ip].identite}</identite>\n\t</partie>`;
+            }
+            normalizedDecision.parties.push({
+              attributes: {
+                qualitePartie: safeParties[ip].qualitePartie,
+                typePersonne: safeParties[ip].typePersonne,
+              },
+              identite: safeParties[ip].identite,
+            });
+          } else if (safeParties[ip].attributes !== undefined) {
+            if (safeParties[ip].attributes.typePersonne !== 'PP') {
+              safePartiesXML = `${safePartiesXML}\n\t<partie qualitePartie="${safeParties[ip].attributes.qualitePartie}" typePersonne="${safeParties[ip].attributes.typePersonne}">\n\t\t<identite>${safeParties[ip].identite}</identite>\n\t</partie>`;
+            }
+          }
+        }
+        decision.JDEC_COLL_PARTIES = safePartiesXML;
+      } else {
+        decision.JDEC_COLL_PARTIES = null;
+      }
 
       const nac = [];
       if (decision.JDEC_CODNAC) {
