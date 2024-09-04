@@ -115,7 +115,7 @@ async function main(count) {
       const validParties = XMLValidator.validate(xmlParties);
       if (validParties === true) {
         let safePartiesXML = '';
-        const safeParties = [];
+        let safeParties = [];
         const jsonParties = parser.parse(xmlParties);
         if (
           jsonParties &&
