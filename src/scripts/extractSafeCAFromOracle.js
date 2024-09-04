@@ -45,14 +45,14 @@ async function main(count) {
     if (!count) {
       const { in_count } = await prompt.get({
         name: 'in_count',
-        message: `Usage: extractSafeCAFromOracle <quantité>\nSaisir la quantité de décisions de cours d'appel à extraire.`,
+        message: `Usage : extractSafeCAFromOracle <quantité>\nSaisir la quantité de décisions de cours d'appel à extraire : `,
         validator: /^\d+$/,
       });
       count = parseInt(in_count, 10);
     }
 
     if (!count || isNaN(count)) {
-      throw new Error(`${count} n'est pas une quantité valide.\nUsage: extractSafeCAFromOracle <quantité>`);
+      throw new Error(`${count} n'est pas une quantité valide.\nUsage : extractSafeCAFromOracle <quantité>`);
     }
 
     // LIMIT-like query for old versions of Oracle:
