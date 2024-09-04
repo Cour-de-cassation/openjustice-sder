@@ -93,6 +93,7 @@ async function main(count) {
       )}</body></html>`;
       decision.JDEC_HTML_SOURCE = decision.HTMLA;
       decision.JDEC_OCC_COMP_LIBRE = null;
+      decision.JDEC_COLL_PARTIES = `${JDEC_COLL_PARTIES}`.replace(/<partie.*typePersonne=\"pp\".*>.*<\/partie>/gim, '');
 
       const nac = [];
       if (decision.JDEC_CODNAC) {
