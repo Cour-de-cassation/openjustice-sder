@@ -112,7 +112,7 @@ async function main(count) {
       decision.JDEC_HTML_SOURCE = decision.HTMLA;
       decision.JDEC_OCC_COMP_LIBRE = null;
       const xmlParties = `<document>${decision.JDEC_COLL_PARTIES}</document>`;
-      const validParties = XMLValidator.validate(xml);
+      const validParties = XMLValidator.validate(xmlParties);
       if (validParties === true) {
         let safePartiesXML = '';
         const safeParties = [];
