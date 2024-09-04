@@ -72,7 +72,8 @@ async function main(count) {
 
     while ((resultRow = await rs.getRow())) {
       const decision = await parseOracleData(resultRow);
-      decision.XML = `${decision.XMLA}`;
+      decision.XMLA = `${decision.XMLA}`.replace(/<parties>.*<\/parties>/gim, '<PARTIES></PARTIES>');
+      decision.XML = decision.XMLA;
       decision.OCCULTATION_SUPPLEMENTAIRE = null;
 
       const titrage = [];
