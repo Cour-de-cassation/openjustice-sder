@@ -4,7 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const prompt = require('prompt');
 const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
-const { PenalOracle } = require('./penal-oracle');
+const { PenalOracle } = require('../penal-oracle');
 const ms = require('ms');
 
 const iconv = require('iconv-lite');
