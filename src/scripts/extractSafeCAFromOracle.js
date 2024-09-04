@@ -94,7 +94,7 @@ async function main(count) {
       decision.JDEC_HTML_SOURCE = decision.HTMLA;
       decision.JDEC_OCC_COMP_LIBRE = null;
       decision.JDEC_COLL_PARTIES = `${decision.JDEC_COLL_PARTIES}`.replace(
-        /<partie.*typepersonne=\"pp\".*>.*<\/partie>/gims,
+        /<partie[^>]*typepersonne=\"pp\">(?!<partie).*<\/partie>/gims,
         '',
       );
 
