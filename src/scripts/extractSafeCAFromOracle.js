@@ -146,13 +146,6 @@ async function main(count) {
             if (safeParties[ip].typePersonne !== 'PP') {
               safePartiesXML = `${safePartiesXML}\n\t<partie qualitePartie="${safeParties[ip].qualitePartie}" typePersonne="${safeParties[ip].typePersonne}">\n\t\t<identite>${safeParties[ip].identite}</identite>\n\t</partie>`;
             }
-            normalizedDecision.parties.push({
-              attributes: {
-                qualitePartie: safeParties[ip].qualitePartie,
-                typePersonne: safeParties[ip].typePersonne,
-              },
-              identite: safeParties[ip].identite,
-            });
           } else if (safeParties[ip].attributes !== undefined) {
             if (safeParties[ip].attributes.typePersonne !== 'PP') {
               safePartiesXML = `${safePartiesXML}\n\t<partie qualitePartie="${safeParties[ip].attributes.qualitePartie}" typePersonne="${safeParties[ip].attributes.typePersonne}">\n\t\t<identite>${safeParties[ip].identite}</identite>\n\t</partie>`;
