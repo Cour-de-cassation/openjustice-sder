@@ -28,6 +28,7 @@ function kill(code) {
 }
 
 async function main(count) {
+  const dump = [];
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
@@ -92,15 +93,16 @@ async function main(count) {
       }
       data.XML = `${data.XMLA}`;
       data.OCCULTATION_SUPPLEMENTAIRE = null;
-      console.log(JSON.stringify(data));
+      dump.push(data);
     }
     await rs.close();
   } catch (e) {
     console.error(e);
   }
 
-  await jurinetSource.close();
   prompt.stop();
+  await jurinetSource.close();
+  console.log(JSON.stringify(dump));
   setTimeout(end, ms('1s'));
   return true;
 }

@@ -30,6 +30,7 @@ function kill(code) {
 }
 
 async function main(count) {
+  const dump = [];
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
 
@@ -110,16 +111,17 @@ async function main(count) {
       )}</body></html>`;
       data.JDEC_HTML_SOURCE = `${data.HTMLA}`;
       data.JDEC_OCC_COMP_LIBRE = null;
-      console.log(JSON.stringify(data));
+      dump.push(data);
     }
     await rs.close();
   } catch (e) {
     console.error(e);
   }
 
+  prompt.stop();
   await juricaSource.close();
   await client.close();
-  prompt.stop();
+  console.log(JSON.stringify(dump));
   setTimeout(end, ms('1s'));
   return true;
 }
