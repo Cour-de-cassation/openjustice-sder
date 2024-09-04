@@ -4,7 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const prompt = require('prompt');
 const { parentPort } = require('worker_threads');
 const { JuricaOracle } = require('../jurica-oracle');
-const { GRCOMOracle } = require('./grcom-oracle');
+const { GRCOMOracle } = require('../grcom-oracle');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
