@@ -103,7 +103,7 @@ async function main(count) {
   prompt.stop();
   await juricaSource.close();
   await client.close();
-  console.log(JSON.stringify(dump));
+  console.log(JSON.stringify(dump, null, 2));
   setTimeout(end, ms('1s'));
   return true;
 }

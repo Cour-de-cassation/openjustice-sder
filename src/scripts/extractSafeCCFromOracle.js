@@ -258,7 +258,7 @@ async function main(count) {
   prompt.stop();
   await jurinetSource.close();
   await penalSource.close();
-  console.log(JSON.stringify(dump));
+  console.log(JSON.stringify(dump, null, 2));
   setTimeout(end, ms('1s'));
   return true;
 }
