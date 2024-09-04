@@ -98,9 +98,9 @@ async function main(count) {
       if (decision.JDEC_CODNAC) {
         try {
           const queryNac = `SELECT *
-          FROM JCA_NAC
-          WHERE JCA_NAC.JNAC_F22CODE = :code`;
-          const resultNac = await jurinetSource.connection.execute(queryNac, [decision.JDEC_CODNAC]);
+            FROM JCA_NAC
+            WHERE JCA_NAC.JNAC_F22CODE = :code`;
+          const resultNac = await juricaSource.connection.execute(queryNac, [decision.JDEC_CODNAC]);
           if (resultNac && resultNac.rows && resultNac.rows.length > 0) {
             for (let j = 0; j < resultNac.rows.length; j++) {
               nac.push(await parseOracleData(resultNac.rows[j]));
@@ -115,8 +115,8 @@ async function main(count) {
           try {
             if (nac[i].JNAC_IND_BLOC) {
               const queryOccultations = `SELECT *
-              FROM BLOCS_OCCULT_COMPL
-              WHERE BLOCS_OCCULT_COMPL.ID_BLOC = :code`;
+                FROM BLOCS_OCCULT_COMPL
+                WHERE BLOCS_OCCULT_COMPL.ID_BLOC = :code`;
               const resultOccultations = await GRCOMSource.connection.execute(queryOccultations, [
                 nac[i].JNAC_IND_BLOC,
               ]);
