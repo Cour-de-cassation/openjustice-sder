@@ -75,43 +75,25 @@ async function main(count) {
     const rs = result.resultSet;
 
     while ((resultRow = await rs.getRow())) {
-      const data = {};
-      for (let key in resultRow) {
-        switch (key) {
-          case 'rnum':
-          case 'RNUM':
-            // Ignore RNUM key (added by offset/limit queries)
-            break;
-          default:
-            if (resultRow[key] && typeof resultRow[key].getData === 'function') {
-              try {
-                data[key] = await resultRow[key].getData();
-              } catch (e) {
-                data[key] = null;
-              }
-            } else {
-              data[key] = resultRow[key];
-            }
-            if (Buffer.isBuffer(data[key])) {
-              data[key] = iconv.decode(data[key], 'CP1252');
-            }
-            break;
-        }
-      }
+      const decision = await parseOracleData(resultRow);
       let normalized = await decisions.findOne({
-        sourceId: data.JDEC_ID,
+        sourceId: decision.JDEC_ID,
         sourceName: 'jurica',
         pseudoText: { $ne: null },
       });
       if (normalized === null) {
-        throw new Error(`Decision ${data.JDEC_ID} introuvable en version pseudonymisée dans la collection 'decisions'`);
+        throw new Error(
+          `Decision ${decision.JDEC_ID} introuvable en version pseudonymisée dans la collection 'decisions'`,
+        );
       }
-      data.HTMLA = `<html><head><meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" /></head><body>${he.encode(
+      decision.HTMLA = `<html><head><meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" /></head><body>${he.encode(
         normalized.pseudoText,
       )}</body></html>`;
-      data.JDEC_HTML_SOURCE = `${data.HTMLA}`;
-      data.JDEC_OCC_COMP_LIBRE = null;
-      dump.push(data);
+      decision.JDEC_HTML_SOURCE = `${decision.HTMLA}`;
+      decision.JDEC_OCC_COMP_LIBRE = null;
+      dump.push({
+        JCA_DECISION: decision,
+      });
     }
     await rs.close();
   } catch (e) {
@@ -124,6 +106,33 @@ async function main(count) {
   console.log(JSON.stringify(dump));
   setTimeout(end, ms('1s'));
   return true;
+}
+
+async function parseOracleData(data) {
+  const parsed = {};
+  for (let key in data) {
+    switch (key) {
+      case 'rnum':
+      case 'RNUM':
+        // Ignore RNUM key (added by offset/limit queries)
+        break;
+      default:
+        if (data[key] && typeof data[key].getData === 'function') {
+          try {
+            parsed[key] = await data[key].getData();
+          } catch (ignore) {
+            parsed[key] = null;
+          }
+        } else {
+          parsed[key] = data[key];
+        }
+        if (Buffer.isBuffer(parsed[key])) {
+          parsed[key] = iconv.decode(parsed[key], 'CP1252');
+        }
+        break;
+    }
+  }
+  return parsed;
 }
 
 main(parseInt(process.argv[2], 10));

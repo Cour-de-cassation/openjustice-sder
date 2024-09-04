@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const prompt = require('prompt');
 const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
+const { PenalOracle } = require('./penal-oracle');
 const ms = require('ms');
 
 const iconv = require('iconv-lite');
@@ -31,6 +32,8 @@ async function main(count) {
   const dump = [];
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
+  const penalSource = new PenalOracle();
+  await penalSource.connect();
 
   prompt.colors = false;
   prompt.start();
@@ -68,32 +71,184 @@ async function main(count) {
     const rs = result.resultSet;
 
     while ((resultRow = await rs.getRow())) {
-      const data = {};
-      for (let key in resultRow) {
-        switch (key) {
-          case 'rnum':
-          case 'RNUM':
-            // Ignore RNUM key (added by offset/limit queries)
-            break;
-          default:
-            if (resultRow[key] && typeof resultRow[key].getData === 'function') {
-              try {
-                data[key] = await resultRow[key].getData();
-              } catch (e) {
-                data[key] = null;
+      const decision = await parseOracleData(resultRow);
+      decision.XML = `${decision.XMLA}`;
+      decision.OCCULTATION_SUPPLEMENTAIRE = null;
+
+      const titrage = [];
+      try {
+        const queryTitrage = `SELECT *
+          FROM TITREREFERENCE
+          WHERE TITREREFERENCE.ID_DOCUMENT = :id`;
+        const resultTitrage = await jurinetSource.connection.execute(queryTitrage, [decision.ID_DOCUMENT]);
+        if (resultTitrage && resultTitrage.rows && resultTitrage.rows.length > 0) {
+          for (let j = 0; j < resultTitrage.rows.length; j++) {
+            titrage.push(await parseOracleData(resultTitrage.rows[j]));
+          }
+        }
+      } catch (ignore) {}
+
+      const analyse = [];
+      try {
+        const queryAnalyse = `SELECT *
+          FROM ANALYSE
+          WHERE ANALYSE.ID_DOCUMENT = :id`;
+        const resultAnalyse = await jurinetSource.connection.execute(queryAnalyse, [decision.ID_DOCUMENT]);
+        if (resultAnalyse && resultAnalyse.rows && resultAnalyse.rows.length > 0) {
+          for (let j = 0; j < resultAnalyse.rows.length; j++) {
+            analyse.push(await parseOracleData(resultAnalyse.rows[j]));
+          }
+        }
+      } catch (ignore) {}
+
+      const partie = [];
+      try {
+        const queryPartie = `SELECT *
+          FROM VIEW_PARTIE
+          WHERE VIEW_PARTIE.ID_DOCUMENT = :id`;
+        const resultPartie = await jurinetSource.connection.execute(queryPartie, [decision.ID_DOCUMENT]);
+        if (resultPartie && resultPartie.rows && resultPartie.rows.length > 0) {
+          for (let j = 0; j < resultPartie.rows.length; j++) {
+            const _partie = await parseOracleData(resultPartie.rows[j]);
+            if (_partie.TYPE_PERSONNE !== 'PARTIE') {
+              partie.push(_partie);
+            }
+          }
+        }
+      } catch (ignore) {}
+
+      const numPourvoi = [];
+      try {
+        const queryNumPourvoi = `SELECT *
+          FROM NUMPOURVOI
+          WHERE NUMPOURVOI.ID_DOCUMENT = :id`;
+        const resultNumPourvoi = await jurinetSource.connection.execute(queryNumPourvoi, [decision.ID_DOCUMENT]);
+        if (resultNumPourvoi && resultNumPourvoi.rows && resultNumPourvoi.rows.length > 0) {
+          for (let j = 0; j < resultNumPourvoi.rows.length; j++) {
+            numPourvoi.push(await parseOracleData(resultNumPourvoi.rows[j]));
+          }
+        }
+      } catch (ignore) {}
+
+      const affaireCiv = [];
+      if (numPourvoi.length > 0) {
+        for (let i = 0; i < numPourvoi.length; i++) {
+          try {
+            const queryAffaireCiv = `SELECT *
+              FROM GPCIV.AFF
+              WHERE GPCIV.AFF.CODE = :code`;
+            const resultAffaireCiv = await jurinetSource.connection.execute(queryAffaireCiv, [
+              numPourvoi[i].NUMPOURVOICODE,
+            ]);
+            if (resultAffaireCiv && resultAffaireCiv.rows && resultAffaireCiv.rows.length > 0) {
+              for (let j = 0; j < resultAffaireCiv.rows.length; j++) {
+                affaireCiv.push(await parseOracleData(resultAffaireCiv.rows[j]));
               }
-            } else {
-              data[key] = resultRow[key];
             }
-            if (Buffer.isBuffer(data[key])) {
-              data[key] = iconv.decode(data[key], 'CP1252');
-            }
-            break;
+          } catch (ignore) {}
         }
       }
-      data.XML = `${data.XMLA}`;
-      data.OCCULTATION_SUPPLEMENTAIRE = null;
-      dump.push(data);
+
+      const affairePen = [];
+      if (numPourvoi.length > 0) {
+        for (let i = 0; i < numPourvoi.length; i++) {
+          try {
+            const queryAffairePen = `SELECT *
+              FROM GPPEN.AFF
+              WHERE GPPEN.AFF.CODE = :code`;
+            const resultAffairePen = await jurinetSource.connection.execute(queryAffairePen, [
+              numPourvoi[i].NUMPOURVOICODE,
+            ]);
+            if (resultAffairePen && resultAffairePen.rows && resultAffairePen.rows.length > 0) {
+              for (let j = 0; j < resultAffairePen.rows.length; j++) {
+                affairePen.push(await parseOracleData(resultAffairePen.rows[j]));
+              }
+            }
+          } catch (ignore) {}
+        }
+      }
+
+      const matiere = [];
+      if (affaireCiv.length > 0) {
+        for (let i = 0; i < affaireCiv.length; i++) {
+          try {
+            const queryMatiere = `SELECT *
+              FROM GPCIV.MATIERE
+              WHERE GPCIV.MATIERE.ID_MATIERE = :code`;
+            const resultMatiere = await jurinetSource.connection.execute(queryMatiere, [affaireCiv[i].ID_MATIERE]);
+            if (resultMatiere && resultMatiere.rows && resultMatiere.rows.length > 0) {
+              for (let j = 0; j < resultMatiere.rows.length; j++) {
+                matiere.push(await parseOracleData(resultMatiere.rows[j]));
+              }
+            }
+          } catch (ignore) {}
+        }
+      }
+
+      const matiereBis = [];
+      if (affaireCiv.length > 0) {
+        for (let i = 0; i < affaireCiv.length; i++) {
+          try {
+            const queryMatiere = `SELECT *
+              FROM GRCIV.MATIERE
+              WHERE GRCIV.MATIERE.ID_MATIERE = :code`;
+            const resultMatiere = await jurinetSource.connection.execute(queryMatiere, [affaireCiv[i].ID_MATIERE]);
+            if (resultMatiere && resultMatiere.rows && resultMatiere.rows.length > 0) {
+              for (let j = 0; j < resultMatiere.rows.length; j++) {
+                matiereBis.push(await parseOracleData(resultMatiere.rows[j]));
+              }
+            }
+          } catch (ignore) {}
+        }
+      }
+
+      const natAffairePen = [];
+      if (affairePen.length > 0) {
+        for (let i = 0; i < affairePen.length; i++) {
+          try {
+            const queryNatAff = `SELECT *
+              FROM GRPEN.NATAFF
+              WHERE GRPEN.NATAFF.ID_NATAFF = :code`;
+            const resultNatAff = await penalSource.connection.execute(queryNatAff, [affairePen[i].ID_NATAFF]);
+            if (resultNatAff && resultNatAff.rows && resultNatAff.rows.length > 0) {
+              for (let j = 0; j < resultNatAff.rows.length; j++) {
+                natAffairePen.push(await parseOracleData(resultNatAff.rows[j]));
+              }
+            }
+          } catch (ignore) {}
+        }
+      }
+
+      const nao = [];
+      if (affaireCiv.length > 0) {
+        for (let i = 0; i < affaireCiv.length; i++) {
+          try {
+            const queryNao = `SELECT *
+              FROM GPCIV.NAO
+              WHERE GPCIV.NAO.ID_NAO = :code`;
+            const resultNao = await jurinetSource.connection.execute(queryNao, [affaireCiv[i].ID_NAO]);
+            if (resultNao && resultNao.rows && resultNao.rows.length > 0) {
+              for (let j = 0; j < resultNao.rows.length; j++) {
+                nao.push(await parseOracleData(resultNao.rows[j]));
+              }
+            }
+          } catch (ignore) {}
+        }
+      }
+
+      dump.push({
+        DOCUMENT: decision,
+        TITREREFERENCE: titrage,
+        ANALYSE: analyse,
+        VIEW_PARTIE: partie,
+        NUMPOURVOI: numPourvoi,
+        'GPCIV.AFF': affaireCiv,
+        'GPPEN.AFF': affairePen,
+        'GPCIV.MATIERE': matiere,
+        'GRCIV.MATIERE': matiereBis, // Difference ???
+        'GRPEN.NATAFF': natAffairePen,
+        'GPCIV.NAO': nao,
+      });
     }
     await rs.close();
   } catch (e) {
@@ -102,9 +257,37 @@ async function main(count) {
 
   prompt.stop();
   await jurinetSource.close();
+  await penalSource.close();
   console.log(JSON.stringify(dump));
   setTimeout(end, ms('1s'));
   return true;
+}
+
+async function parseOracleData(data) {
+  const parsed = {};
+  for (let key in data) {
+    switch (key) {
+      case 'rnum':
+      case 'RNUM':
+        // Ignore RNUM key (added by offset/limit queries)
+        break;
+      default:
+        if (data[key] && typeof data[key].getData === 'function') {
+          try {
+            parsed[key] = await data[key].getData();
+          } catch (ignore) {
+            parsed[key] = null;
+          }
+        } else {
+          parsed[key] = data[key];
+        }
+        if (Buffer.isBuffer(parsed[key])) {
+          parsed[key] = iconv.decode(parsed[key], 'CP1252');
+        }
+        break;
+    }
+  }
+  return parsed;
 }
 
 main(parseInt(process.argv[2], 10));
