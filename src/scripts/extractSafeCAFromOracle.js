@@ -100,7 +100,6 @@ async function main(count) {
       let normalized = await decisions.findOne({
         sourceId: data.JDEC_ID,
         sourceName: 'jurica',
-        pseudoStatus: 2,
         pseudoText: { $ne: null },
       });
       if (normalized === null) {
