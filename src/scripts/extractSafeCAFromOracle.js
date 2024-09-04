@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const prompt = require('prompt');
 const { parentPort } = require('worker_threads');
 const { JuricaOracle } = require('../jurica-oracle');
+const { GRCOMOracle } = require('./grcom-oracle');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
 
@@ -33,7 +34,8 @@ async function main(count) {
   const dump = [];
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
-
+  const GRCOMSource = new GRCOMOracle();
+  await GRCOMSource.connect();
   const client = new MongoClient(process.env.MONGO_URI);
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
@@ -89,10 +91,49 @@ async function main(count) {
       decision.HTMLA = `<html><head><meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" /></head><body>${he.encode(
         normalized.pseudoText,
       )}</body></html>`;
-      decision.JDEC_HTML_SOURCE = `${decision.HTMLA}`;
+      decision.JDEC_HTML_SOURCE = decision.HTMLA;
       decision.JDEC_OCC_COMP_LIBRE = null;
+
+      const nac = [];
+      if (decision.JDEC_CODNAC) {
+        try {
+          const queryNac = `SELECT *
+          FROM JCA_NAC
+          WHERE JCA_NAC.JNAC_F22CODE = :code`;
+          const resultNac = await jurinetSource.connection.execute(queryNac, [decision.JDEC_CODNAC]);
+          if (resultNac && resultNac.rows && resultNac.rows.length > 0) {
+            for (let j = 0; j < resultNac.rows.length; j++) {
+              nac.push(await parseOracleData(resultNac.rows[j]));
+            }
+          }
+        } catch (ignore) {}
+      }
+
+      const occultations = [];
+      if (nac.length > 0) {
+        for (let i = 0; i < nac.length; i++) {
+          try {
+            if (nac[i].JNAC_IND_BLOC) {
+              const queryOccultations = `SELECT *
+              FROM BLOCS_OCCULT_COMPL
+              WHERE BLOCS_OCCULT_COMPL.ID_BLOC = :code`;
+              const resultOccultations = await GRCOMSource.connection.execute(queryOccultations, [
+                nac[i].JNAC_IND_BLOC,
+              ]);
+              if (resultOccultations && resultOccultations.rows && resultOccultations.rows.length > 0) {
+                for (let j = 0; j < resultOccultations.rows.length; j++) {
+                  occultations.push(await parseOracleData(resultOccultations.rows[j]));
+                }
+              }
+            }
+          } catch (ignore) {}
+        }
+      }
+
       dump.push({
         JCA_DECISION: decision,
+        JCA_NAC: nac,
+        BLOCS_OCCULT_COMPL: occultations,
       });
     }
     await rs.close();
@@ -102,6 +143,7 @@ async function main(count) {
 
   prompt.stop();
   await juricaSource.close();
+  await GRCOMSource.close();
   await client.close();
   console.log(JSON.stringify(dump, null, 2));
   setTimeout(end, ms('1s'));
