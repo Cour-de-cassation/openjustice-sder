@@ -318,7 +318,7 @@ async function parseOracleData(data, tableName, schema) {
             if (schema[tableName][key] === undefined) {
               schema[tableName][key] = {};
             }
-            schema[tableName][key].PROBLEM = true;
+            schema[tableName][key].PROBLEM = test;
           }
         }
         break;
