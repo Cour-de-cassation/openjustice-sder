@@ -50,6 +50,8 @@ function kill(code) {
 
 async function main(count) {
   const dump = [];
+  const schema = {};
+
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
   const GRCOMSource = new GRCOMOracle();
@@ -95,7 +97,7 @@ async function main(count) {
     const rs = result.resultSet;
 
     while ((resultRow = await rs.getRow())) {
-      const decision = await parseOracleData(resultRow);
+      const decision = await parseOracleData(resultRow, 'JCA_DECISION', schema);
       let normalized = await decisions.findOne({
         sourceId: decision.JDEC_ID,
         sourceName: 'jurica',
@@ -166,7 +168,7 @@ async function main(count) {
           const resultNac = await juricaSource.connection.execute(queryNac, [decision.JDEC_CODNAC]);
           if (resultNac && resultNac.rows && resultNac.rows.length > 0) {
             for (let j = 0; j < resultNac.rows.length; j++) {
-              nac.push(await parseOracleData(resultNac.rows[j]));
+              nac.push(await parseOracleData(resultNac.rows[j], 'JCA_NAC', schema));
             }
           }
         } catch (ignore) {}
@@ -185,7 +187,7 @@ async function main(count) {
               ]);
               if (resultOccultations && resultOccultations.rows && resultOccultations.rows.length > 0) {
                 for (let j = 0; j < resultOccultations.rows.length; j++) {
-                  occultations.push(await parseOracleData(resultOccultations.rows[j]));
+                  occultations.push(await parseOracleData(resultOccultations.rows[j], 'BLOCS_OCCULT_COMPL', schema));
                 }
               }
             }
@@ -208,12 +210,21 @@ async function main(count) {
   await juricaSource.close();
   await GRCOMSource.close();
   await client.close();
-  console.log(JSON.stringify(dump, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        decisions: dump,
+        schema: schema,
+      },
+      null,
+      2,
+    ),
+  );
   setTimeout(end, ms('1s'));
   return true;
 }
 
-async function parseOracleData(data) {
+async function parseOracleData(data, tableName, schema) {
   const parsed = {};
   for (let key in data) {
     switch (key) {
@@ -223,6 +234,13 @@ async function parseOracleData(data) {
         break;
       default:
         if (data[key] && typeof data[key].getData === 'function') {
+          if (schema[tableName] === undefined) {
+            schema[tableName] = {};
+          }
+          if (schema[tableName][key] === undefined) {
+            schema[tableName][key] = {};
+          }
+          schema[tableName][key].CLOB = true;
           try {
             parsed[key] = await data[key].getData();
           } catch (ignore) {
@@ -232,7 +250,25 @@ async function parseOracleData(data) {
           parsed[key] = data[key];
         }
         if (Buffer.isBuffer(parsed[key])) {
+          if (schema[tableName] === undefined) {
+            schema[tableName] = {};
+          }
+          if (schema[tableName][key] === undefined) {
+            schema[tableName][key] = {};
+          }
+          schema[tableName][key].CP1252 = true;
           parsed[key] = iconv.decode(parsed[key], 'CP1252');
+        } else {
+          const test = iconv.decode(Buffer.from(`${parsed[key]}`, 'latin1'), 'CP1252');
+          if (`${parsed[key]}` !== test) {
+            if (schema[tableName] === undefined) {
+              schema[tableName] = {};
+            }
+            if (schema[tableName][key] === undefined) {
+              schema[tableName][key] = {};
+            }
+            schema[tableName][key].PROBLEM = test;
+          }
         }
         break;
     }

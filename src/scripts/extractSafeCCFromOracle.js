@@ -74,7 +74,7 @@ async function main(count) {
 
     while ((resultRow = await rs.getRow())) {
       const decision = await parseOracleData(resultRow, 'DOCUMENT', schema);
-      decision.XMLA = `${decision.XMLA}`.replace(/<parties>.*<\/parties>/gims, '<PARTIES></PARTIES>');
+      decision.XMLA = `${decision.XMLA}`; //.replace(/<parties>.*<\/parties>/gims, '<PARTIES></PARTIES>');
       decision.XML = decision.XMLA;
       decision.OCCULTATION_SUPPLEMENTAIRE = null;
 
