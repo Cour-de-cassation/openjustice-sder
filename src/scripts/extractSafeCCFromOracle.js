@@ -291,7 +291,7 @@ async function parseOracleData(data, tableName, schema) {
           if (schema[tableName][key] === undefined) {
             schema[tableName][key] = {};
           }
-          schema[tableName][key].data = true;
+          schema[tableName][key].CLOB = true;
           try {
             parsed[key] = await data[key].getData();
           } catch (ignore) {
@@ -307,7 +307,7 @@ async function parseOracleData(data, tableName, schema) {
           if (schema[tableName][key] === undefined) {
             schema[tableName][key] = {};
           }
-          schema[tableName][key].decoded = true;
+          schema[tableName][key].CP1252 = true;
           parsed[key] = iconv.decode(parsed[key], 'CP1252');
         }
         break;
