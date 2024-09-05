@@ -30,6 +30,8 @@ function kill(code) {
 
 async function main(count) {
   const dump = [];
+  const schema = {};
+
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
   const penalSource = new PenalOracle();
@@ -71,7 +73,7 @@ async function main(count) {
     const rs = result.resultSet;
 
     while ((resultRow = await rs.getRow())) {
-      const decision = await parseOracleData(resultRow);
+      const decision = await parseOracleData(resultRow, 'DOCUMENT', schema);
       decision.XMLA = `${decision.XMLA}`.replace(/<parties>.*<\/parties>/gims, '<PARTIES></PARTIES>');
       decision.XML = decision.XMLA;
       decision.OCCULTATION_SUPPLEMENTAIRE = null;
@@ -84,7 +86,7 @@ async function main(count) {
         const resultTitrage = await jurinetSource.connection.execute(queryTitrage, [decision.ID_DOCUMENT]);
         if (resultTitrage && resultTitrage.rows && resultTitrage.rows.length > 0) {
           for (let j = 0; j < resultTitrage.rows.length; j++) {
-            titrage.push(await parseOracleData(resultTitrage.rows[j]));
+            titrage.push(await parseOracleData(resultTitrage.rows[j], 'TITREREFERENCE', schema));
           }
         }
       } catch (ignore) {}
@@ -97,7 +99,7 @@ async function main(count) {
         const resultAnalyse = await jurinetSource.connection.execute(queryAnalyse, [decision.ID_DOCUMENT]);
         if (resultAnalyse && resultAnalyse.rows && resultAnalyse.rows.length > 0) {
           for (let j = 0; j < resultAnalyse.rows.length; j++) {
-            analyse.push(await parseOracleData(resultAnalyse.rows[j]));
+            analyse.push(await parseOracleData(resultAnalyse.rows[j], 'ANALYSE', schema));
           }
         }
       } catch (ignore) {}
@@ -110,7 +112,7 @@ async function main(count) {
         const resultPartie = await jurinetSource.connection.execute(queryPartie, [decision.ID_DOCUMENT]);
         if (resultPartie && resultPartie.rows && resultPartie.rows.length > 0) {
           for (let j = 0; j < resultPartie.rows.length; j++) {
-            const _partie = await parseOracleData(resultPartie.rows[j]);
+            const _partie = await parseOracleData(resultPartie.rows[j], 'VIEW_PARTIE', schema);
             if (_partie.TYPE_PERSONNE !== 'PARTIE') {
               partie.push(_partie);
             }
@@ -126,7 +128,7 @@ async function main(count) {
         const resultNumPourvoi = await jurinetSource.connection.execute(queryNumPourvoi, [decision.ID_DOCUMENT]);
         if (resultNumPourvoi && resultNumPourvoi.rows && resultNumPourvoi.rows.length > 0) {
           for (let j = 0; j < resultNumPourvoi.rows.length; j++) {
-            numPourvoi.push(await parseOracleData(resultNumPourvoi.rows[j]));
+            numPourvoi.push(await parseOracleData(resultNumPourvoi.rows[j], 'NUMPOURVOI', schema));
           }
         }
       } catch (ignore) {}
@@ -143,7 +145,7 @@ async function main(count) {
             ]);
             if (resultAffaireCiv && resultAffaireCiv.rows && resultAffaireCiv.rows.length > 0) {
               for (let j = 0; j < resultAffaireCiv.rows.length; j++) {
-                affaireCiv.push(await parseOracleData(resultAffaireCiv.rows[j]));
+                affaireCiv.push(await parseOracleData(resultAffaireCiv.rows[j], 'GPCIV.AFF', schema));
               }
             }
           } catch (ignore) {}
@@ -162,7 +164,7 @@ async function main(count) {
             ]);
             if (resultAffairePen && resultAffairePen.rows && resultAffairePen.rows.length > 0) {
               for (let j = 0; j < resultAffairePen.rows.length; j++) {
-                affairePen.push(await parseOracleData(resultAffairePen.rows[j]));
+                affairePen.push(await parseOracleData(resultAffairePen.rows[j], 'GPPEN.AFF', schema));
               }
             }
           } catch (ignore) {}
@@ -179,7 +181,7 @@ async function main(count) {
             const resultMatiere = await jurinetSource.connection.execute(queryMatiere, [affaireCiv[i].ID_MATIERE]);
             if (resultMatiere && resultMatiere.rows && resultMatiere.rows.length > 0) {
               for (let j = 0; j < resultMatiere.rows.length; j++) {
-                matiere.push(await parseOracleData(resultMatiere.rows[j]));
+                matiere.push(await parseOracleData(resultMatiere.rows[j], 'GPCIV.MATIERE', schema));
               }
             }
           } catch (ignore) {}
@@ -196,7 +198,7 @@ async function main(count) {
             const resultMatiere = await jurinetSource.connection.execute(queryMatiere, [affaireCiv[i].ID_MATIERE]);
             if (resultMatiere && resultMatiere.rows && resultMatiere.rows.length > 0) {
               for (let j = 0; j < resultMatiere.rows.length; j++) {
-                matiereBis.push(await parseOracleData(resultMatiere.rows[j]));
+                matiereBis.push(await parseOracleData(resultMatiere.rows[j], 'GRCIV.MATIERE', schema));
               }
             }
           } catch (ignore) {}
@@ -213,7 +215,7 @@ async function main(count) {
             const resultNatAff = await penalSource.connection.execute(queryNatAff, [affairePen[i].ID_NATAFF]);
             if (resultNatAff && resultNatAff.rows && resultNatAff.rows.length > 0) {
               for (let j = 0; j < resultNatAff.rows.length; j++) {
-                natAffairePen.push(await parseOracleData(resultNatAff.rows[j]));
+                natAffairePen.push(await parseOracleData(resultNatAff.rows[j], 'GRPEN.NATAFF', schema));
               }
             }
           } catch (ignore) {}
@@ -230,7 +232,7 @@ async function main(count) {
             const resultNao = await jurinetSource.connection.execute(queryNao, [affaireCiv[i].ID_NAO]);
             if (resultNao && resultNao.rows && resultNao.rows.length > 0) {
               for (let j = 0; j < resultNao.rows.length; j++) {
-                nao.push(await parseOracleData(resultNao.rows[j]));
+                nao.push(await parseOracleData(resultNao.rows[j], 'GPCIV.NAO', schema));
               }
             }
           } catch (ignore) {}
@@ -259,12 +261,21 @@ async function main(count) {
   prompt.stop();
   await jurinetSource.close();
   await penalSource.close();
-  console.log(JSON.stringify(dump, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        decisions: dump,
+        schema: schema,
+      },
+      null,
+      2,
+    ),
+  );
   setTimeout(end, ms('1s'));
   return true;
 }
 
-async function parseOracleData(data) {
+async function parseOracleData(data, tableName, schema) {
   const parsed = {};
   for (let key in data) {
     switch (key) {
@@ -274,6 +285,13 @@ async function parseOracleData(data) {
         break;
       default:
         if (data[key] && typeof data[key].getData === 'function') {
+          if (schema[tableName] === undefined) {
+            schema[tableName] = {};
+          }
+          if (schema[tableName][key] === undefined) {
+            schema[tableName][key] = {};
+          }
+          schema[tableName][key].data = true;
           try {
             parsed[key] = await data[key].getData();
           } catch (ignore) {
@@ -283,6 +301,13 @@ async function parseOracleData(data) {
           parsed[key] = data[key];
         }
         if (Buffer.isBuffer(parsed[key])) {
+          if (schema[tableName] === undefined) {
+            schema[tableName] = {};
+          }
+          if (schema[tableName][key] === undefined) {
+            schema[tableName][key] = {};
+          }
+          schema[tableName][key].decoded = true;
           parsed[key] = iconv.decode(parsed[key], 'CP1252');
         }
         break;
