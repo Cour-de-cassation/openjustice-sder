@@ -310,7 +310,7 @@ async function parseOracleData(data, tableName, schema) {
           schema[tableName][key].CP1252 = true;
           parsed[key] = iconv.decode(parsed[key], 'CP1252');
         } else {
-          const test = iconv.decode(Buffer.from(`${parsed[key]}`), 'CP1252');
+          const test = iconv.decode(Buffer.from(`${parsed[key]}`, 'CP1252'), 'CP1252');
           if (`${parsed[key]}` !== test) {
             if (schema[tableName] === undefined) {
               schema[tableName] = {};
