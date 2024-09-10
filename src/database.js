@@ -3,6 +3,10 @@ const iconv = require('iconv-lite');
 iconv.skipDecodeWarning = true;
 const oracledb = require('oracledb');
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+
+// Switch to "Thick Mode" (because Jurica uses an archaic version of Oracle, cf. https://node-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#enabling-node-oracledb-thick-mode-on-linux-and-related-platforms):
+oracledb.initOracleClient();
+
 const logger = console;
 
 class Database {

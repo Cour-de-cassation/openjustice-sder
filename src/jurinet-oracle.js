@@ -3,7 +3,6 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const iconv = require('iconv-lite');
 const oracledb = require('oracledb');
-const e = require('express');
 
 iconv.skipDecodeWarning = true;
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
