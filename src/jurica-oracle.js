@@ -8,7 +8,7 @@ iconv.skipDecodeWarning = true;
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 // Switch to "Thick Mode" (because Jurica uses an archaic version of Oracle, cf. https://node-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#enabling-node-oracledb-thick-mode-on-linux-and-related-platforms):
-oracledb.initOracleClient();
+// oracledb.initOracleClient();
 
 class JuricaOracle {
   constructor() {
