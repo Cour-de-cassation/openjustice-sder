@@ -35,7 +35,7 @@ async function main() {
   oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
   // Switch to "Thick Mode" (because Jurica uses an archaic version of Oracle, cf. https://node-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#enabling-node-oracledb-thick-mode-on-linux-and-related-platforms):
-  oracledb.initOracleClient();
+  // oracledb.initOracleClient();
 
   const jurinetConnection = await oracledb.getConnection({
     user: process.env.DB_USER,
