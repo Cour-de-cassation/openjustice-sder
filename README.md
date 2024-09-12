@@ -18,14 +18,30 @@ Nous conseillons de monter le projet [dbsder-api](git@github.com:Cour-de-cassati
 
 Nous détaillerons ici comment lancer openjustice à partir de docker compose. A l'usage, si l'exécution en container de ce code de scripting s'avérait problématique, nous reviendrions sur la documentation d'installation.
 
-### Monter l'image oracle
+### Installer le client oracle
 
-Tout d'abord, il faut monter une image docker d'oracle. A la différence de nombreuses bases de données, oracle ne fournit pas d'images pré-montées, toutefois, elle fourni [les moyens de le faire](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md):
+La librairie npm pour le client Oracle est un bridge avec l'application cliente Oracle nécessaire pour construire les connexions avec la base de donnée. Il nous faut donc installer ce "driver":
 
 ```
-git clone git@github.com:oracle/docker-images.git # On récupère les sources
-cd docker-images/OracleDatabase/SingleInstance/dockerfiles # On navigue jusqu'aux dockerfiles qui nous intéresse
-./buildContainerImage.sh -v 18.4.0 -x # On build l'image
+sudo apt install unzip wget libaio1 && # Installation des dépendances
+sudo mkdir /opt/oracle && # Création du répertoire qui contiendra le driver
+wget https://download.oracle.com/otn_software/linux/instantclient/2340000/instantclient-basic-linux.x64-23.4.0.24.05.zip && # fetch du driver
+sudo unzip -d /opt/oracle instantclient-basic-linux.x64-23.4.0.24.05.zip && # On le dézip dans le répertoire qu'on vient de créer
+rm instantclient-basic-linux.x64-23.4.0.24.05.zip # On supprime le fichier zip
+```
+
+Quand l'installation a eu lieu, il nous faut prévenir le système de sa disponibilité et de l'endroit où il est disponible. Pour ça, à la fin de votre ficher .bashrc ou .zshrc, ajoutez la ligne:
+
+`export LD_LIBRARY_PATH=/opt/oracle/instantclient_23_4:$LD_LIBRARY_PATH`
+
+### Monter l'image oracle
+
+Tout d'abord, il faut construire une image docker d'oracle. A la différence de nombreuses bases de données, oracle ne fournit pas d'images pré-montées, toutefois, elle fourni [les moyens de le faire](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md):
+
+```
+git clone git@github.com:oracle/docker-images.git && # On récupère les sources
+cd docker-images/OracleDatabase/SingleInstance/dockerfiles && # On navigue jusqu'aux dockerfiles qui nous intéresse
+./buildContainerImage.sh -v 18.4.0 -x && # On build l'image
 docker image ls # Vous derviez voir l'image oracle/database 18.4.0-xe
 ```
 
