@@ -34,7 +34,10 @@
     "docker:kill": "docker compose -f docker-compose.local.yml down --remove-orphans --volumes --rmi local",
     "docker:oracle:env": "docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/replace.js",
     "docker:oracle:up": "npm run docker:oracle:env && docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/migrate.js up",
-    "docker:oracle:down": "docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/migrate.js down"
+    "docker:oracle:down": "docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/migrate.js down",
+    "docker:jobs:buildAffaires": "docker compose -f docker-compose.local.yml exec openjustice-sder node src/jobs/buildAffaires.js",
+    "docker:jobs:import": "docker compose -f docker-compose.local.yml exec openjustice-sder node src/jobs/import.js",
+    "docker:jobs:reinject": "docker compose -f docker-compose.local.yml exec openjustice-sder node src/jobs/reinject.js"
   },
   "repository": {
     "type": "git",
