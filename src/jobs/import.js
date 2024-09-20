@@ -19,6 +19,8 @@ const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
 let selfKill = setTimeout(cancel, ms('1h'));
 
+const CCLimitDate = new Date('2021-09-30');
+
 function end() {
   clearTimeout(selfKill);
   if (parentPort) parentPort.postMessage('done');
@@ -37,7 +39,7 @@ function kill(code) {
 
 async function main() {
   console.log(
-    `OpenJustice - Start "import" job v20240620_2 on env ${process.env.NODE_ENV}:`,
+    `OpenJustice - Start "import" job v20240911_1 on env ${process.env.NODE_ENV}:`,
     new Date().toLocaleString(),
   );
   try {
@@ -163,22 +165,18 @@ async function importJurinet() {
           try {
             let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
             inDate.setHours(inDate.getHours() + 2);
-            inDate = DateTime.fromJSDate(inDate);
-            const dateDiff = inDate.diffNow('months').toObject();
-            if (dateDiff.months <= -6) {
-              // tooOld = true;
+            if (inDate.getTime() < CCLimitDate.getTime()) {
+              tooOld = true;
             }
 
-            const dateDiff2 = inDate.diffNow('days').toObject();
+            const dateDiff2 = DateTime.fromJSDate(inDate).diffNow('days').toObject();
             if (dateDiff2.days > 1) {
               tooEarly = true;
             }
 
             if (tooOld === true && hasException === false) {
               throw new Error(
-                `Cannot import decision ${row._id} because it is too old (${Math.round(
-                  Math.abs(dateDiff.months),
-                )} months).`,
+                `Cannot import decision ${row._id} because it is too old (${row.DT_DECISION.toISOString()}).`,
               );
             } else if (tooEarly === true && hasException === false) {
               throw new Error(
@@ -1090,13 +1088,11 @@ async function syncJurinet() {
             try {
               let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
               inDate.setHours(inDate.getHours() + 2);
-              inDate = DateTime.fromJSDate(inDate);
-              const dateDiff = inDate.diffNow('months').toObject();
-              if (dateDiff.months <= -6) {
-                // tooOld = true;
+              if (inDate.getTime() < CCLimitDate.getTime()) {
+                tooOld = true;
               }
 
-              const dateDiff2 = inDate.diffNow('days').toObject();
+              const dateDiff2 = DateTime.fromJSDate(inDate).diffNow('days').toObject();
               if (dateDiff2.days > 1) {
                 tooEarly = true;
               }
@@ -1119,7 +1115,7 @@ async function syncJurinet() {
                 await JudilibreIndex.updateJurinetDocument(
                   row,
                   null,
-                  `update in rawJurinet (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in rawJurinet (sync2) - Skip decision (too old: ${row.DT_DECISION.toISOString()}) - changelog: ${JSON.stringify(changelog)}`,
                 );
               } else if (tooEarly === true && hasException === false) {
                 updateCount++;
@@ -1129,7 +1125,7 @@ async function syncJurinet() {
                 await JudilibreIndex.updateJurinetDocument(
                   row,
                   null,
-                  `update in rawJurinet (sync2) - Skip decision (too early) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in rawJurinet (sync2) - Skip decision (too early: ${Math.round(dateDiff2.days)} days) - changelog: ${JSON.stringify(changelog)}`,
                 );
               } else {
                 row._indexed = null;
