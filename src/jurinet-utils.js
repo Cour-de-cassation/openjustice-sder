@@ -475,6 +475,8 @@ class JurinetUtils {
       natureAffairePenal: null,
       codeMatiereCivil: null,
       recommandationOccultation: null,
+      dateImport: previousVersion ? previousVersion.dateImport : now.toISOString(),
+      datePublication: previousVersion?.datePublication ?? null,
     };
 
     if (previousVersion) {
