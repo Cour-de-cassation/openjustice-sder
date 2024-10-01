@@ -477,6 +477,7 @@ class JurinetUtils {
       recommandationOccultation: null,
       dateImport: previousVersion ? previousVersion.dateImport : now.toISOString(),
       datePublication: previousVersion?.datePublication ?? null,
+      dateDepublication: previousVersion?.dateDepublication ?? null,
     };
 
     if (previousVersion) {

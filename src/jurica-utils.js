@@ -1108,7 +1108,8 @@ class JuricaUtils {
       codeMatiereCivil: null,
       recommandationOccultation: JuricaUtils.GetRecommandationOccultation(document),
       dateImport: previousVersion ? previousVersion.dateImport : now.toISOString(),
-      datePublication: previousVersion?.datePublication ?? null
+      datePublication: previousVersion?.datePublication ?? null,
+      dateDepublication: previousVersion?.dateDepublication ?? null,
     };
 
     try {
