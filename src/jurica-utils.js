@@ -1107,9 +1107,9 @@ class JuricaUtils {
       natureAffairePenal: null,
       codeMatiereCivil: null,
       recommandationOccultation: JuricaUtils.GetRecommandationOccultation(document),
-      dateImport: previousVersion ? previousVersion.dateImport : now.toISOString(),
-      datePublication: previousVersion?.datePublication ?? null,
-      dateDepublication: previousVersion?.dateDepublication ?? null,
+      importDate: previousVersion ? previousVersion.importDate : now.toISOString(),
+      publishDate: previousVersion?.publishDate ?? null,
+      unpublishDate: previousVersion?.unpublishDate ?? null,
     };
 
     try {
