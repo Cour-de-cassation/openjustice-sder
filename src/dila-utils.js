@@ -261,7 +261,8 @@ class DilaUtils {
       natureAffairePenal: null,
       codeMatiereCivil: null,
       recommandationOccultation: null,
-      importDate: previousVersion ? previousVersion.importDate : now.toISOString(),
+      firstImportDate: previousVersion ? previousVersion.firstImportDate : now.toISOString(),
+      lastImportDate:  now.toISOString(),
       publishDate: previousVersion?.publishDate ?? null,
       unpublishDate: previousVersion?.unpublishDate ?? null,
     };
