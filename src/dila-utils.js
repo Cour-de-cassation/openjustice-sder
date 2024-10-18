@@ -261,6 +261,9 @@ class DilaUtils {
       natureAffairePenal: null,
       codeMatiereCivil: null,
       recommandationOccultation: null,
+      importDate: previousVersion ? previousVersion.importDate : now.toISOString(),
+      publishDate: previousVersion?.publishDate ?? null,
+      unpublishDate: previousVersion?.unpublishDate ?? null,
     };
 
     return normalizedDecision;
