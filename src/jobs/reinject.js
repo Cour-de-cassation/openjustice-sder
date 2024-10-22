@@ -81,6 +81,7 @@ async function reinjectJurinet() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
+        // @todo-oddj-dashboard: decision (decision.sourceName, decision.sourceId) libérée par Label, réinjectée dans Oracle et prête à être publiée
         if (raw && raw.IND_ANO !== 2) {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         } else {
@@ -88,7 +89,8 @@ async function reinjectJurinet() {
         }
         successCount++;
       }
-    } catch (e) {
+    } catch (e) {        
+      // @todo-oddj-dashboard: erreur lors de la réinjection dans Oracle de la decision (decision.sourceName, decision.sourceId, e)
       console.error(`Jurinet reinjection error processing decision ${decision._id}`, e);
       await JudilibreIndex.updateDecisionDocument(decision, null, null, e);
       errorCount++;
@@ -141,6 +143,7 @@ async function reinjectJurica() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
+        // @todo-oddj-dashboard: decision (decision.sourceName, decision.sourceId) libérée par Label, réinjectée dans Oracle et prête à être publiée
         if (raw && raw.IND_ANO !== 2) {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         } else {
@@ -149,6 +152,7 @@ async function reinjectJurica() {
         successCount++;
       }
     } catch (e) {
+      // @todo-oddj-dashboard: erreur lors de la réinjection dans Oracle de la decision (decision.sourceName, decision.sourceId, e)
       console.error(`Jurica reinjection error processing decision ${decision._id}`, e);
       await JudilibreIndex.updateDecisionDocument(decision, null, null, e);
       errorCount++;
