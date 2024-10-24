@@ -1111,6 +1111,7 @@ class JuricaUtils {
       lastImportDate:  now.toISOString(),
       publishDate: previousVersion?.publishDate ?? null,
       unpublishDate: previousVersion?.unpublishDate ?? null,
+      selection: parseInt(`${document.JDEC_SELECTION}`, 10) === 1 ? true : false,
     };
 
     try {

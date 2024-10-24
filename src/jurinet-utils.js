@@ -479,6 +479,7 @@ class JurinetUtils {
       lastImportDate:  now.toISOString(),
       publishDate: previousVersion?.publishDate ?? null,
       unpublishDate: previousVersion?.unpublishDate ?? null,
+      selection: false,
     };
 
     if (previousVersion) {
