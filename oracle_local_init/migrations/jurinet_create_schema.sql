@@ -24,7 +24,7 @@ CREATE TABLE ANALYSE (
   TITRE_REFERENCE CLOB           NULL
 );
 
-CREATE TABLE ${DB_TABLE} (
+CREATE TABLE DOCUMENT (
   ID_DOCUMENT                 NUMBER         NOT NULL,
   CLEF_ARRET                  NUMBER         NULL,
   TYPE_ARRET                  VARCHAR2(2000) NULL,
@@ -222,13 +222,13 @@ CREATE TABLE GPCIV.AFF (
   IND_COMPLEXITE          NUMBER          NULL,
   ID_TYPE_NUM_LOT         NUMBER          NULL,
   ID_COMPO                NUMBER          NULL,
-  ID_ORIENTATION_CHAMBRE  NUMBER          NULL,
+  ID_ORIENTATION_CHAMBRE  VARCHAR2(20)    NULL,
   IND_PREORIENTATION      NUMBER          NULL,
   JDEC_CODNAC             VARCHAR2(20)    NULL,
   JDEC_LIBNAC             VARCHAR2(4000)  NULL,
   JDEC_CODNACPART         VARCHAR2(20)    NULL,
   JDEC_LIBNACPART         VARCHAR2(1000)  NULL,
-  ID_NAO                  NUMBER          NULL,
+  ID_NAO                  VARCHAR2(20)    NULL,
   CASE_ID                 NUMBER          NULL
 );
 
