@@ -183,6 +183,12 @@ class JuricaOracle {
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= ${strAgo}
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
 
+      query = `SELECT * FROM (
+        SELECT a.*, ROWNUM rnum FROM (
+          ${query}
+        ) a WHERE rownum <= 500
+      ) WHERE rnum >= 0`;
+
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
