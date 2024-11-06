@@ -186,7 +186,7 @@ class JuricaOracle {
       query = `SELECT * FROM (
         SELECT a.*, ROWNUM rnum FROM (
           ${query}
-        ) a WHERE rownum <= 500
+        ) a WHERE rownum <= 250
       ) WHERE rnum >= 0`;
 
       const result = await this.connection.execute(query, [], {

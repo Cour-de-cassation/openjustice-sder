@@ -39,7 +39,7 @@ function kill(code) {
 
 async function main() {
   console.log(
-    `OpenJustice - Start "import" job v20240911_1 on env ${process.env.NODE_ENV}:`,
+    `OpenJustice - Start "import" job v20241106_1 on env ${process.env.NODE_ENV}:`,
     new Date().toLocaleString(),
   );
   try {
