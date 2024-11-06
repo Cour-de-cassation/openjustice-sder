@@ -1,0 +1,30 @@
+services:
+  dbdsi:
+    image: oracle/database:18.4.0-xe
+    container_name: dbdsi
+    ports:
+      - "51521:1521"
+    environment:
+      - ORACLE_PWD=ADMIN
+      - ORACLE_CHARACTERSET=WE8MSWIN1252
+    volumes:
+      - ./data/oracle:/opt/oracle/oradata
+      - ./oracle_local_init/oracle_init.sql:/opt/oracle/scripts/startup/oracle_init.sql
+    networks:
+      - judilibre-local
+
+  openjustice-sder:
+    container_name: openjustice
+    build:
+      target: openjustice-sder-local
+      context: .
+    depends_on:
+      - dbdsi
+    volumes:
+      - .:/home/node
+    networks:
+      - judilibre-local
+
+networks:
+  judilibre-local:
+    external: true

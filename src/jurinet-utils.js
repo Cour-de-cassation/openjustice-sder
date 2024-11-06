@@ -475,6 +475,11 @@ class JurinetUtils {
       natureAffairePenal: null,
       codeMatiereCivil: null,
       recommandationOccultation: null,
+      firstImportDate: previousVersion ? previousVersion.firstImportDate : now.toISOString(),
+      lastImportDate:  now.toISOString(),
+      publishDate: previousVersion?.publishDate ?? null,
+      unpublishDate: previousVersion?.unpublishDate ?? null,
+      selection: false,
     };
 
     if (previousVersion) {

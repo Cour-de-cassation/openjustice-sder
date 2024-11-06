@@ -1,7 +1,16 @@
 ---
 node_env: preprod
-judifiltre_uri: 'judifiltre.judilibre-prive.local'
-meta_uri: '172.16.118.98'
-api_zonage_uri: 'http://172.16.118.98:8090'
-zoning_protocol: 'http'
-zoning_uri: 'nlp-jurizonage-api-service.nlp.svc.cluster.local:8090'
+
+db_user: "{{ vault_db_user }}"
+db_pass: "{{ vault_db_pass }}"
+db_user_jurica: "{{ vault_db_user_jurica }}"
+db_pass_jurica: "{{ vault_db_pass_jurica }}"
+mongo_uri: "{{ vault_mongo_uri }}"
+index_db_uri: "{{ vault_index_db_uri }}"
+grcom_db_user: "{{ vault_grcom_db_user }}"
+grcom_db_pass: "{{ vault_grcom_db_pass }}"
+penal_db_user: "{{ vault_penal_db_user }}"
+penal_db_pass: "{{ vault_penal_db_pass }}"
+db_host: "{{ vault_db_host }}"
+db_host_jurica: "{{ vault_db_host_jurica }}"
+penal_db_host: "{{ vault_penal_db_host }}"
