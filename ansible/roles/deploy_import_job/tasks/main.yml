@@ -7,9 +7,3 @@
 
 - name: Deploy secrets
   import_tasks: secret.yml
-
-- name: Deploy test scripts
-  include_tasks: cronjob.yml
-  loop: "{{ jobs_sder }}"
-  loop_control:
-    loop_var: job_sder
