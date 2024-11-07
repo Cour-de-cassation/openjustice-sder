@@ -52,6 +52,7 @@ async function main() {
   } catch (e) {
     console.error('Jurica import error', e);
   }
+  /*
   try {
     await syncJurinet();
   } catch (e) {
@@ -62,6 +63,7 @@ async function main() {
   } catch (e) {
     console.error('Jurica sync2 error', e);
   }
+  */
   console.log('OpenJustice - End "import" job:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
 }
@@ -1864,7 +1866,7 @@ async function syncJurica() {
   } catch (e) {
     console.error(e);
   }
-  
+
   return true;
 }
 
