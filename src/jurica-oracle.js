@@ -175,6 +175,8 @@ class JuricaOracle {
       strAgo += ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1;
       strAgo += ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
 
+      console.log(`JuricaOracle:getNew(${monthAgo}): ${strAgo}.`);
+
       let query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
