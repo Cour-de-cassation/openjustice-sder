@@ -16,7 +16,8 @@ COPY . /app
 RUN mkdir src/jobs/data
 RUN npm config set proxy ${http_proxy}
 RUN npm config set https-proxy ${http_proxy}
-RUN npm install
+# DON'T DO IT (1):
+# RUN npm install
 
 CMD ["npm", "run", "start"]
 
@@ -34,6 +35,8 @@ USER node
 WORKDIR /home/node
 
 COPY --chown=node:node . .
+# THIS WILL DO IT (1):
 RUN npm i
 
+# THIS WILL DO IT (2):
 CMD ["npm", "run", "start:watch"]
