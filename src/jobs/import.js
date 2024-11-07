@@ -293,10 +293,10 @@ async function importJurinet() {
             errorCount++;
           }
         } else {
-          console.log(`Jurinet skip already inserted CC decision ${row._id}`);
+          // console.log(`Jurinet skip already inserted CC decision ${row._id}`);
         }
       } else {
-        console.log(`Jurinet skip non CC decision ${row._id}`);
+        // console.log(`Jurinet skip non CC decision ${row._id}`);
       }
     }
   } else {
@@ -824,7 +824,7 @@ async function importJurica() {
           errorCount++;
         }
       } else {
-        console.log(`Jurica skip already inserted CA decision ${row._id}`);
+        // console.log(`Jurica skip already inserted CA decision ${row._id}`);
       }
     }
   }

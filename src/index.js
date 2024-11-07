@@ -18,14 +18,12 @@ if (!process.env.SKIP_JOBS) {
       */
       {
         name: 'import',
-        interval: 'every 3 minutes after 8:00am and before 5:00pm',
+        interval: 'every 5 minutes after 8:00am and before 5:00pm',
       },
-      /*
       {
         name: 'reinject',
         interval: 'every 11 minutes after 1:00pm and before 7:00pm',
       },
-      */
     ],
   });
 
