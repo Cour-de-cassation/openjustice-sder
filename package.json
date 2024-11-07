@@ -27,6 +27,7 @@
   },
   "scripts": {
     "test": "jest",
+    "start": "node src/index.js",
     "start:watch": "nodemon src/index.js",
     "docker:start": "node oracle_local_init/replace.js && docker compose -f docker-compose.local.yml up -d",
     "docker:stop": "docker compose -f docker-compose.local.yml stop",

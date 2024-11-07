@@ -29,7 +29,7 @@ build_openjustice_sder:
         echo $script_name
         docker_image=$(eval "echo \$image_$script_name")
         echo $docker_image
-        docker build --build-arg script_name=$script_name --build-arg http_proxy=$HTTP_PROXY --build-arg https_proxy=$HTTPS_PROXY -t $docker_image .
+        docker build --target openjustice-sder-prod --build-arg script_name=$script_name --build-arg http_proxy=$HTTP_PROXY --build-arg https_proxy=$HTTPS_PROXY -t $docker_image .
         docker push $docker_image
       done
   only:

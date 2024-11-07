@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:18 AS openjustice-sder-prod
 ARG http_proxy
 ARG https_proxy
 ARG script_name
@@ -16,11 +16,9 @@ COPY . /app
 RUN mkdir src/jobs/data
 RUN npm config set proxy ${http_proxy}
 RUN npm config set https-proxy ${http_proxy}
-# DON'T DO IT (1):
-# RUN npm install
+RUN npm install
 
-# DON'T DO IT (2):
-# CMD node src/jobs/${SCRIPT_NAME}.js
+CMD ["npm", "run", "start"]
 
 FROM node:18 AS openjustice-sder-local
 
