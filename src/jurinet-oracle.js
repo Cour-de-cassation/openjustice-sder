@@ -380,8 +380,6 @@ class JurinetOracle {
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '/' + ago.getFullYear();
 
-      console.log(`JurinetOracle:getNew(${monthAgo}): ${strAgo}.`);
-
       const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
