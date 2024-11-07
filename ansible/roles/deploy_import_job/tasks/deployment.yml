@@ -27,10 +27,3 @@
                     name: "{{ app_id }}-configmap"
                 - secretRef:
                     name: "{{ app_id }}-secret"
-              securityContext:
-                runAsUser: 1000
-                capabilities:
-                  drop:
-                    - all
-                allowPrivilegeEscalation: false
-                readOnlyRootFilesystem: false
