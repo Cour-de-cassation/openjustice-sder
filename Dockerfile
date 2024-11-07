@@ -16,7 +16,8 @@ COPY . /app
 RUN mkdir src/jobs/data
 RUN npm config set proxy ${http_proxy}
 RUN npm config set https-proxy ${http_proxy}
-RUN npm install
+# DON'T DO IT (1):
+# RUN npm install
 
 CMD ["npm", "run", "start"]
 
