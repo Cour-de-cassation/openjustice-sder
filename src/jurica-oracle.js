@@ -175,13 +175,15 @@ class JuricaOracle {
       strAgo += ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1;
       strAgo += ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
 
+      console.log(`JuricaOracle:getNew(${monthAgo}): ${strAgo}.`);
+
       let query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
         AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_ANO_TEXT_FIELD_JURICA} IS NULL
         AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} = 0
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_CREATION >= ${strAgo}
-        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
+        ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} DESC`;
 
       query = `SELECT * FROM (
         SELECT a.*, ROWNUM rnum FROM (

@@ -380,13 +380,15 @@ class JurinetOracle {
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '/' + ago.getFullYear();
 
+      console.log(`JurinetOracle:getNew(${monthAgo}): ${strAgo}.`);
+
       const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
         AND ${process.env.DB_TABLE}.${process.env.DB_ANO_TEXT_FIELD} IS NULL
         AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} = 0
         AND ${process.env.DB_TABLE}.DT_CREATION >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
-        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
+        ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} DESC`;
 
       const result = await this.connection.execute(query, [], {
         resultSet: true,
