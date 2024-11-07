@@ -4,9 +4,7 @@ services:
 
 variables:
   SCRIPT_NAMES: import
-  image_buildAffaires: $CI_REGISTRY/cour-de-cassation/openjustice-sder/build-affaires:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
-  image_import: $CI_REGISTRY/cour-de-cassation/openjustice-sder/import:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
-  image_reinject: $CI_REGISTRY/cour-de-cassation/openjustice-sder/reinject:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+  docker_image: $CI_REGISTRY/cour-de-cassation/openjustice-sder:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   dev: dev
   re7: preprod
   master: prod
@@ -22,16 +20,14 @@ build_openjustice_sder:
     HTTP_PROXY: $HTTP_PROXY_DEV
     HTTPS_PROXY: $HTTP_PROXY_DEV
   script:
-    - docker login -u $PUBLIC_DOCKER_USERNAME -p $PUBLIC_DOCKER_PASSWORD
     - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - |
-      for script_name in $SCRIPT_NAMES; do
-        echo $script_name
-        docker_image=$(eval "echo \$image_$script_name")
-        echo $docker_image
-        docker build --target openjustice-sder-prod --build-arg script_name=$script_name --build-arg http_proxy=$HTTP_PROXY --build-arg https_proxy=$HTTPS_PROXY -t $docker_image .
-        docker push $docker_image
-      done
+    - node_env=$(eval "echo \$$CI_COMMIT_BRANCH")
+    - docker build
+      --target openjustice-sder-prod
+      --build-arg http_proxy=$HTTP_PROXY
+      --build-arg https_proxy=$HTTPS_PROXY
+      -t $docker_image .
+    - docker push $docker_image
   only:
     - master
     - dev
@@ -53,7 +49,7 @@ deploy_openjustice_sder:
     - chmod 600 /root/.ssh/known_hosts
     - |
       ansible-playbook \
-            -e import_image=$image_import \
+            -e docker_image=$docker_image \
             -i ansible/inventory/$inventaire.yml \
             ansible/deploy_application.yml --vault-password-file=$ANSIBLE_VAULT_PASS
   rules:
