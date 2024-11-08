@@ -29,16 +29,13 @@ function kill(code) {
 }
 
 async function main() {
-  console.log(
-    `OpenJustice - Start "reapplyCAFilter" script v20240301_1 on env ${process.env.NODE_ENV}:`,
-    new Date().toLocaleString(),
-  );
+  console.log(`OpenJustice - Start "reapplyCAFilter" script:`, new Date().toLocaleString());
   try {
     await processJurica();
   } catch (e) {
     console.error('Jurica import error', e);
   }
-  console.log('OpenJustice - End "reapplyCAFilter" script v20240301_1:', new Date().toLocaleString());
+  console.log('OpenJustice - End "reapplyCAFilter" script:', new Date().toLocaleString());
   setTimeout(end, ms('1s'));
 }
 

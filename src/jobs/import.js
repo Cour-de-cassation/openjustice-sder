@@ -38,10 +38,7 @@ function kill(code) {
 }
 
 async function main() {
-  console.log(
-    `OpenJustice - Start "import" job v20241107_1 on env ${process.env.NODE_ENV}:`,
-    new Date().toLocaleString(),
-  );
+  console.log(`OpenJustice - Start "import" job:`, new Date().toLocaleString());
   try {
     await importJurinet();
   } catch (e) {
