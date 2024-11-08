@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-console.info('Start main script v20241107_1.');
+console.info('Start main script:', new Date().toLocaleString());
 
 if (!process.env.SKIP_JOBS) {
   const Graceful = require('@ladjs/graceful');
@@ -25,12 +25,12 @@ if (!process.env.SKIP_JOBS) {
     ],
   });
 
+  console.log('Start jobs scheduler...');
   const graceful = new Graceful({ brees: [bree] });
   graceful.listen();
   bree.start();
-  console.log('Start jobs.');
 } else {
-  console.log('Skip jobs.');
+  console.log('Ignore jobs scheduler...');
   setInterval(() => {
     // nope
   }, 1000);
