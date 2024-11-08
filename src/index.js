@@ -10,19 +10,17 @@ if (!process.env.SKIP_JOBS) {
   const bree = new Bree({
     root: path.join(__dirname, 'jobs'),
     jobs: [
-      /*
-      {
-        name: 'buildAffaires',
-        interval: 'every 1 minute after 3:00am and before 11:00pm',
-      },
-      */
       {
         name: 'import',
-        interval: 'every 5 minutes after 8:00am and before 5:00pm',
+        interval: 'every 7 minutes after 7:00am and before 5:00pm',
       },
       {
         name: 'reinject',
-        interval: 'every 11 minutes after 1:00pm and before 7:00pm',
+        interval: 'every 5 minutes after 1:00pm and before 7:00pm',
+      },
+      {
+        name: 'buildAffaires',
+        interval: 'every 31 minute after 3:00am and before 11:00pm',
       },
     ],
   });
