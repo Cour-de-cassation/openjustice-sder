@@ -13,13 +13,8 @@ function splitQueries(queryString) {
     .map((_) => `${_}SELECT 1 FROM DUAL`);
 }
 
-async function sequentialQueries(source, queries) {
-  for (const query of queries) {
-    await source.connection
-      .execute(query)
-      .then((res) => console.log(res))
-      .catch(console.error);
-  }
+function sequentialQueries(source, queries) {
+  return Promise.all(queries.map((query) => source.connection.execute(query, [], { autoCommit: true })));
 }
 
 async function seedca() {
@@ -39,15 +34,11 @@ async function seedcc() {
   const queryString = await readFile(resolve(__dirname, 'seeds', `cc.decisions.sql`), 'utf8');
   const queries = splitQueries(queryString);
 
-  console.log(queries);
-
   return sequentialQueries(jurinetSource, queries);
 }
 
-async function main() {
-  // seedca()
-  //   .catch(console.error);
-  seedcc().catch(console.error);
+function main() {
+  return Promise.all([seedca(), seedcc()]).then(console.log).catch(console.error)
 }
 
 main();
