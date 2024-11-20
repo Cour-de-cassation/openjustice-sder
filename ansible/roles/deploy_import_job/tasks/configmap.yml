@@ -11,6 +11,7 @@
         name: "{{ app_id }}-configmap"
         namespace: "{{ namespace }}"
       data:
+        SKIP_JOBS: "{{ skip_jobs }}"
         DB_TABLE: "{{ db_table }}"
         DB_ID_FIELD: "{{ db_id_field }}"
         DB_ANO_TEXT_FIELD: "{{ db_ano_text_field }}"
