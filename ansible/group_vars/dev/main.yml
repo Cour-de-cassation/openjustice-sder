@@ -1,6 +1,6 @@
 ---
 node_env: dev
-skip_jobs: true
+skip_jobs: "true"
 
 db_user: "{{ vault_db_user }}"
 db_pass: "{{ vault_db_pass }}"
