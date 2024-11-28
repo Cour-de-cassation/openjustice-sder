@@ -64,7 +64,7 @@ async function reinjectJurinet() {
       if (decision && decision[process.env.MONGO_ID]) {
         console.log(`check CC decision ${decision.sourceId} for reinjection...`);
         let raw = await rawJurinet.findOne({ _id: decision.sourceId });
-        if (raw && raw.IND_ANO !== 2) {
+        if (raw) {
           console.log(`reinject CC decision ${decision.sourceId}...`);
           await jurinetSource.reinject(decision);
         } else {
@@ -82,7 +82,7 @@ async function reinjectJurinet() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
-        if (raw && raw.IND_ANO !== 2) {
+        if (raw) {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         } else {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'skip reinject');
@@ -125,7 +125,7 @@ async function reinjectJurica() {
       if (decision && decision[process.env.MONGO_ID]) {
         console.log(`check CA decision ${decision.sourceId} for reinjection...`);
         let raw = await rawJurica.findOne({ _id: decision.sourceId });
-        if (raw && raw.IND_ANO !== 2) {
+        if (raw) {
           console.log(`reinject CA decision ${decision.sourceId}...`);
           await juricaSource.reinject(decision);
         } else {
@@ -143,7 +143,7 @@ async function reinjectJurica() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
-        if (raw && raw.IND_ANO !== 2) {
+        if (raw) {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         } else {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'skip reinject');
