@@ -38,10 +38,7 @@ function kill(code) {
 }
 
 async function main() {
-  console.log(
-    `OpenJustice - Start "import" job v20241106_1 on env ${process.env.NODE_ENV}:`,
-    new Date().toLocaleString(),
-  );
+  console.log(`OpenJustice - Start "import" job:`, new Date().toLocaleString());
   try {
     await importJurinet();
   } catch (e) {
@@ -291,10 +288,10 @@ async function importJurinet() {
             errorCount++;
           }
         } else {
-          console.log(`Jurinet skip already inserted CC decision ${row._id}`);
+          // console.log(`Jurinet skip already inserted CC decision ${row._id}`);
         }
       } else {
-        console.log(`Jurinet skip non CC decision ${row._id}`);
+        // console.log(`Jurinet skip non CC decision ${row._id}`);
       }
     }
   } else {
@@ -822,7 +819,7 @@ async function importJurica() {
           errorCount++;
         }
       } else {
-        console.log(`Jurica skip already inserted CA decision ${row._id}`);
+        // console.log(`Jurica skip already inserted CA decision ${row._id}`);
       }
     }
   }
@@ -1115,7 +1112,9 @@ async function syncJurinet() {
                 await JudilibreIndex.updateJurinetDocument(
                   row,
                   null,
-                  `update in rawJurinet (sync2) - Skip decision (too old: ${row.DT_DECISION.toISOString()}) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in rawJurinet (sync2) - Skip decision (too old: ${row.DT_DECISION.toISOString()}) - changelog: ${JSON.stringify(
+                    changelog,
+                  )}`,
                 );
               } else if (tooEarly === true && hasException === false) {
                 updateCount++;
@@ -1125,7 +1124,9 @@ async function syncJurinet() {
                 await JudilibreIndex.updateJurinetDocument(
                   row,
                   null,
-                  `update in rawJurinet (sync2) - Skip decision (too early: ${Math.round(dateDiff2.days)} days) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in rawJurinet (sync2) - Skip decision (too early: ${Math.round(
+                    dateDiff2.days,
+                  )} days) - changelog: ${JSON.stringify(changelog)}`,
                 );
               } else {
                 row._indexed = null;
@@ -1308,7 +1309,11 @@ async function syncJurinet() {
     console.log(`Done Syncing Jurinet - Empty round.`);
   }
 
-  fs.writeFileSync(path.join(__dirname, 'data', 'jurinet.lastDate'), jurinetLastDate.toISO());
+  try {
+    fs.writeFileSync(path.join(__dirname, 'data', 'jurinet.lastDate'), jurinetLastDate.toISO());
+  } catch (e) {
+    console.error(e);
+  }
 
   await jurinetSource.close();
 
@@ -1851,7 +1856,11 @@ async function syncJurica() {
 
   await juricaSource.close();
 
-  fs.writeFileSync(path.join(__dirname, 'data', 'jurica.lastDate'), juricaLastDate.toISO());
+  try {
+    fs.writeFileSync(path.join(__dirname, 'data', 'jurica.lastDate'), juricaLastDate.toISO());
+  } catch (e) {
+    console.error(e);
+  }
 
   return true;
 }
