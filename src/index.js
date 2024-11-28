@@ -3,7 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 console.info('Start main script:', new Date().toLocaleString());
 
-if (!process.env.SKIP_JOBS) {
+if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
   const Graceful = require('@ladjs/graceful');
   const Bree = require('bree');
 
