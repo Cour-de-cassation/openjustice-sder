@@ -1,5 +1,5 @@
 const { MongoClient } = require('mongodb')
-if (!process.env.NODE_ENV) require('dotenv')
+if (!process.env.NODE_ENV) require('dotenv').config()
 
 async function main() {
   const client = new MongoClient(process.env.INDEX_DB_URI)

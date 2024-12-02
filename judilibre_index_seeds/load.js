@@ -2,7 +2,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const { readFile, readdir } = require('fs/promises');
 const { statSync } = require('fs');
 const { resolve } = require('path');
-if (!process.env.NODE_ENV) require('dotenv');
+if (!process.env.NODE_ENV) require('dotenv').config();
 
 async function readDbNames() {
   const pathes = await readdir(resolve(__dirname));
