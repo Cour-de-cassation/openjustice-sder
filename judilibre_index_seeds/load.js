@@ -1,4 +1,4 @@
-const { MongoClient, ObjectId } = require('mongodb');
+const { MongoClient, BSON } = require('mongodb');
 const { readFile, readdir } = require('fs/promises');
 const { statSync } = require('fs');
 const { resolve } = require('path');
@@ -21,10 +21,8 @@ async function readCollectionNames(dbName) {
 async function saveCollections(client, { dbName, collectionName, path }) {
   const collection = await client.db(dbName).createCollection(collectionName);
   const save = await readFile(path, 'utf8');
-  const saveParse = JSON.parse(save, (_, value) => {
-    if (value && typeof value['$oid'] === 'string' && value['$oid'].length > 0) return new ObjectId(value['$oid']);
-    return value;
-  });
+  
+  const saveParse = BSON.EJSON.parse(save)
 
   if (saveParse.length <= 0) return;
   return collection.insertMany(saveParse);
