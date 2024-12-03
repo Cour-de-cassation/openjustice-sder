@@ -1,16 +1,36 @@
-// logsFormat.js
 const pino = require("pino");
-// Initialize Pino with a transport configuration for pretty logs
-const logger = pino({
+// Configuration pour Pino en local
+const pinoPrettyConf = {
     transport: {
         target: "pino-pretty",
         options: {
             singleLine: true,
             colorize: true,
-            translateTime: 'UTC:dd-mm-yyyy - HH:MM:ss Z',
+            translateTime: "SYS:dd-mm-yyyy - HH:MM:ss Z",
         },
     },
-});
+};
+
+// Configuration principale pour Pino
+const PinoConfig = {
+    base: { appName: "OpenJustice-sder" },
+    formatters: {
+        level: (label) => ({
+            logLevel: label.toUpperCase(),
+        }),
+    },
+    timestamp: () => `,"timestamp":"${new Date(Date.now()).toLocaleString()}"`,
+    redact: {
+        paths: ["req", "res", "headers", "ip", "responseTime", "pid", "level"],
+        censor: "",
+        remove: true,
+    },
+    transport: process.env.NODE_ENV === "local" ? pinoPrettyConf.transport : undefined,
+    autoLogging: false,
+};
+
+// Initialisation du logger Pino
+const logger = pino(PinoConfig);
 
 class LogsFormat {
     constructor({
