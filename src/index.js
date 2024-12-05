@@ -5,8 +5,7 @@ console.info('Start main script v20240229_1.');
 
 // à titre d'exemple...
 const { LogsFormat } = require("./utils/logger");
-
-const logInstance = new LogsFormat({
+LogsFormat.log("info", {
   operationName: "buildAffaires",
   msg: "buildAffaires in successfully",
   data: { buildAffaires: 123 },
@@ -16,11 +15,11 @@ const logInstance = new LogsFormat({
   statusCode: 200,
 });
 
-// Log the message at the "info" level
-logInstance.log("info");
-
 // You can also log other levels like 'warn', 'error', etc.
-logInstance.log("error");
+LogsFormat.log("error", {
+  operationName: "testOperation",
+  msg: "error test"
+});
 
 if (!process.env.SKIP_JOBS) {
   const Graceful = require('@ladjs/graceful');

@@ -33,55 +33,31 @@ const PinoConfig = {
 const logger = pino(PinoConfig);
 
 class LogsFormat {
-    constructor({
-        operationName,
-        msg,
-        data,
-        httpMethod = null,
-        path = null,
-        correlationId = null,
-        statusCode = null
-    }) {
-        this.operationName = operationName;
-        this.msg = msg;
-        this.data = data;
-        this.httpMethod = httpMethod || "no httpMethod";
-        this.path = path || "no path";
-        this.correlationId = correlationId || "no correlationId";
-        this.statusCode = statusCode || "no statusCode";
-    }
-
-
-    // Method to update all log attributes dynamically
-    updateLogDetails({
+    // Méthode pour générer un objet de log structuré
+    static createLog({
         operationName,
         msg,
         data,
         httpMethod,
         path,
         correlationId,
-        statusCode
-    }) {
-        if (operationName) this.operationName = operationName;
-        if (msg) this.msg = msg;
-        if (data) this.data = data;
-        if (httpMethod) this.httpMethod = httpMethod;
-        if (path) this.path = path;
-        if (correlationId) this.correlationId = correlationId;
-        if (statusCode) this.statusCode = statusCode;
-    }
-
-    // Utility function to log with structured format
-    log(level = "info") {
-        const { operationName, msg, correlationId, ...rest } = this;
-
-        // Log the details using pino logger at the given level
-        logger[level]({
+        statusCode,
+    } = {}) {
+        return {
             operationName,
             msg,
+            data,
+            httpMethod,
+            path,
             correlationId,
-            ...rest
-        });
+            statusCode,
+        };
+    }
+
+    // Méthode utilitaire pour journaliser avec un format structuré
+    static log(level = "info", logDetails = {}) {
+        const logEntry = this.createLog(logDetails);
+        logger[level](logEntry);
     }
 }
 
