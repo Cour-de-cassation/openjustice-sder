@@ -3,6 +3,24 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 console.info('Start main script:', new Date().toLocaleString());
 
+// à titre d'exemple...
+const { LogsFormat } = require("./utils/logger");
+LogsFormat.log("info", {
+  operationName: "buildAffaires",
+  msg: "buildAffaires in successfully",
+  data: { buildAffaires: 123 },
+  httpMethod: "POST",
+  path: "/api/login",
+  correlationId: "abc-123",
+  statusCode: 200,
+});
+
+// You can also log other levels like 'warn', 'error', etc.
+LogsFormat.log("error", {
+  operationName: "testOperation",
+  msg: "error test"
+});
+
 if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
   const Graceful = require('@ladjs/graceful');
   const Bree = require('bree');
