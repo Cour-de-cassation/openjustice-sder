@@ -28,7 +28,7 @@ function kill(code) {
 }
 
 async function main() {
-  console.log('OpenJustice - Start "reinject" job v20240229_1:', new Date().toLocaleString());
+  console.log('OpenJustice - Start "reinject" job:', new Date().toLocaleString());
   try {
     await reinjectJurinet();
   } catch (e) {
@@ -63,12 +63,13 @@ async function reinjectJurinet() {
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
+        console.log(`check CC decision ${decision.sourceId} for reinjection...`);
         let raw = await rawJurinet.findOne({ _id: decision.sourceId });
-        if (raw && raw.IND_ANO !== 2) {
-          console.log(`reinject decision ${decision.sourceId}...`);
+        if (raw) {
+          console.log(`reinject CC decision ${decision.sourceId}...`);
           await jurinetSource.reinject(decision);
         } else {
-          console.log(`skip reinject decision ${decision.sourceId}...`);
+          console.log(`skip reinject CC decision ${decision.sourceId}...`);
         }
         const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;
@@ -147,12 +148,13 @@ async function reinjectJurica() {
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
+        console.log(`check CA decision ${decision.sourceId} for reinjection...`);
         let raw = await rawJurica.findOne({ _id: decision.sourceId });
-        if (raw && raw.IND_ANO !== 2) {
-          console.log(`reinject decision ${decision.sourceId}...`);
+        if (raw) {
+          console.log(`reinject CA decision ${decision.sourceId}...`);
           await juricaSource.reinject(decision);
         } else {
-          console.log(`skip reinject decision ${decision.sourceId}...`);
+          console.log(`skip reinject CA decision ${decision.sourceId}...`);
         }
         const reinjected = await juricaSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;

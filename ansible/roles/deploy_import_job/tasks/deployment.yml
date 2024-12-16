@@ -1,0 +1,29 @@
+- name: create deployment
+  k8s:
+    apply: true
+    state: present
+    verify_ssl: true
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "{{ app_id }}-deployment"
+        namespace: "{{ namespace }}"
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: "{{ app_id }}"
+        template:
+          metadata:
+            labels:
+              app: "{{ app_id }}"
+          spec:
+            containers:
+            - name: "{{ app_id }}-deployment"
+              image: "{{ docker_image }}"
+              envFrom:
+                - configMapRef:
+                    name: "{{ app_id }}-configmap"
+                - secretRef:
+                    name: "{{ app_id }}-secret"

@@ -1,13 +1,3 @@
 ---
-openjustice_sder_namespace: openjustice-sder
-
-jobs_sder:
-  - nom_image: "{{ build_affaires_image }}"
-    nom_cronjob: build-affaires
-    planification: "* 3-22 * * *"
-  - nom_image: "{{ import_image }}"
-    nom_cronjob: import
-    planification: "*/11 8-23 * * *"
-  - nom_image: "{{ reinject_image }}"
-    nom_cronjob: reinject
-    planification: "*/5 13-18 * * *"
+namespace: openjustice-sder
+app_id: openjustice-sder
