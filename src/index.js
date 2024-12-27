@@ -1,24 +1,10 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const { CustomLog } = require("./utils/logger");
 
-console.info('Start main script:', new Date().toLocaleString());
-
-// à titre d'exemple...
-const { LogsFormat } = require("./utils/logger");
-LogsFormat.log("info", {
-  operationName: "buildAffaires",
-  msg: "buildAffaires in successfully",
-  data: { buildAffaires: 123 },
-  httpMethod: "POST",
-  path: "/api/login",
-  correlationId: "abc-123",
-  statusCode: 200,
-});
-
-// You can also log other levels like 'warn', 'error', etc.
-LogsFormat.log("error", {
-  operationName: "testOperation",
-  msg: "error test"
+CustomLog.log("info", {
+  operationName: `Start`,
+  msg: `Start main script v20240229_1 : ${new Date().toLocaleString()}`
 });
 
 if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
@@ -43,12 +29,22 @@ if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
     ],
   });
 
-  console.log('Start jobs scheduler...');
+  CustomLog.log("info", {
+    operationName: "Start",
+    msg: "Start jobs scheduler...",
+  })
   const graceful = new Graceful({ brees: [bree] });
   graceful.listen();
   bree.start();
+  CustomLog.log("info", {
+    operationName: "Start",
+    msg: "Start jobs.",
+  })
 } else {
-  console.log('Ignore jobs scheduler...');
+  CustomLog.log("info", {
+    operationName: "Start",
+    msg: "Skip jobs.",
+  })
   setInterval(() => {
     // nope
   }, 1000);

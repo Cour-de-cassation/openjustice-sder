@@ -32,7 +32,7 @@ const PinoConfig = {
 // Initialisation du logger Pino
 const logger = pino(PinoConfig);
 
-class LogsFormat {
+class CustomLog {
     // Méthode pour générer un objet de log structuré
     static createLog({
         operationName,
@@ -61,4 +61,4 @@ class LogsFormat {
     }
 }
 
-module.exports = { LogsFormat };
+module.exports = { CustomLog };
