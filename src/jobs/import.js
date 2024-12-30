@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
-
+const { CustomLog } = require('./../utils/logger');
 const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JurinetUtils } = require('../jurinet-utils');
@@ -145,7 +145,7 @@ async function importJurinet() {
           if (exception !== null) {
             hasException = true;
           }
-        } catch (ignore) {}
+        } catch (ignore) { }
         let raw = await rawJurinet.findOne({ _id: row._id });
         if (raw === null) {
           try {
@@ -158,7 +158,7 @@ async function importJurinet() {
             if (exception !== null) {
               hasException = true;
             }
-          } catch (ignore) {}
+          } catch (ignore) { }
           try {
             let inDate = new Date(Date.parse(row.DT_DECISION.toISOString()));
             inDate.setHours(inDate.getHours() + 2);
@@ -183,6 +183,16 @@ async function importJurinet() {
 
             row._indexed = null;
             await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
+            // @todo-oddj-dashboard: decision CC brute collectée ('jurinet', row._id)
+            CustomLog.log("info", {
+              operationName: "ImportJurinetBrute",
+              msg: `decision jurinet brute collectée , ${row._id})`,
+              data: {
+                _id: row._id,
+                source: "jurinet",
+              },
+            });
+
             await JudilibreIndex.indexJurinetDocument(row, null, 'import in rawJurinet');
             if (row['TYPE_ARRET'] === 'CC') {
               await JurinetUtils.IndexAffaire(
@@ -218,6 +228,22 @@ async function importJurinet() {
                   `Jurinet import issue: { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`,
                 );
               }
+              // @todo-oddj-dashboard: decision CC normalisée (normDec.sourceName, normDec.sourceId) // pour recuperer ici le idMongo de la decision, il faudra refaire un find (sinon j'ai peur qu'il me retourne un undefined)
+              LogsFormat.log("info", {
+                operationName: "ImportJurinet",
+                msg: `decision jurinet normalised ${normDec.sourceName}, ${normDec.sourceId}`,
+                data: {
+                  _id: normDec._id,
+                  sourceId: normDec.sourceId,
+                  sourceName: normDec.sourceName,
+                  registerNumber: normDec.registerNumber,
+                  labelStatus: normDec.labelStatus,
+                  publishStatus: normDec.publishStatus,
+                  jurisdictionName: normDec.jurisdictionName,
+                  jurisdictionId: normDec.jurisdictionId
+                },
+              });
+
               if (exception && hasException === true) {
                 hasException = false;
                 try {
@@ -225,20 +251,45 @@ async function importJurinet() {
                   await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
                     bypassDocumentValidation: true,
                   });
-                } catch (ignore) {}
+                } catch (ignore) { }
               }
             }
           } catch (e) {
-            console.error(`Jurinet import error processing decision ${row._id}`, e);
+            // @todo-oddj-dashboard: erreur de collecte de la decision CC brute ('jurinet', row._id, e)
+            CustomLog.log("error", {
+              operationName: "ImportJurinetError",
+              msg: `Error collecting raw Jurinet decision ${row.__id}, ${e}`,
+              data: {
+                sourceId: row._id,
+                sourceName: 'jurinet',
+              },
+            });
             await jurinetSource.markAsErroneous(row._id);
             await JudilibreIndex.updateJurinetDocument(row, null, null, e);
             errorCount++;
           }
         } else if (hasException === true) {
-          console.log(`Jurinet overwrite already inserted CC decision ${row._id}`);
+          CustomLog.log("info", {
+            operationName: "ImportJurinetAlreadyInserted",
+            msg: `Jurinet overwrite already inserted CC decision ${row._id}`,
+            data: {
+              sourceId: row._id,
+              sourceName: 'jurinet',
+            }
+          });
           try {
             row._indexed = null;
             await rawJurinet.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
+            // @todo-oddj-dashboard: collecte forcée de la decision CC brute ('jurinet', row._id)
+            // a voir si besoin de mettre à ce niveau le log ou de le mettre en fin du try
+            CustomLog.log("info", {
+              operationName: "ImportJurinet",
+              msg: `Collect forced raw jurinet decision ${row._id}`,
+              data: {
+                sourceId: row._id,
+                sourceName: 'jurinet',
+              },
+            });
             let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
             let normDec = await JurinetUtils.Normalize(row);
             normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
@@ -271,7 +322,24 @@ async function importJurinet() {
                 bypassDocumentValidation: true,
               });
               await jurinetSource.markAsImported(row._id);
+              // @todo-oddj-dashboard: decision CC normalisée (normDec.sourceName, normDec.sourceId)
+              CustomLog.log("info", {
+                operationName: "ImportJurinet",
+                msg: `Jurinet decision normalised ${normDec.sourceName}, ${normDec.sourceId
+                  }`,
+                data: {
+                  _id: normDec._id,
+                  sourceId: normDec.sourceId,
+                  sourceName: normDec.sourceName,
+                  registerNumber: normDec.registerNumber,
+                  labelStatus: normDec.labelStatus,
+                  publishStatus: normDec.publishStatus,
+                  jurisdictionName: normDec.jurisdictionName,
+                  jurisdictionId: normDec.jurisdictionId
+                },
+              });
             }
+
             if (exception && hasException === true) {
               hasException = false;
               try {
@@ -279,26 +347,47 @@ async function importJurinet() {
                 await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
                   bypassDocumentValidation: true,
                 });
-              } catch (ignore) {}
+              } catch (ignore) { }
             }
           } catch (e) {
-            console.error(`Jurinet import error processing decision ${row._id}`, e);
+            // @todo-oddj-dashboard: erreur de collecte forcée de la decision CC brute ('jurinet', row._id, e)
+            CustomLog.log("error", {
+              operationName: "ImportJurinetError",
+              msg: `Error collecting raw Jurinet decision ${row._id}, ${e})`,
+              data: {
+                _id: row._id,
+                sourceId: row._id,
+                sourceName: 'jurinet',
+              },
+            });
             await jurinetSource.markAsErroneous(row._id);
             await JudilibreIndex.updateJurinetDocument(row, null, null, e);
             errorCount++;
           }
         } else {
-          // console.log(`Jurinet skip already inserted CC decision ${row._id}`);
+          CustomLog.log("info", {
+            operationName: "ImportJurinetSkip",
+            msg: `Jurinet skip already inserted CC decision ${row._id}`
+          });
         }
       } else {
-        // console.log(`Jurinet skip non CC decision ${row._id}`);
+        CustomLog.log("info", {
+          operationName: "ImportJurinetSkip",
+          msg: `Jurinet skip non CC decision ${row._id}`
+        });
       }
     }
   } else {
-    console.log(`Jurinet has no new decision`);
+    CustomLog.log("info", {
+      operationName: "ImportJurinetSkip",
+      msg: `Jurinet has no new decision`
+    });
   }
 
-  console.log(`Done Importing Jurinet - New: ${newCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`);
+  CustomLog.log("info", {
+    operationName: "ImportJurinetSkip",
+    msg: `Done Importing Jurinet - New: ${newCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`
+  });
   await client.close();
   await jIndexConnection.close();
   await jurinetSource.close();
@@ -347,10 +436,10 @@ async function importJurica() {
       }
       for (let i = 0; i < exceptions.length; i++) {
         try {
-          console.log(`found exception ${exceptions[i].decisionId}`);
+          console.log(`found exception ${exceptions[i].decisionId} `);
           const _row = await juricaSource.getDecisionByID(exceptions[i].decisionId.split(':')[1]);
           if (_row) {
-            console.log(`adding exception ${_row._id}`);
+            console.log(`adding exception ${_row._id} `);
             juricaResult.push(_row);
           }
         } catch (e) {
@@ -373,7 +462,7 @@ async function importJurica() {
       let exception = null;
       try {
         exception = await JudilibreIndex.findOne('exceptions', {
-          decisionId: `jurica:${row._id}`,
+          decisionId: `jurica:${row._id} `,
           collected: false,
           published: false,
           reason: { $ne: null },
@@ -381,13 +470,13 @@ async function importJurica() {
         if (exception !== null) {
           hasException = true;
         }
-      } catch (ignore) {}
+      } catch (ignore) { }
       let raw = await rawJurica.findOne({ _id: row._id });
       if (raw === null) {
         try {
           let inDate = new Date();
           if (!row.JDEC_DATE) {
-            throw new Error(`Cannot import decision ${row._id} because it has no date (${row.JDEC_DATE}).`);
+            throw new Error(`Cannot import decision ${row._id} because it has no date(${row.JDEC_DATE}).`);
           }
           let dateDecisionElements = row.JDEC_DATE.split('-');
           inDate.setFullYear(parseInt(dateDecisionElements[0], 10));
@@ -410,13 +499,14 @@ async function importJurica() {
 
           if (tooOld === true && hasException === false) {
             throw new Error(
-              `Cannot import decision ${row._id} because it is too old (${Math.round(
+              `Cannot import decision ${row._id} because it is too old(${Math.round(
                 Math.abs(dateDiff.months),
-              )} months).`,
+              )
+              } months).`,
             );
           } else if (tooEarly === true && hasException === false) {
             throw new Error(
-              `Cannot import decision ${row._id} because it is too early (${Math.round(dateDiff2.days)} days).`,
+              `Cannot import decision ${row._id} because it is too early(${Math.round(dateDiff2.days)} days).`,
             );
           }
 
@@ -426,7 +516,7 @@ async function importJurica() {
           try {
             duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
             if (duplicateId !== null) {
-              duplicateId = `jurinet:${duplicateId}`;
+              duplicateId = `jurinet:${duplicateId} `;
               duplicate = true;
             } else {
               duplicate = false;
@@ -447,7 +537,7 @@ async function importJurica() {
                 row.JDEC_CODNACPART,
                 row.JDEC_IND_DEC_PUB,
               );
-            } catch (ignore) {}
+            } catch (ignore) { }
             if (partiallyPublic) {
               let trimmedText;
               let zoning;
@@ -459,54 +549,59 @@ async function importJurica() {
                   .trim();
               } catch (e) {
                 throw new Error(
-                  `Cannot process partially-public decision ${
-                    row._id
+                  `Cannot process partially - public decision ${row._id
                   } because its text is empty or invalid: ${JSON.stringify(
                     e,
                     e ? Object.getOwnPropertyNames(e) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               try {
                 zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
                 if (!zoning || zoning.detail) {
                   throw new Error(
-                    `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                    `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
                       zoning,
                       zoning ? Object.getOwnPropertyNames(zoning) : null,
-                    )}.`,
+                    )
+                    }.`,
                   );
                 }
               } catch (e) {
                 throw new Error(
-                  `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                  `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
                     e,
                     e ? Object.getOwnPropertyNames(e) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               if (!zoning.zones) {
                 throw new Error(
-                  `Cannot process partially-public decision ${row._id} because it has no zone: ${JSON.stringify(
+                  `Cannot process partially - public decision ${row._id} because it has no zone: ${JSON.stringify(
                     zoning,
                     zoning ? Object.getOwnPropertyNames(zoning) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               if (!zoning.zones.introduction) {
                 throw new Error(
-                  `Cannot process partially-public decision ${row._id} because it has no introduction: ${JSON.stringify(
+                  `Cannot process partially - public decision ${row._id} because it has no introduction: ${JSON.stringify(
                     zoning.zones,
                     zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               if (!zoning.zones.dispositif) {
                 throw new Error(
-                  `Cannot process partially-public decision ${row._id} because it has no dispositif: ${JSON.stringify(
+                  `Cannot process partially - public decision ${row._id} because it has no dispositif: ${JSON.stringify(
                     zoning.zones,
                     zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               let parts = [];
@@ -535,6 +630,16 @@ async function importJurica() {
               row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
+            // @todo-oddj-dashboard: decision CA brute collectée ('jurica', row._id)
+            LogsFormat.log("info", {
+              operationName: "ImportJuricaBrute",
+              msg: `Raw Jurica decision collected ${row._id})`,
+              data: {
+                _id: row._id,
+                sourceId: row._id,
+                sourceName: 'jurica',
+              },
+            });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
             const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
@@ -544,7 +649,20 @@ async function importJurica() {
             );
             if (ShouldBeSentToJudifiltre === true) {
               await JudilibreIndex.updateJuricaDocument(row, duplicateId, `IGNORED_CONTROLE_REQUIS`);
-              const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+              // @todo-oddj-dashboard: decision CA bloquée ('jurica', row._id, row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB)
+              LogsFormat.log("info", {
+                operationName: "ImportJuricaToJudifiltre",
+                msg: `Jurica decision blocked ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}) `,
+                data: {
+                  _id: row._id,
+                  sourceId: row._id,
+                  jdec_codnac: row.JDEC_CODNAC,
+                  jdec_codnacpart: row.JDEC_CODNACPART,
+                  jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
+                  sourceName: 'jurica',
+                },
+              });
+              const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id} ` });
               if (existingDoc !== null) {
                 let dateJudifiltre = DateTime.now();
                 existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
@@ -574,8 +692,26 @@ async function importJurica() {
                 newCount++;
               } else {
                 await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
-                console.warn(`Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
+                LogsFormat.log("info", {
+                  operationName: "ImportJuricaSkip",
+                  msg: `Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`,
+                });
               }
+              // @todo-oddj-dashboard: decision CA normalisée (normDec.sourceName, normDec.sourceId)
+              LogsFormat.log("info", {
+                operationName: "ImportJurica",
+                msg: `Jurica decision normalised ${normDec.sourceName}, ${normDec.sourceId}`,
+                data: {
+                  _id: normDec._id,
+                  sourceId: normDec.sourceId,
+                  sourceName: normDec.sourceName,
+                  registerNumber: normDec.registerNumber,
+                  labelStatus: normDec.labelStatus,
+                  publishStatus: normDec.publishStatus,
+                  jurisdictionName: normDec.jurisdictionName,
+                  jurisdictionId: normDec.jurisdictionId
+                },
+              });
               if (exception && hasException === true) {
                 hasException = false;
                 try {
@@ -583,25 +719,39 @@ async function importJurica() {
                   await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
                     bypassDocumentValidation: true,
                   });
-                } catch (ignore) {}
+                } catch (ignore) { }
               }
             } else {
-              console.warn(
-                `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
-              );
+              LogsFormat.log("info", {
+                operationName: "ImportJuricaSkip",
+                msg: `Jurica import anomaly: decision ${row._id} seems new but related SDER record ${normalized._id} already exists.`,
+              });
               await JudilibreIndex.updateJuricaDocument(row, null, `SDER record ${normalized._id} already exists`);
               await juricaSource.markAsImported(row._id);
               errorCount++;
             }
           } else {
-            console.warn(
-              `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
+            // @todo-oddj-dashboard: decision CA rejetée ('jurica', row._id, row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB)
+            LogsFormat.log("info", {
+              operationName: "ImportJuricaRejected",
+              msg: `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}), ${row._id}, ${row
+                .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.J
+                  .DEC_IND_DEC_PUB})`,
+              data: {
+                _id: row._id,
+                sourceId: row._id,
+                jdec_codnac: JDEC_CODNAC,
+                jdec_codnacpart: JDEC_CODNACPART,
+                jdec_ind_dec_pub: JDEC_IND_DEC_PUB,
+                sourceName: 'jurica',
+              },
+            },
             );
             await juricaSource.markAsErroneous(row._id);
             await JudilibreIndex.updateJuricaDocument(
               row,
               duplicateId,
-              duplicate ? `duplicate of ${duplicateId}` : 'non-public',
+              duplicate ? `duplicate of ${duplicateId} ` : 'non-public',
             );
             if (duplicate) {
               duplicateCount++;
@@ -610,13 +760,24 @@ async function importJurica() {
             }
           }
         } catch (e) {
-          console.error(`Jurica import error processing decision ${row._id}`, e);
+          // @todo-oddj-dashboard: erreur de collecte de la decision CA brute ('jurica', row._id, e)
+          LogsFormat.log("error", {
+            operationName: "ImportJuricaError",
+            msg: `Error collecting raw Jurinet decision ${row._.id}, ${e})`,
+            data: {
+              sourceId: row._id,
+              sourceName: 'jurica',
+            },
+          });
           await juricaSource.markAsErroneous(row._id);
           await JudilibreIndex.updateJuricaDocument(row, null, null, e);
           errorCount++;
         }
       } else if (hasException === true) {
-        console.log(`Jurica overwrite already inserted CA decision ${row._id}`);
+        LogsFormat.log("info", {
+          operationName: "ImportJuricaSkip",
+          msg: `Jurica overwrite already inserted CA decision ${row._id} `,
+        });
         try {
           row._indexed = null;
           await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
@@ -625,7 +786,7 @@ async function importJurica() {
           try {
             duplicateId = await JuricaUtils.GetJurinetDuplicate(row[process.env.MONGO_ID]);
             if (duplicateId !== null) {
-              duplicateId = `jurinet:${duplicateId}`;
+              duplicateId = `jurinet:${duplicateId} `;
               duplicate = true;
             } else {
               duplicate = false;
@@ -646,7 +807,7 @@ async function importJurica() {
                 row.JDEC_CODNACPART,
                 row.JDEC_IND_DEC_PUB,
               );
-            } catch (ignore) {}
+            } catch (ignore) { }
             if (partiallyPublic) {
               let trimmedText;
               let zoning;
@@ -658,54 +819,59 @@ async function importJurica() {
                   .trim();
               } catch (e) {
                 throw new Error(
-                  `Cannot process partially-public decision ${
-                    row._id
+                  `Cannot process partially - public decision ${row._id
                   } because its text is empty or invalid: ${JSON.stringify(
                     e,
                     e ? Object.getOwnPropertyNames(e) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               try {
                 zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
                 if (!zoning || zoning.detail) {
                   throw new Error(
-                    `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                    `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
                       zoning,
                       zoning ? Object.getOwnPropertyNames(zoning) : null,
-                    )}.`,
+                    )
+                    }.`,
                   );
                 }
               } catch (e) {
                 throw new Error(
-                  `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                  `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
                     e,
                     e ? Object.getOwnPropertyNames(e) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               if (!zoning.zones) {
                 throw new Error(
-                  `Cannot process partially-public decision ${row._id} because it has no zone: ${JSON.stringify(
+                  `Cannot process partially - public decision ${row._id} because it has no zone: ${JSON.stringify(
                     zoning,
                     zoning ? Object.getOwnPropertyNames(zoning) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               if (!zoning.zones.introduction) {
                 throw new Error(
-                  `Cannot process partially-public decision ${row._id} because it has no introduction: ${JSON.stringify(
+                  `Cannot process partially - public decision ${row._id} because it has no introduction: ${JSON.stringify(
                     zoning.zones,
                     zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               if (!zoning.zones.dispositif) {
                 throw new Error(
-                  `Cannot process partially-public decision ${row._id} because it has no dispositif: ${JSON.stringify(
+                  `Cannot process partially - public decision ${row._id} because it has no dispositif: ${JSON.stringify(
                     zoning.zones,
                     zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
-                  )}.`,
+                  )
+                  }.`,
                 );
               }
               let parts = [];
@@ -733,6 +899,16 @@ async function importJurica() {
               }
               row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
+            // @todo-oddj-dashboard: collecte forcée de la decision CA brute ('jurica', row._id)
+            LogsFormat.log("info", {
+              operationName: "ImportJuricaForcedBrute",
+              msg: `Raw Jurica decision collected ${row._.id}, ${e})`,
+              data: {
+                _id: row._id,
+                sourceId: row._id,
+                sourceName: 'jurica',
+              },
+            });
             await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
             const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
@@ -740,8 +916,21 @@ async function importJurica() {
               row.JDEC_IND_DEC_PUB,
             );
             if (ShouldBeSentToJudifiltre === true) {
+              // @todo-oddj-dashboard: decision CA bloquée ('jurica', row._id, row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB)
+              LogsFormat.log("info", {
+                operationName: "ImportJuricaToJudifiltre",
+                msg: `Jurica decision blocked ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
+                data: {
+                  _id: row._id,
+                  sourceId: row._id,
+                  jdec_codnac: JDEC_CODNAC,
+                  jdec_codnacpart: JDEC_CODNACPART,
+                  jdec_ind_dec_pub: JDEC_IND_DEC_PUB,
+                  sourceName: 'jurica',
+                },
+              });
               await JudilibreIndex.updateJuricaDocument(row, duplicateId, `IGNORED_CONTROLE_REQUIS`);
-              const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+              const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id} ` });
               if (existingDoc !== null) {
                 let dateJudifiltre = DateTime.now();
                 existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
@@ -770,7 +959,10 @@ async function importJurica() {
               await juricaSource.markAsImported(row._id);
             } else {
               await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
-              console.warn(`Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
+              LogsFormat.log("info", {
+                operationName: "ImportJuricaSkip",
+                msg: `Jurica import issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`,
+              });
               normDec.zoning = null;
               normDec.pseudoText = undefined;
               normDec.pseudoStatus = 0;
@@ -787,6 +979,20 @@ async function importJurica() {
                 bypassDocumentValidation: true,
               });
             }
+            // @todo-oddj-dashboard: decision CA normalisée (normDec.sourceName, normDec.sourceId)
+            LogsFormat.log("info", {
+              operationName: "ImportJurica",
+              msg: `Jurica normalised decision ${normDec.sourceName}, ${normDec.sourceId})`,
+              data: {
+                _id: normDec._id,
+                sourceId: normDec.sourceId,
+                sourceName: normDec.sourceName,
+                jurisdictionId: normDec.jurisdictionId,
+                jurisdictionName: normDec.jurisdictionName,
+                labelStatus: normDec.labelStatus,
+                publishStatus: normDec.publishStatus
+              },
+            });
             if (exception && hasException === true) {
               hasException = false;
               try {
@@ -794,17 +1000,29 @@ async function importJurica() {
                 await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
                   bypassDocumentValidation: true,
                 });
-              } catch (ignore) {}
+              } catch (ignore) { }
             }
           } else {
-            console.warn(
-              `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
-            );
+            // @todo-oddj-dashboard: decision CA rejetée ('jurica', row._id, row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB)
+            LogsFormat.log("info", {
+              operationName: "ImportJuricaRejected",
+              msg: `Jurica import reject decision ${row._id}, ${row
+                .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.J
+                  .DEC_IND_DEC_PUB} ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}`,
+              data: {
+                _id: row._id,
+                jdec_codnac: JDEC_CODNAC,
+                jdec_codnacpart: JDEC_CODNACPART,
+                jdec_ind_dec_pub: JDEC_IND_DEC_PUB,
+                sourceId: row._id,
+                sourceName: 'jurica',
+              },
+            });
             await juricaSource.markAsErroneous(row._id);
             await JudilibreIndex.updateJuricaDocument(
               row,
               duplicateId,
-              duplicate ? `duplicate of ${duplicateId}` : 'non-public',
+              duplicate ? `duplicate of ${duplicateId} ` : 'non-public',
             );
             if (duplicate) {
               duplicateCount++;
@@ -813,20 +1031,33 @@ async function importJurica() {
             }
           }
         } catch (e) {
-          console.error(`Jurica import error processing decision ${row._id}`, e);
+          // @todo-oddj-dashboard: erreur de collecte forcée de la decision CA brute ('jurica', row._id, e)
+          LogsFormat.log("error", {
+            operationName: "ImportJuricaError",
+            msg: `Error colllecting raw jurica decision ${row._id}, ${e}`,
+            data: {
+              _id: row._id,
+              sourceId: row._id,
+              sourceName: 'jurica',
+            },
+          });
           await juricaSource.markAsErroneous(row._id);
           await JudilibreIndex.updateJuricaDocument(row, null, null, e);
           errorCount++;
         }
       } else {
-        // console.log(`Jurica skip already inserted CA decision ${row._id}`);
+        LogsFormat.log("error", {
+          operationName: "ImportJuricaError",
+          msg: `Jurica skip already inserted CA decision ${row._id}`
+        });
       }
     }
   }
 
-  console.log(
-    `Done Importing Jurica - New: ${newCount}, Non-public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
-  );
+  LogsFormat.log("info", {
+    operationName: "ImportJuricaSkip",
+    msg: `Done Importing Jurica - New: ${newCount}, Non - public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`
+  });
   await client.close();
   await jIndexConnection.close();
   await juricaSource.close();
@@ -869,7 +1100,10 @@ async function syncJurinet() {
     const GRCOMSource = new GRCOMOracle();
     await GRCOMSource.connect();
 
-    console.log(`Syncing Jurinet (${jurinetResult.length} decisions modified since ${jurinetLastDate.toISODate()})...`);
+    LogsFormat.log("info", {
+      operationName: "ImportJurinetSkip",
+      msg: `Syncing Jurinet(${jurinetResult.length} decisions modified since ${jurinetLastDate.toISODate()})...`,
+    });
 
     let newCount = 0;
     let updateCount = 0;
@@ -897,7 +1131,7 @@ async function syncJurinet() {
         let exception = null;
         try {
           exception = await JudilibreIndex.findOne('exceptions', {
-            decisionId: `jurinet:${row._id}`,
+            decisionId: `jurinet:${row._id} `,
             collected: false,
             published: false,
             reason: { $ne: null },
@@ -908,11 +1142,21 @@ async function syncJurinet() {
               hasExceptionToReprocess = true;
             }
           }
-        } catch (ignore) {}
+        } catch (ignore) { }
         if (rawDocument === null) {
           try {
             row._indexed = null;
             await raw.insertOne(row, { bypassDocumentValidation: true });
+            // @todo-oddj-dashboard: decision CC brute collectée suite à une mise à jour ('jurinet', row._id)
+            LogsFormat.log("info", {
+              operationName: "ImportJurinetBrute",
+              msg: `Raw Jurinet decision collected following an update ${row._id}`,
+              data: {
+                _id: row._id,
+                sourceId: row._id,
+                sourceName: 'jurinet',
+              },
+            });
             if (row['TYPE_ARRET'] === 'CC') {
               await JurinetUtils.IndexAffaire(
                 row,
@@ -1012,7 +1256,7 @@ async function syncJurinet() {
                   htmlDecode: true,
                   toLowerCase: true,
                 });
-                oldXml = `${oldXml.texte_arret}`
+                oldXml = `${oldXml.texte_arret} `
                   .replace(/\*DEB[A-Z]*/gm, '')
                   .replace(/\*FIN[A-Z]*/gm, '')
                   .trim();
@@ -1027,7 +1271,7 @@ async function syncJurinet() {
                   htmlDecode: true,
                   toLowerCase: true,
                 });
-                newXml = `${newXml.texte_arret}`
+                newXml = `${newXml.texte_arret} `
                   .replace(/\*DEB[A-Z]*/gm, '')
                   .replace(/\*FIN[A-Z]*/gm, '')
                   .trim();
@@ -1109,6 +1353,16 @@ async function syncJurinet() {
                 if (row['TYPE_ARRET'] !== 'CC') {
                   wincicaCount++;
                 }
+                // @todo-oddj-dashboard: mise à jour ignorée car la décision CC est trop ancienne ('jurinet', row._id, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJurinetTooOld",
+                  msg: `Jurinet decision update ignored because the decision is too old ${row._id}`,
+                  data: {
+                    _id: row._id,
+                    sourceId: row._id,
+                    sourceName: 'jurinet',
+                  },
+                });
                 await JudilibreIndex.updateJurinetDocument(
                   row,
                   null,
@@ -1121,6 +1375,16 @@ async function syncJurinet() {
                 if (row['TYPE_ARRET'] !== 'CC') {
                   wincicaCount++;
                 }
+                // @todo-oddj-dashboard: mise à jour ignorée car la décision CC est trop en avance ('jurinet', row._id, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJurinetFutur",
+                  msg: `Jurinet decision update ignored because the decision is too far in the future ${row._id} changelog ${changelog}`,
+                  data: {
+                    _id: row._id,
+                    sourceId: row._id,
+                    sourceName: 'jurinet',
+                  },
+                });
                 await JudilibreIndex.updateJurinetDocument(
                   row,
                   null,
@@ -1153,31 +1417,54 @@ async function syncJurinet() {
                   await JudilibreIndex.updateJurinetDocument(
                     row,
                     null,
-                    `update in rawJurinet (sync2) - Original text could have been changed - changelog: ${JSON.stringify(
+                    `update in rawJurinet(sync2) - Original text could have been changed - changelog: ${JSON.stringify(
                       changelog,
-                    )}`,
+                    )
+                    } `,
                   );
                 } else if (Object.keys(changelog).length > 0) {
                   await JudilibreIndex.updateJurinetDocument(
                     row,
                     null,
-                    `update in rawJurinet (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                    `update in rawJurinet(sync2) - changelog: ${JSON.stringify(changelog)} `,
                   );
                 }
+                // @todo-oddj-dashboard: décision CC brute mise à jour ('jurinet', row._id, changelog)
+                // peut on concidérer qu'une décision mise à jour reste quand même une décision collectée ?
+                LogsFormat.log("info", {
+                  operationName: "ImportJurinetBrute",
+                  msg: `Raw Jurinet decision collected following an update ${row._id} changelog ${changelog}`,
+                  data: {
+                    _id: row._id,
+                    sourceId: row._id,
+                    sourceName: 'jurinet',
+                  },
+                });
               }
             } catch (e) {
+              // @todo-oddj-dashboard: erreur de la mise à jour de la decision CC brute ('jurinet', row._id, changelog, e)
+              LogsFormat.log("error", {
+                operationName: "ImportJurinetError",
+                msg: `Error updating raw CC decision ${row._id} changelog ${JSON.stringify(changelog)} `,
+                data: {
+                  _id: row._id,
+                  sourceId: row._id,
+                  sourceName: 'jurinet',
+                },
+              });
               updated = false;
               console.error(e);
               await JudilibreIndex.updateJurinetDocument(
                 row,
                 null,
-                `error while updating in rawJurinet (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                `error while updating in rawJurinet(sync2) - changelog: ${JSON.stringify(changelog)} `,
                 e,
               );
               errorCount++;
             }
           }
         }
+
         let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
         if (normalized === null) {
           try {
@@ -1200,8 +1487,32 @@ async function syncJurinet() {
               await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip sync (already inserted)');
               console.warn(`Jurinet sync issue: { sourceId: ${row._id}, sourceName: 'jurinet' } already inserted...`);
             }
+            // @todo-oddj-dashboard: decision CC normalisée suite à une mise à jour (normDec.sourceName, normDec.sourceId)
+            LogsFormat.log("info", {
+              operationName: "ImportJurinet",
+              msg: `Jurinet normalised decision updating ${normDec.sourceName
+                } ${normDec.sourceId}`,
+              data: {
+                _id: normDec._id,
+                sourceId: normDec.sourceId,
+                sourceName: normDec.sourceName,
+                jurisdictionId: normDec.jurisdictionId,
+                jurisdictionName: normDec.jurisdictionName,
+                labelStatus: normDec.labelStatus,
+                publishStatus: normDec.publishStatus
+              }
+            });
           } catch (e) {
-            console.error(e);
+            // @todo-oddj-dashboard: erreur de normalisation CC suite à une mise à jour ('jurinet', row._id, e)
+            LogsFormat.log("error", {
+              operationName: "ImportJurinetError",
+              msg: `Error Normalization for Jurinet following an update ${row._id} ${e}`,
+              data: {
+                _id: row._id,
+                sourceId: row._id,
+                sourceName: "jurinet"
+              }
+            });
             await JudilibreIndex.updateJurinetDocument(row, null, null, e);
             errorCount++;
           }
@@ -1231,20 +1542,58 @@ async function syncJurinet() {
               });
               normDec._id = normalized._id;
               if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
+                // @todo-oddj-dashboard: mise à jour de la décision CC normalisée et retraitement par Label (normDec.sourceName, normDec.sourceId, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJurinet",
+                  msg: `Normalized Jurinet decision updated and reprocessed by Label ${normDec.sourceName} ${normDec.sourceId}  - changelog : ${changelog}`,
+                  data: {
+                    _id: normDec._id,
+                    sourceId: normDec.sourceId,
+                    sourceName: normDec.sourceName,
+                    jurisdictionId: normDec.jurisdictionId,
+                    jurisdictionName: normDec.jurisdictionName,
+                    labelStatus: normDec.labelStatus,
+                    publishStatus: normDec.publishStatus
+                  }
+                });
                 await JudilibreIndex.indexDecisionDocument(
                   normDec,
                   null,
-                  `update in decisions and reprocessed (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in decisions and reprocessed(sync2) - changelog: ${JSON.stringify(changelog)} `,
                 );
               } else if (Object.keys(changelog).length > 0) {
+                // @todo-oddj-dashboard: mise à jour de la décision CC normalisée *sans* retraitement par Label (normDec.sourceName, normDec.sourceId, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJurinet",
+                  msg: `Normalized Jurinet decision updated without reprocessed by Label ${normDec.sourceName} ${normDec.sourceId}  - changelog : ${changelog}`,
+                  data: {
+                    _id: normDec._id,
+                    sourceId: normDec.sourceId,
+                    sourceName: normDec.sourceName,
+                    jurisdictionId: normDec.jurisdictionId,
+                    jurisdictionName: normDec.jurisdictionName,
+                    labelStatus: normDec.labelStatus,
+                    publishStatus: normDec.publishStatus
+                  }
+                });
                 await JudilibreIndex.updateDecisionDocument(
                   normDec,
                   null,
-                  `update in decisions (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in decisions(sync2) - changelog: ${JSON.stringify(changelog)} `,
                 );
               }
               normalizeCount++;
             } catch (e) {
+              // @todo-oddj-dashboard: erreur de normalisation CC suite à une mise à jour (normalized.sourceName, normalized.sourceId, changelog, e)
+              LogsFormat.log("error", {
+                operationName: "ImportJurinetError",
+                msg: `Error Normalization for Jurinet following an update ${normalized.sourceName} ${normalized.sourceId}  - changelog : ${changelog} - ${e}`,
+                data: {
+                  _id: normalized._id,
+                  sourceId: normDec.sourceId,
+                  sourceName: normDec.sourceName
+                }
+              });
               console.error(e);
               await JudilibreIndex.updateDecisionDocument(normalized, null, null, e);
               errorCount++;
@@ -1260,10 +1609,10 @@ async function syncJurinet() {
             await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
               bypassDocumentValidation: true,
             });
-          } catch (ignore) {}
+          } catch (ignore) { }
         }
 
-        let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id}` });
+        let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurinet:${row._id} ` });
         if (existingDoc === null) {
           rawDocument = await raw.findOne({ _id: row._id });
           normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
@@ -1273,7 +1622,7 @@ async function syncJurinet() {
             if (rawDocument._indexed === true) {
               indexedDoc.judilibreId = normalized._id.valueOf();
               if (typeof indexedDoc.judilibreId !== 'string') {
-                indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
+                indexedDoc.judilibreId = `${indexedDoc.judilibreId} `;
               }
             }
             const lastOperation = DateTime.fromJSDate(new Date());
@@ -1302,11 +1651,15 @@ async function syncJurinet() {
     await GRCOMSource.close();
     await client.close();
 
-    console.log(
-      `Done Syncing Jurinet - New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`,
-    );
+    LogsFormat.log("info", {
+      operationName: "ImportJurinetSkip",
+      msg: `Done Syncing Jurinet - New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, WinciCA: ${wincicaCount}, Error: ${errorCount}.`,
+    });
   } else {
-    console.log(`Done Syncing Jurinet - Empty round.`);
+    LogsFormat.log("info", {
+      operationName: "ImportJurinetSkip",
+      msg: `Done Syncing Jurinet - Empty round.`,
+    });
   }
 
   try {
@@ -1341,8 +1694,10 @@ async function syncJurica() {
     const database = client.db(process.env.MONGO_DBNAME);
     const raw = database.collection(process.env.MONGO_JURICA_COLLECTION);
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
-
-    console.log(`Syncing Jurica (${juricaResult.length} decisions modified since ${juricaLastDate.toISODate()})...`);
+    LogsFormat.log("info", {
+      operationName: "ImportJuricaSkip",
+      msg: `Syncing Jurica(${juricaResult.length} decisions modified since ${juricaLastDate.toISODate()})...`,
+    });
 
     let newCount = 0;
     let updateCount = 0;
@@ -1368,7 +1723,7 @@ async function syncJurica() {
       let exception = null;
       try {
         exception = await JudilibreIndex.findOne('exceptions', {
-          decisionId: `jurica:${row._id}`,
+          decisionId: `jurica:${row._id} `,
           collected: false,
           published: false,
           reason: { $ne: null },
@@ -1379,11 +1734,11 @@ async function syncJurica() {
             hasExceptionToReprocess = true;
           }
         }
-      } catch (ignore) {}
+      } catch (ignore) { }
       try {
         duplicateId = await JuricaUtils.GetJurinetDuplicate(row._id);
         if (duplicateId !== null) {
-          duplicateId = `jurinet:${duplicateId}`;
+          duplicateId = `jurinet:${duplicateId} `;
           duplicate = true;
         } else {
           duplicate = false;
@@ -1410,7 +1765,7 @@ async function syncJurica() {
             row.JDEC_CODNACPART,
             row.JDEC_IND_DEC_PUB,
           );
-        } catch (ignore) {}
+        } catch (ignore) { }
         if (partiallyPublic) {
           let trimmedText;
           let zoning;
@@ -1422,8 +1777,7 @@ async function syncJurica() {
               .trim();
           } catch (e) {
             throw new Error(
-              `Cannot process partially-public decision ${
-                row._id
+              `Cannot process partially - public decision ${row._id
               } because its text is empty or invalid: ${JSON.stringify(e, e ? Object.getOwnPropertyNames(e) : null)}.`,
             );
           }
@@ -1431,42 +1785,47 @@ async function syncJurica() {
             zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
             if (!zoning || zoning.detail) {
               throw new Error(
-                `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
                   zoning,
                   zoning ? Object.getOwnPropertyNames(zoning) : null,
-                )}.`,
+                )
+                }.`,
               );
             }
           } catch (e) {
             throw new Error(
-              `Cannot process partially-public decision ${row._id} because its zoning failed: ${JSON.stringify(
+              `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
                 e,
                 e ? Object.getOwnPropertyNames(e) : null,
-              )}.`,
+              )
+              }.`,
             );
           }
           if (!zoning.zones) {
             throw new Error(
-              `Cannot process partially-public decision ${row._id} because it has no zone: ${JSON.stringify(
+              `Cannot process partially - public decision ${row._id} because it has no zone: ${JSON.stringify(
                 zoning,
                 zoning ? Object.getOwnPropertyNames(zoning) : null,
-              )}.`,
+              )
+              }.`,
             );
           }
           if (!zoning.zones.introduction) {
             throw new Error(
-              `Cannot process partially-public decision ${row._id} because it has no introduction: ${JSON.stringify(
+              `Cannot process partially - public decision ${row._id} because it has no introduction: ${JSON.stringify(
                 zoning.zones,
                 zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
-              )}.`,
+              )
+              }.`,
             );
           }
           if (!zoning.zones.dispositif) {
             throw new Error(
-              `Cannot process partially-public decision ${row._id} because it has no dispositif: ${JSON.stringify(
+              `Cannot process partially - public decision ${row._id} because it has no dispositif: ${JSON.stringify(
                 zoning.zones,
                 zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
-              )}.`,
+              )
+              }.`,
             );
           }
           let parts = [];
@@ -1497,7 +1856,20 @@ async function syncJurica() {
         );
         if (ShouldBeSentToJudifiltre === true) {
           await JudilibreIndex.updateJuricaDocument(row, duplicateId, `IGNORED_CONTROLE_REQUIS`);
-          const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+          // @todo-oddj-dashboard: decision CA bloquée suite à une mise à jour ('jurica', row._id, row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB)
+          LogsFormat.log("info", {
+            operationName: "ImportJuricaToJudifiltre",
+            msg: `Jurica decision blocked following an update ${row._id} ${row.JDEC_CODNAC} ${row.JDEC_CODNACPART} ${row.JDEC_IND_DEC_PUB}`,
+            data: {
+              _id: row._id,
+              sourceId: row._id,
+              jdec_codnac: JDEC_CODNAC,
+              jdec_codnacpart: JDEC_CODNACPART,
+              jdec_ind_dec_pub: JDEC_IND_DEC_PUB,
+              sourceName: "jurica"
+            }
+          });
+          const existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id} ` });
           if (existingDoc !== null) {
             let dateJudifiltre = DateTime.now();
             existingDoc.dateJudifiltre = dateJudifiltre.toISODate();
@@ -1513,6 +1885,16 @@ async function syncJurica() {
               row._indexed = false;
             }
             await raw.insertOne(row, { bypassDocumentValidation: true });
+            // @todo-oddj-dashboard: decision CA brute collectée suite à une mise à jour ('jurica', row._id)
+            LogsFormat.log("info", {
+              operationName: "ImportJuricaBrute",
+              msg: `Raw Jurica decision collected following an update ${row._id} `,
+              data: {
+                _id: row._id,
+                sourceId: row._id,
+                sourceName: "jurica"
+              }
+            });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica (sync2)');
             newCount++;
           } catch (e) {
@@ -1641,18 +2023,38 @@ async function syncJurica() {
               }
 
               if (tooOld === true && hasException === false) {
+                // @todo-oddj-dashboard: mise à jour ignorée car la décision CA est trop ancienne ('jurica', row._id, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJuricaTooOld",
+                  msg: `Ignored jurica decision collected following an update because too old ${row._id} `,
+                  data: {
+                    _id: row._id,
+                    sourceId: row._id,
+                    sourceName: "jurica"
+                  }
+                });
                 updateCount++;
                 await JudilibreIndex.updateJuricaDocument(
                   row,
                   duplicateId,
-                  `update in rawJurica (sync2) - Skip decision (too old) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in rawJurica(sync2) - Skip decision(too old) - changelog: ${JSON.stringify(changelog)} `,
                 );
               } else if (tooEarly === true && hasException === false) {
+                // @todo-oddj-dashboard: mise à jour ignorée car la décision CA est trop en avance ('jurica', row._id, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJuricaFutur",
+                  msg: `Ignored jurica decision collected following an update because too recent (future)${row._id} changelog : ${changelog} `,
+                  data: {
+                    _id: row._id,
+                    sourceId: row._id,
+                    sourceName: "jurica"
+                  }
+                });
                 updateCount++;
                 await JudilibreIndex.updateJuricaDocument(
                   row,
                   duplicateId,
-                  `update in rawJurica (sync2) - Skip decision (too early) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in rawJurica(sync2) - Skip decision(too early) - changelog: ${JSON.stringify(changelog)} `,
                 );
               } else {
                 row._indexed = null;
@@ -1668,26 +2070,47 @@ async function syncJurica() {
                   await JudilibreIndex.updateJuricaDocument(
                     row,
                     duplicateId,
-                    `update in rawJurica (sync2) - Original text could have been changed - changelog: ${JSON.stringify(
+                    `update in rawJurica(sync2) - Original text could have been changed - changelog: ${JSON.stringify(
                       changelog,
-                    )}`,
+                    )
+                    } `,
                   );
                 } else if (Object.keys(changelog).length > 0) {
                   await JudilibreIndex.updateJuricaDocument(
                     row,
                     duplicateId,
-                    `update in rawJurica (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                    `update in rawJurica(sync2) - changelog: ${JSON.stringify(changelog)} `,
                   );
                 }
+                // @todo-oddj-dashboard: décision CA brute mise à jour ('jurica', row._id, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJuricaBrute",
+                  msg: `Raw Jurica decision collected following an update ${row._id} changelog: ${changelog}`,
+                  data: {
+                    _id: row._id,
+                    sourceId: row._id,
+                    sourceName: "jurica"
+                  }
+                });
                 updateCount++;
               }
             } catch (e) {
+              // @todo-oddj-dashboard: erreur de la mise à jour de la decision CA brute ('jurica', row._id, changelog, e)
+              LogsFormat.log("error", {
+                operationName: "ImportJuricaError",
+                msg: `Error following an update  ${row._id} - changelog: ${changelog} - erreur: ${e} `,
+                data: {
+                  _id: row._id,
+                  sourceId: row._id,
+                  sourceName: "jurica"
+                }
+              });
               updated = false;
               console.error(e);
               await JudilibreIndex.updateJuricaDocument(
                 row,
                 duplicateId,
-                `error while updating in rawJurica (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                `error while updating in rawJurica(sync2) - changelog: ${JSON.stringify(changelog)} `,
                 e,
               );
               errorCount++;
@@ -1723,9 +2146,36 @@ async function syncJurica() {
               normalizeCount++;
             } else {
               await JudilibreIndex.updateDecisionDocument(normalized, null, 'skip import (already inserted)');
-              console.warn(`Jurica sync issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`);
+              LogsFormat.log("info", {
+                operationName: "ImportJuricaSkip",
+                msg: `Jurica sync issue: { sourceId: ${row._id}, sourceName: 'jurica' } already inserted...`,
+              });
             }
+            // @todo-oddj-dashboard: decision CA normalisée suite à une mise à jour (normDec.sourceName, normDec.sourceId)
+            LogsFormat.log("info", {
+              operationName: "ImportJurica",
+              msg: `Jurica decision normalised folllowing an update ${row._id} ${normDec.sourceName} ${normDec.sourceId}`,
+              data: {
+                _id: normalized._id,
+                sourceId: normDec.sourceId,
+                sourceName: normDec.sourceName,
+                labelStatus: normDec.labelStatus,
+                publishStatus: normDec.publishStatus,
+                jurisdictionId: normDec.jurisdictionId,
+                jurisdictionName: normDec.jurisdictionName
+              }
+            });
           } catch (e) {
+            // @todo-oddj-dashboard: erreur de normalisation CA suite à une mise à jour ('jurica', row._id, e)
+            LogsFormat.log("error", {
+              operationName: "ImportJuricaError",
+              msg: `Error normalization following an update ${row._id} - erreur: ${e} `,
+              data: {
+                _id: normalized._id,
+                sourceId: row._id,
+                sourceName: "jurica"
+              }
+            });
             console.error(e);
             await JudilibreIndex.updateJuricaDocument(row, null, null, e);
             errorCount++;
@@ -1763,21 +2213,58 @@ async function syncJurica() {
               });
               normDec._id = normalized._id;
               if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
+                // @todo-oddj-dashboard: mise à jour de la décision CA normalisée et retraitement par Label (normDec.sourceName, normDec.sourceId, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJurica",
+                  msg: `Normalized Jurinca decision updated and reprocessed by Label ${normDec.sourceId} ${normDec.sourceName} changelog : ${changelog} `,
+                  data: {
+                    _id: normDec._id,
+                    sourceId: normDec.sourceId,
+                    sourceName: normDec.sourceName,
+                    jurisdictionId: normDec.jurisdictionId,
+                    jurisdictionName: normDec.jurisdictionName,
+                    labelStatus: normDec.labelStatus,
+                    publishStatus: normDec.publishStatus
+                  }
+                });
                 await JudilibreIndex.indexDecisionDocument(
                   normDec,
                   duplicateId,
-                  `update in decisions and reprocessed (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in decisions and reprocessed(sync2) - changelog: ${JSON.stringify(changelog)} `,
                 );
               } else if (Object.keys(changelog).length > 0) {
+                // @todo-oddj-dashboard: mise à jour de la décision CA normalisée *sans* retraitement par Label (normDec.sourceName, normDec.sourceId, changelog)
+                LogsFormat.log("info", {
+                  operationName: "ImportJurica",
+                  msg: `Normalized Jurinet decision updated without reprocessed by Label ${normDec.sourceId} ${normDec.sourceName} changelog : ${changelog} `,
+                  data: {
+                    _id: normDec._id,
+                    sourceId: normDec.sourceId,
+                    sourceName: normDec.sourceName,
+                    jurisdictionId: normDec.jurisdictionId,
+                    jurisdictionName: normDec.jurisdictionName,
+                    publishStatus: normDec.publishStatus,
+                    labelStatus: normDec.labelStatus
+                  }
+                });
                 await JudilibreIndex.updateDecisionDocument(
                   normDec,
                   duplicateId,
-                  `update in decisions (sync2) - changelog: ${JSON.stringify(changelog)}`,
+                  `update in decisions(sync2) - changelog: ${JSON.stringify(changelog)} `,
                 );
               }
               normalizeCount++;
             } catch (e) {
-              console.error(e);
+              // @todo-oddj-dashboard: erreur de normalisation CA suite à une mise à jour (normalized.sourceName, normalized.sourceId, changelog, e)
+              LogsFormat.log("error", {
+                operationName: "ImportJuricaError",
+                msg: `Error jurica normalization following an update ${normalized.sourceId} ${normalized.sourceName} changelog : ${changelog}  - ${e}`,
+                data: {
+                  _id: row._id,
+                  sourceId: normalized.sourceId,
+                  sourceName: normalized.sourceName
+                }
+              });
               await JudilibreIndex.updateDecisionDocument(normalized, null, null, e);
               errorCount++;
             }
@@ -1792,10 +2279,10 @@ async function syncJurica() {
             await JudilibreIndex.replaceOne('exceptions', { _id: exception._id }, exception, {
               bypassDocumentValidation: true,
             });
-          } catch (ignore) {}
+          } catch (ignore) { }
         }
 
-        let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id}` });
+        let existingDoc = await JudilibreIndex.findOne('mainIndex', { _id: `jurica:${row._id} ` });
         if (existingDoc === null) {
           rawDocument = await raw.findOne({ _id: row._id });
           normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
@@ -1805,7 +2292,7 @@ async function syncJurica() {
             if (rawDocument._indexed === true) {
               indexedDoc.judilibreId = normalized._id.valueOf();
               if (typeof indexedDoc.judilibreId !== 'string') {
-                indexedDoc.judilibreId = `${indexedDoc.judilibreId}`;
+                indexedDoc.judilibreId = `${indexedDoc.judilibreId} `;
               }
             }
             const lastOperation = DateTime.fromJSDate(new Date());
@@ -1825,14 +2312,24 @@ async function syncJurica() {
           }
         }
       } else {
-        console.warn(
-          `Jurica sync reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}).`,
-        );
+        // @todo-oddj-dashboard: decision CA rejetée suite à une mise à jour ('jurica', row._id, row.JDEC_CODNAC, row.JDEC_CODNACPART, row.JDEC_IND_DEC_PUB)
+        LogsFormat.log("info", {
+          operationName: "ImportJuricaRejected",
+          msg: `Rejected jurica decision following an update ${row._id} ${row.JDEC_CODNAC} ${row.JDEC_CODNACPART}  - ${row.JDEC_IND_DEC_PUB}`,
+          data: {
+            _id: row._id,
+            sourceId: row._id,
+            sourceName: 'jurica',
+            jdec_codnac: row.JDEC_CODNAC,
+            jdec_codnacpart: row.JDEC_CODNACPART,
+            jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
+          }
+        });
         await juricaSource.markAsErroneous(row._id);
         await JudilibreIndex.updateJuricaDocument(
           row,
           duplicateId,
-          duplicate ? `duplicate of ${duplicateId}` : 'non-public',
+          duplicate ? `duplicate of ${duplicateId} ` : 'non-public',
         );
         if (duplicate) {
           duplicateCount++;
@@ -1847,11 +2344,15 @@ async function syncJurica() {
 
     await client.close();
 
-    console.log(
-      `Done Syncing Jurica - New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Non-public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
-    );
+    LogsFormat.log("info", {
+      operationName: "ImportJuricaSkip",
+      msg: `Done Syncing Jurica - New: ${newCount}, Update: ${updateCount}, Normalize: ${normalizeCount}, Non - public: ${nonPublicCount}, Duplicate: ${duplicateCount}, Error: ${errorCount}.`,
+    });
   } else {
-    console.log(`Done Syncing Jurica - Empty round.`);
+    LogsFormat.log("info", {
+      operationName: "ImportJuricaSkip",
+      msg: `Done Syncing Jurica - Empty round.`,
+    });
   }
 
   await juricaSource.close();
