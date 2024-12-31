@@ -1353,7 +1353,7 @@ async function syncJurinet() {
                 if (row['TYPE_ARRET'] !== 'CC') {
                   wincicaCount++;
                 }
-                // @todo-oddj-dashboard: mise à jour ignorée car la décision CC est trop ancienne ('jurinet', row._id, changelog)
+                // @todo-oddj-dashboard: mise à jour ignorée car la décision CC est trop ancienne ('jurinet', row._id, changelog*
                 CustomLog.log("info", {
                   operationName: "ImportJurinetTooOld",
                   msg: `Jurinet decision update ignored because the decision is too old ${row._id}`,
