@@ -1,6 +1,13 @@
 const { MongoClient } = require('mongodb');
 if (!process.env.NODE_ENV) require('dotenv').config();
 
+function setDate(dateRef, day, month) {
+  const date = new Date(dateRef.toISOString())
+  date.setDate(day > 28 ? 28: day)
+  date.setMonth(month)
+  return date
+}
+
 async function refreshIndex(db, date) {
   const decisions = await db.collection('mainIndex').find();
 
@@ -10,10 +17,7 @@ async function refreshIndex(db, date) {
         { _id },
         {
           $set: {
-            date: `${date.toISOString().slice(0, 4)}-${date.toISOString().slice(5, 7) - 1}-${decisionDate.slice(
-              8,
-              10,
-            )}`,
+            date: setDate(date, (new Date(decisionDate)).getDate(), date.getMonth() -1).toISOString().slice(0, 10),
             lastOperation: lastOperation ? date.toISOString().slice(0, 10) : null,
             dateImport: dateImport ? date.toISOString().slice(0, 10) : null,
             dateExport: dateExport ? date.toISOString().slice(0, 10) : null,
