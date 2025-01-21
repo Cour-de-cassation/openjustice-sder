@@ -31,7 +31,7 @@ async function refreshIndex(db, date) {
 
 async function main() {
   const client = new MongoClient(process.env.INDEX_DB_URI);
-  const db = client.db(process.env.INDEX_DB_NAME);
+  const db = client.db();
   await client.connect();
 
   const input = process.argv[2];
