@@ -4,14 +4,15 @@ const { existsSync, mkdirSync } = require('fs')
 const { resolve } = require('path')
 if (!process.env.NODE_ENV) require('dotenv').config()
 
+const DB_PATH = resolve(__dirname, 'db')
+
 async function exportCollection(collection) {
-  const { collectionName, dbName } = collection
+  const { collectionName } = collection
   const raw = await collection.find().toArray()
-  const dirPath = resolve(__dirname, dbName)
 
-  if (!existsSync(dirPath)) mkdirSync(dirPath)
+  if (!existsSync(DB_PATH)) mkdirSync(DB_PATH)
 
-  return writeFile(resolve(dirPath, `${collectionName}.json`), JSON.stringify(raw, null, 2), 'utf8')
+  return writeFile(resolve(DB_PATH, `${collectionName}.json`), JSON.stringify(raw, null, 2), 'utf8')
 }
 
 async function main() {

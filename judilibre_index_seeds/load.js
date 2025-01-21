@@ -3,12 +3,14 @@ const { readFile, readdir } = require('fs/promises');
 const { resolve } = require('path');
 if (!process.env.NODE_ENV) require('dotenv').config();
 
+const DB_PATH = resolve(__dirname, 'db')
+
 async function readCollectionNames(dbName) {
-  const files = await readdir(resolve(__dirname, dbName));
+  const files = await readdir(DB_PATH);
   return files.map((_) => ({
     dbName,
     collectionName: _.slice(0, _.length - '.json'.length),
-    path: resolve(__dirname, dbName, _),
+    path: resolve(DB_PATH, _),
   }));
 }
 
