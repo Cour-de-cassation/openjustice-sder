@@ -8,19 +8,15 @@ async function exportCollection(collection) {
   const { collectionName } = collection;
   const raw = await collection.find().toArray();
   const dirPath = resolve(__dirname, 'db');
-
   if (!existsSync(dirPath)) mkdirSync(dirPath);
-
   return writeFile(resolve(dirPath, `${collectionName}.json`), JSON.stringify(raw, null, 2), 'utf8');
 }
 
 async function main() {
   const client = new MongoClient(process.env.INDEX_DB_URI);
   await client.connect();
-
   const dbCollections = await client.db().collections();
   const collections = dbCollections.flat();
-
   return Promise.all(collections.map(exportCollection));
 }
 
