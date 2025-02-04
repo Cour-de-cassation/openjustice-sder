@@ -118,3 +118,5 @@ oracle_local_init/jurica_create_schema.sql
 oracle_local_init/jurica_drop_schema.sql
 
 oradiag_node
+
+.vscode/
