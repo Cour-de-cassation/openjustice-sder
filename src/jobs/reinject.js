@@ -7,6 +7,7 @@ const { JuricaOracle } = require('../jurica-oracle');
 const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const ms = require('ms');
+const { CustomLog } = require('./../utils/logger')
 
 let selfKill = setTimeout(cancel, ms('1h'));
 
@@ -82,7 +83,21 @@ async function reinjectJurinet() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
-        if (raw) {
+        // @todo-oddj-dashboard: decision CC (decision.sourceName, decision.sourceId) libérée par Label, réinjectée dans Oracle et prête à être publiée
+        CustomLog.log("info", {
+          operationName: "ReinjectJurinet",
+          msg: `decision ${decision.sourceName} ${decision.sourceId} released by Label, re-injected into Oracle and ready for publication `,
+          data: {
+            _id: decision._id,
+            sourceId: decision.sourceId,
+            sourceName: decision.sourceName,
+            labelStatus: decision.labelStatus,
+            publishStatus: decision.publishStatus,
+            jurisdictionId: decision.jurisdictionId,
+            jurisdictionName: decision.jurisdictionName
+          }
+        });
+        if (raw && raw.IND_ANO !== 2) {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         } else {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'skip reinject');
@@ -90,12 +105,24 @@ async function reinjectJurinet() {
         successCount++;
       }
     } catch (e) {
-      console.error(`Jurinet reinjection error processing decision ${decision._id}`, e);
+      // @todo-oddj-dashboard: erreur lors de la réinjection dans Oracle de la decision CC (decision.sourceName, decision.sourceId, e)
+      CustomLog.log("error", {
+        operationName: "ReinjectJurinetError",
+        msg: `Error during Jurinet decision injection in Oracle ${decision.sourceName} ${decision.sourceId} ${e} `,
+        data: {
+          _id: decision._id,
+          sourceId: decision.sourceId,
+          sourceName: decision.sourceName,
+        }
+      });
       await JudilibreIndex.updateDecisionDocument(decision, null, null, e);
       errorCount++;
     }
   }
-  console.log(`Jurinet reinjection done (success: ${successCount}, errors: ${errorCount}).`);
+  CustomLog.log("info", {
+    operationName: "ReinjectJurinetSkip",
+    msg: `Jurinet reinjection done (success: ${successCount}, errors: ${errorCount}).`,
+  });
   await cursor.close();
   await jurinetSource.close();
   await client.close();
@@ -112,7 +139,10 @@ async function reinjectJurica() {
   const juricaSource = new JuricaOracle();
   await juricaSource.connect();
 
-  console.log('Retrieve all "done" decisions for Jurica...');
+  CustomLog.log("info", {
+    operationName: "ReinjectJuricaSkip",
+    msg: `Retrieve all "done" decisions for Jurica...`,
+  });
   let decision,
     successCount = 0,
     errorCount = 0;
@@ -143,7 +173,21 @@ async function reinjectJurica() {
         await decisions.replaceOne({ _id: decision[process.env.MONGO_ID] }, decision, {
           bypassDocumentValidation: true,
         });
-        if (raw) {
+        // @todo-oddj-dashboard: decision CA (decision.sourceName, decision.sourceId) libérée par Label, réinjectée dans Oracle et prête à être publiée
+        CustomLog.log("info", {
+          operationName: "ReinjectJurica",
+          msg: `decision ${decision.sourceName} ${decision.sourceId} released by Label, re-injected into Oracle and ready for publication `,
+          data: {
+            _id: decision._id,
+            sourceId: decision.sourceId,
+            sourceName: decision.sourceName,
+            labelStatus: decision.labelStatus,
+            publishStatus: decision.publishStatus,
+            jurisdictionId: decision.jurisdictionId,
+            jurisdictionName: decision.jurisdictionName
+          }
+        });
+        if (raw && raw.IND_ANO !== 2) {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'reinject');
         } else {
           await JudilibreIndex.updateDecisionDocument(decision, null, 'skip reinject');
@@ -151,12 +195,24 @@ async function reinjectJurica() {
         successCount++;
       }
     } catch (e) {
-      console.error(`Jurica reinjection error processing decision ${decision._id}`, e);
+      // @todo-oddj-dashboard: erreur lors de la réinjection dans Oracle de la decision CA (decision.sourceName, decision.sourceId, e)
+      CustomLog.log("error", {
+        operationName: "ReinjectJuricaError",
+        msg: `Jurica reinjection error processing decision ${decision.sourceName} ${decision.sourceId}  ${e}`,
+        data: {
+          _id: decision._id,
+          sourceId: decision.sourceId,
+          sourceName: decision.sourceName,
+        }
+      });
       await JudilibreIndex.updateDecisionDocument(decision, null, null, e);
       errorCount++;
     }
   }
-  console.log(`Jurica reinjection done (success: ${successCount}, errors: ${errorCount}).`);
+  CustomLog.log("info", {
+    operationName: "ReinjectJuricaSkip",
+    msg: `Jurica reinjection done (success: ${successCount}, errors: ${errorCount}).`,
+  });
   await cursor.close();
   await juricaSource.close();
   await client.close();
