@@ -763,7 +763,7 @@ async function importJurica() {
           // @todo-oddj-dashboard: erreur de collecte de la decision CA brute ('jurica', row._id, e)
           CustomLog.log("error", {
             operationName: "ImportJuricaError",
-            msg: `Error collecting raw Jurinet decision ${row._id}, ${e})`,
+            msg: `Error collecting raw Jurica decision ${row._id}, ${e})`,
             data: {
               sourceId: row._id,
               sourceName: 'jurica',
