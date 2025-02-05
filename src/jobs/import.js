@@ -736,7 +736,7 @@ async function importJurica() {
               operationName: "ImportJuricaRejected",
               msg: `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}), ${row._id}, ${row
                 .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.J
-                  .DEC_IND_DEC_PUB})`,
+                  .JDEC_IND_DEC_PUB})`,
               data: {
                 _id: row._id,
                 sourceId: row._id,
@@ -763,7 +763,7 @@ async function importJurica() {
           // @todo-oddj-dashboard: erreur de collecte de la decision CA brute ('jurica', row._id, e)
           CustomLog.log("error", {
             operationName: "ImportJuricaError",
-            msg: `Error collecting raw Jurinet decision ${row._id}, ${e})`,
+            msg: `Error collecting raw Jurica decision ${row._id}, ${e})`,
             data: {
               sourceId: row._id,
               sourceName: 'jurica',
@@ -1008,7 +1008,7 @@ async function importJurica() {
               operationName: "ImportJuricaRejected",
               msg: `Jurica import reject decision ${row._id}, ${row
                 .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.J
-                  .DEC_IND_DEC_PUB} ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}`,
+                  .JDEC_IND_DEC_PUB} ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}`,
               data: {
                 _id: row._id,
                 jdec_codnac: JDEC_CODNAC,
