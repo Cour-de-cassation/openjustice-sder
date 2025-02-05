@@ -124,6 +124,9 @@ class JudilibreIndex {
     } else if (/is-public/i.test(msg)) {
       indexedDoc.public = true;
     }
+    if (msg && typeof msg === 'string' && msg.indexOf('import') === 0 && !indexedDoc.dateImport) {
+      indexedDoc.dateImport = this.getDateString();
+    }
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
@@ -318,6 +321,9 @@ class JudilibreIndex {
       indexedDoc.public = false;
     } else if (/is-public/i.test(msg)) {
       indexedDoc.public = true;
+    }
+    if (msg && typeof msg === 'string' && msg.indexOf('import') === 0 && !indexedDoc.dateImport) {
+      indexedDoc.dateImport = this.getDateString();
     }
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
