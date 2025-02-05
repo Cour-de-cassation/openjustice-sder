@@ -736,7 +736,7 @@ async function importJurica() {
               operationName: "ImportJuricaRejected",
               msg: `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}), ${row._id}, ${row
                 .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.J
-                  .DEC_IND_DEC_PUB})`,
+                  .JDEC_IND_DEC_PUB})`,
               data: {
                 _id: row._id,
                 sourceId: row._id,
@@ -1008,7 +1008,7 @@ async function importJurica() {
               operationName: "ImportJuricaRejected",
               msg: `Jurica import reject decision ${row._id}, ${row
                 .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.J
-                  .DEC_IND_DEC_PUB} ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}`,
+                  .JDEC_IND_DEC_PUB} ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}`,
               data: {
                 _id: row._id,
                 jdec_codnac: JDEC_CODNAC,
