@@ -1,31 +1,21 @@
-const { MongoClient, ObjectId } = require('mongodb');
+const { MongoClient, BSON } = require('mongodb');
 const { readFile, readdir } = require('fs/promises');
-const { statSync } = require('fs');
 const { resolve } = require('path');
-if (!process.env.NODE_ENV) require('dotenv');
+if (!process.env.NODE_ENV) require('dotenv').config();
 
-async function readDbNames() {
-  const pathes = await readdir(resolve(__dirname));
-  return pathes.filter((_) => statSync(resolve(__dirname, _)).isDirectory());
-}
-
-async function readCollectionNames(dbName) {
-  const files = await readdir(resolve(__dirname, dbName));
+async function readCollections() {
+  const path = resolve(__dirname, 'db')
+  const files = await readdir(path);
   return files.map((_) => ({
-    dbName,
     collectionName: _.slice(0, _.length - '.json'.length),
-    path: resolve(__dirname, dbName, _),
+    path: resolve(path, _),
   }));
 }
 
-async function saveCollections(client, { dbName, collectionName, path }) {
-  const collection = await client.db(dbName).createCollection(collectionName);
+async function saveCollections(client, { collectionName, path }) {
+  const collection = await client.db().createCollection(collectionName);
   const save = await readFile(path, 'utf8');
-  const saveParse = JSON.parse(save, (_, value) => {
-    if (value && typeof value['$oid'] === 'string' && value['$oid'].length > 0) return new ObjectId(value['$oid']);
-    return value;
-  });
-
+  const saveParse = BSON.EJSON.parse(save)
   if (saveParse.length <= 0) return;
   return collection.insertMany(saveParse);
 }
@@ -33,11 +23,8 @@ async function saveCollections(client, { dbName, collectionName, path }) {
 async function main() {
   const client = new MongoClient(process.env.INDEX_DB_URI);
   await client.connect();
-
-  const dbNames = await readDbNames();
-  const collections = (await Promise.all(dbNames.map(readCollectionNames))).flat();
-
-  return Promise.all(collections.map((_) => saveCollections(client, _)));
+  const collections = await readCollections(client)
+  return Promise.all(collections.map(_ => saveCollections(client, _)));
 }
 
 main()
