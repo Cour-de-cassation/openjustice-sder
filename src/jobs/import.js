@@ -735,14 +735,13 @@ async function importJurica() {
             CustomLog.log("info", {
               operationName: "ImportJuricaRejected",
               msg: `Jurica import reject decision ${row._id} (ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}), ${row._id}, ${row
-                .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.J
-                  .JDEC_IND_DEC_PUB})`,
+                .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB})`,
               data: {
                 _id: row._id,
                 sourceId: row._id,
-                jdec_codnac: JDEC_CODNAC,
-                jdec_codnacpart: JDEC_CODNACPART,
-                jdec_ind_dec_pub: JDEC_IND_DEC_PUB,
+                jdec_codnac: row.JDEC_CODNAC,
+                jdec_codnacpart: row.JDEC_CODNACPART,
+                jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
                 sourceName: 'jurica',
               },
             },
@@ -923,9 +922,9 @@ async function importJurica() {
                 data: {
                   _id: row._id,
                   sourceId: row._id,
-                  jdec_codnac: JDEC_CODNAC,
-                  jdec_codnacpart: JDEC_CODNACPART,
-                  jdec_ind_dec_pub: JDEC_IND_DEC_PUB,
+                  jdec_codnac: row.JDEC_CODNAC,
+                  jdec_codnacpart: row.JDEC_CODNACPART,
+                  jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
                   sourceName: 'jurica',
                 },
               });
@@ -1007,13 +1006,12 @@ async function importJurica() {
             CustomLog.log("info", {
               operationName: "ImportJuricaRejected",
               msg: `Jurica import reject decision ${row._id}, ${row
-                .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.J
-                  .JDEC_IND_DEC_PUB} ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}`,
+                .JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB} ShouldBeRejected: ${ShouldBeRejected}, duplicate: ${duplicate}`,
               data: {
                 _id: row._id,
-                jdec_codnac: JDEC_CODNAC,
-                jdec_codnacpart: JDEC_CODNACPART,
-                jdec_ind_dec_pub: JDEC_IND_DEC_PUB,
+                jdec_codnac: row.JDEC_CODNAC,
+                jdec_codnacpart: row.JDEC_CODNACPART,
+                jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
                 sourceId: row._id,
                 sourceName: 'jurica',
               },
@@ -1863,9 +1861,9 @@ async function syncJurica() {
             data: {
               _id: row._id,
               sourceId: row._id,
-              jdec_codnac: JDEC_CODNAC,
-              jdec_codnacpart: JDEC_CODNACPART,
-              jdec_ind_dec_pub: JDEC_IND_DEC_PUB,
+              jdec_codnac: row.JDEC_CODNAC,
+              jdec_codnacpart: row.JDEC_CODNACPART,
+              jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
               sourceName: "jurica"
             }
           });
