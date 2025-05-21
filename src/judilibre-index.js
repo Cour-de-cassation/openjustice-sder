@@ -124,6 +124,9 @@ class JudilibreIndex {
     } else if (/is-public/i.test(msg)) {
       indexedDoc.public = true;
     }
+    if (!indexedDoc.dateImport) {
+      indexedDoc.dateImport = this.getDateString();
+    }
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
@@ -136,6 +139,9 @@ class JudilibreIndex {
     const indexedDoc = await this.buildJurinetDocument(doc, duplicateId);
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
+      if (!existingDoc.dateImport) {
+        existingDoc.dateImport = this.getDateString();
+      }
       indexedDoc.sderId = existingDoc.sderId;
       indexedDoc.judilibreId = existingDoc.judilibreId;
       indexedDoc.juridiction = existingDoc.juridiction;
@@ -203,6 +209,9 @@ class JudilibreIndex {
         indexedDoc.public = false;
       } else if (/is-public/i.test(msg)) {
         indexedDoc.public = true;
+      }
+      if (!indexedDoc.dateImport) {
+        indexedDoc.dateImport = this.getDateString();
       }
       await this.insertOne('mainIndex', indexedDoc, { bypassDocumentValidation: true });
     }
@@ -319,6 +328,9 @@ class JudilibreIndex {
     } else if (/is-public/i.test(msg)) {
       indexedDoc.public = true;
     }
+    if (!indexedDoc.dateImport) {
+      indexedDoc.dateImport = this.getDateString();
+    }
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
       await this.replaceOne('mainIndex', { _id: indexedDoc._id }, indexedDoc, { bypassDocumentValidation: true });
@@ -331,6 +343,9 @@ class JudilibreIndex {
     const indexedDoc = await this.buildJuricaDocument(doc, duplicateId);
     const existingDoc = await this.findOne('mainIndex', { _id: indexedDoc._id });
     if (existingDoc !== null) {
+      if (!existingDoc.dateImport) {
+        existingDoc.dateImport = this.getDateString();
+      }
       indexedDoc.sderId = existingDoc.sderId;
       indexedDoc.judilibreId = existingDoc.judilibreId;
       indexedDoc.juridiction = existingDoc.juridiction;
@@ -434,7 +449,7 @@ class JudilibreIndex {
         }
         existingDoc.dateError = this.getDateString();
       }
-      if (msg && typeof msg === 'string' && msg.indexOf('import in decisions') === 0 && !existingDoc.dateImport) {
+      if (!existingDoc.dateImport) {
         existingDoc.dateImport = this.getDateString();
       }
       if (/non-public/i.test(msg)) {
