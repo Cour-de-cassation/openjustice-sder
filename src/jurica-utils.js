@@ -549,7 +549,9 @@ class JuricaUtils {
         dates_jurisdictions:
           objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates_jurisdictions)) : {},
         numbers_judilibreIds:
-          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_judilibreIds)) : {},
+          objAlreadyStored !== null && objAlreadyStored.numbers_judilibreIds !== undefined
+            ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_judilibreIds))
+            : {},
       };
       let dateForIndexing = `${doc.JDEC_DATE}`.trim();
       if (objToStore.ids.indexOf(`jurica:${doc._id}`) === -1) {

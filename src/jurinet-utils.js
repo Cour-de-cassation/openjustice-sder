@@ -201,7 +201,9 @@ class JurinetUtils {
         dates_jurisdictions:
           objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates_jurisdictions)) : {},
         numbers_judilibreIds:
-          objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_judilibreIds)) : {},
+          objAlreadyStored !== null && objAlreadyStored.numbers_judilibreIds !== undefined
+            ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_judilibreIds))
+            : {},
       };
       let date = new Date(Date.parse(doc.DT_DECISION.toISOString()));
       date.setHours(date.getHours() + 2);
