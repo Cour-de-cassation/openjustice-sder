@@ -803,7 +803,6 @@ class JuricaUtils {
                 const published = await decisions.findOne({
                   sourceId: parseInt(source[1]),
                   sourceName: source[0],
-                  labelStatus: 'exported',
                   publishStatus: 'success',
                 });
                 if (published !== null) {
