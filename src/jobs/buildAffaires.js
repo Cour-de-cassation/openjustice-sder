@@ -33,15 +33,30 @@ async function main() {
   const { JurinetUtils } = require('../jurinet-utils');
   const oracledb = require('oracledb');
   oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+  console.log('connecting to jurinet', {
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    connectString: process.env.DB_HOST,
+  });
   const jurinetConnection = await oracledb.getConnection({
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     connectString: process.env.DB_HOST,
   });
+  console.log('connecting to jurica', {
+    user: process.env.DB_USER_JURICA,
+    password: process.env.DB_PASS_JURICA,
+    connectString: process.env.DB_HOST_JURICA,
+  });
   const juricaConnection = await oracledb.getConnection({
     user: process.env.DB_USER_JURICA,
     password: process.env.DB_PASS_JURICA,
     connectString: process.env.DB_HOST_JURICA,
+  });
+  console.log('connecting to grcom', {
+    user: process.env.GRCOM_DB_USER,
+    password: process.env.GRCOM_DB_PASS,
+    connectString: process.env.DB_HOST,
   });
   const grcomConnection = await oracledb.getConnection({
     user: process.env.GRCOM_DB_USER,
