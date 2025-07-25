@@ -83,6 +83,7 @@ async function main() {
       offset = 0;
     }
   } catch (ignore) {}
+  console.log('First pass : Jurinet with offset ', offset);
   let hasDoc = false;
   try {
     let doc;
@@ -108,7 +109,8 @@ async function main() {
     if (isNaN(offset)) {
       offset = 0;
     }
-  } catch (ignore) {}
+  } catch (ignore) {}  
+  console.log('Second pass : Jurica with offset ', offset);
   hasDoc = false;
   try {
     let doc = null;

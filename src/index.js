@@ -4,7 +4,7 @@ const { CustomLog } = require('./utils/logger');
 
 CustomLog.log('info', {
   operationName: `Start`,
-  msg: `Start main script v20250724_1 : ${new Date().toLocaleString()}`,
+  msg: `Start main script v20250725_1 : ${new Date().toLocaleString()}`,
 });
 
 if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
