@@ -4,7 +4,7 @@ const { CustomLog } = require('./utils/logger');
 
 CustomLog.log('info', {
   operationName: `Start`,
-  msg: `Start main script v20250725_1 : ${new Date().toLocaleString()}`,
+  msg: `Start main script v20250725_2 : ${new Date().toLocaleString()}`,
 });
 
 if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
@@ -16,7 +16,7 @@ if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
     jobs: [
       {
         name: 'import',
-        interval: 'every 7 minutes after 7:00am and before 5:00pm',
+        interval: 'every 5 minutes after 7:00am and before 5:00pm',
       },
       {
         name: 'reinject',
@@ -24,7 +24,7 @@ if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
       },
       {
         name: 'buildAffaires',
-        interval: 'every 5 minute after 3:00am and before 11:00pm',
+        interval: 'every 7 minute after 3:00am and before 11:00pm',
       },
     ],
   });

@@ -533,6 +533,9 @@ class JuricaUtils {
       /^\d\d\d\d-\d\d-\d\d$/.test(`${doc.JDEC_DATE}`.trim())
     ) {
       let objAlreadyStored = await jIndexAffaires.findOne({ ids: `jurica:${doc._id}` });
+      if (objAlreadyStored !== null) {
+        delete objAlreadyStored.updated;
+      }
       let objToStore = {
         _id: objAlreadyStored !== null ? objAlreadyStored._id : new ObjectId(),
         numbers: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers)) : [],
@@ -817,8 +820,10 @@ class JuricaUtils {
           }
         }
         if (objAlreadyStored === null) {
+          objToStore.updated = true;
           await jIndexAffaires.insertOne(objToStore, { bypassDocumentValidation: true });
         } else if (JSON.stringify(objToStore) !== JSON.stringify(objAlreadyStored)) {
+          objToStore.updated = true;
           await jIndexAffaires.replaceOne({ _id: objAlreadyStored._id }, objToStore, {
             bypassDocumentValidation: true,
           });

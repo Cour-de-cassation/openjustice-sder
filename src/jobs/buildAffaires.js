@@ -7,7 +7,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { parentPort } = require('worker_threads');
 const ms = require('ms');
 
-let selfKill = setTimeout(cancel, ms('12h'));
+let selfKill = setTimeout(cancel, ms('1h'));
 
 function end() {
   clearTimeout(selfKill);
@@ -94,7 +94,7 @@ async function main() {
     if (isNaN(offset)) {
       offset = 0;
     }
-  } catch (ignore) {}  
+  } catch (ignore) {}
   console.log('Second pass : Jurica with offset ', offset);
   hasDoc = false;
   try {
