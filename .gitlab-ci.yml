@@ -35,7 +35,6 @@ build_openjustice_sder:
     - docker push $docker_image
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
-    - if: '$CI_COMMIT_BRANCH == "cicd-refacto"'
     - if: '$CI_COMMIT_TAG'
   tags:
     - docker
@@ -63,9 +62,8 @@ deploy_dev:
     ENV: dev
   extends: .deploy_template
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "cicd-refacto"'
-      when: manual
-      # when: on_success
+    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_TAG'
+      when: on_success
   needs:
     - build_openjustice_sder
 
