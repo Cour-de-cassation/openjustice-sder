@@ -4,10 +4,7 @@ services:
 
 variables:
   SCRIPT_NAME: import
-  docker_image: $CI_REGISTRY/cour-de-cassation/openjustice-sder:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
-  dev: dev
-  re7: preprod
-  master: prod
+  docker_image: $CI_REGISTRY/cour-de-cassation/openjustice-sder:$CI_COMMIT_SHORT_SHA
 
 stages:
   - build
@@ -21,7 +18,14 @@ build_openjustice_sder:
     HTTPS_PROXY: $HTTP_PROXY_DEV
   script:
     - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - node_env=$(eval "echo \$$CI_COMMIT_BRANCH")
+
+    # To avoid rebuild existing image when adding tag to a commit
+    - |
+      if docker pull "$docker_image"; then
+        echo "Docker image $docker_image already exist, skiping build and push."
+        exit 0
+      fi
+
     - docker build
       --target openjustice-sder-prod
       --build-arg script_name=$SCRIPT_NAME
@@ -29,20 +33,17 @@ build_openjustice_sder:
       --build-arg https_proxy=$HTTPS_PROXY
       -t $docker_image .
     - docker push $docker_image
-  only:
-    - master
-    - dev
-    - re7
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_TAG'
   tags:
     - docker
 
-deploy_openjustice_sder:
+.deploy_template:
   stage: deploy
+  environment: $ENV
   image: alpine/ansible:2.16.1
-  variables:
-    DOLLAR: $$
   script:
-    - inventaire=$(eval "echo \$$CI_COMMIT_BRANCH")
     - mkdir /root/.ssh
     - cat $SSH_KEY > /root/.ssh/id_rsa
     - cat $KNOWN_HOSTS > /root/.ssh/known_hosts
@@ -51,14 +52,37 @@ deploy_openjustice_sder:
     - |
       ansible-playbook \
             -e docker_image=$docker_image \
-            -i ansible/inventory/$inventaire.yml \
+            -i ansible/inventory/$ENV.yml \
             ansible/deploy_application.yml --vault-password-file=$ANSIBLE_VAULT_PASS
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "re7"
-      when: manual
-    - if: $CI_COMMIT_BRANCH == "dev"
-      when: manual
   tags:
     - docker
-  dependencies:
+
+deploy_dev:
+  variables:
+    ENV: dev
+  extends: .deploy_template
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_TAG'
+      when: on_success
+  needs:
     - build_openjustice_sder
+
+deploy_preprod:
+  variables:
+    ENV: preprod
+  extends: .deploy_template
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: manual
+  needs:
+    - deploy_dev
+
+deploy_prod:
+  variables:
+    ENV: prod
+  extends: .deploy_template
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: manual
+  needs:
+    - deploy_preprod
