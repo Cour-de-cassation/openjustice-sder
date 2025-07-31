@@ -521,7 +521,6 @@ async function store(source) {
             console.log(`Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) not found in Jurinet: add.`);
             insertOrUpdate = true;
           } else {
-            // @TODO check if pseudonimized and published
             console.log(
               `Decision ${decisionToStore._id} (${decisionToStore.NUMERO}) already in Jurinet as ${alreadyFromJurinet.sourceId}: skip.`,
             );

@@ -1683,7 +1683,7 @@ async function syncJurica() {
   }
 
   await juricaSource.connect();
-  const juricaResult = await juricaSource.getModifiedSince(juricaLastDate.toJSDate()); // @TODO
+  const juricaResult = await juricaSource.getModifiedSince(juricaLastDate.toJSDate());
 
   if (juricaResult) {
     const client = new MongoClient(process.env.MONGO_URI);
@@ -2336,7 +2336,7 @@ async function syncJurica() {
         }
       }
 
-      let modifTime = DateTime.fromISO(row.JDEC_DATE_MAJ); // @TODO
+      let modifTime = DateTime.fromISO(row.JDEC_DATE_MAJ);
       juricaLastDate = DateTime.max(juricaLastDate, modifTime);
     }
 

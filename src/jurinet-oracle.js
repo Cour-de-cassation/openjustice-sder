@@ -48,7 +48,7 @@ class JurinetOracle {
   }
 
   filter(row) {
-    /* @TODO
+    /*
     AND NOT ( ( CONTAINS(DOCUMENT.XML, '(chambre du conseil)') > 0 ) )
     AND NOT ( ( CONTAINS(DOCUMENT.XML, '(hors la présence du public)') > 0 ) )
     AND NOT ( ( CONTAINS(DOCUMENT.XML, '(assistance éducative)') > 0 ) )
