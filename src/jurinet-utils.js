@@ -182,11 +182,12 @@ class JurinetUtils {
     }
   }
 
-  static async IndexAffaire(doc, jIndexMain, jIndexAffaires, rawJurica, jurinetConnection, grcomConnection) {
-    const { JudilibreIndex } = require('./judilibre-index');
-    let res = 'done';
+  static async IndexAffaire(doc, jIndexAffaires, rawJurica, jurinetConnection, grcomConnection, decisions) {
     if (doc.DT_DECISION) {
       let objAlreadyStored = await jIndexAffaires.findOne({ ids: `jurinet:${doc._id}` });
+      if (objAlreadyStored !== null) {
+        delete objAlreadyStored.updated;
+      }
       let objToStore = {
         _id: objAlreadyStored !== null ? objAlreadyStored._id : new ObjectId(),
         numbers: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers)) : [],
@@ -202,6 +203,10 @@ class JurinetUtils {
           objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_jurisdictions)) : {},
         dates_jurisdictions:
           objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates_jurisdictions)) : {},
+        numbers_judilibreIds:
+          objAlreadyStored !== null && objAlreadyStored.numbers_judilibreIds !== undefined
+            ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_judilibreIds))
+            : {},
       };
       let date = new Date(Date.parse(doc.DT_DECISION.toISOString()));
       date.setHours(date.getHours() + 2);
@@ -300,7 +305,6 @@ class JurinetUtils {
                 objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
                 objToStore.dates_jurisdictions[strDecatt] = GRCOMResult.rows[0]['LIB_ELM'];
                 objToStore.numbers_jurisdictions[decattResult.rows[0]['NUM_RG']] = GRCOMResult.rows[0]['LIB_ELM'];
-                res = 'decatt-found';
               } else {
                 if (objToStore.numbers.indexOf(decattResult.rows[0]['NUM_RG']) === -1) {
                   objToStore.numbers.push(decattResult.rows[0]['NUM_RG']);
@@ -315,7 +319,6 @@ class JurinetUtils {
                 objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
                 objToStore.dates_jurisdictions[strDecatt] = GRCOMResult.rows[0]['LIB_ELM'];
                 objToStore.numbers_jurisdictions[decattResult.rows[0]['NUM_RG']] = GRCOMResult.rows[0]['LIB_ELM'];
-                res = 'decatt-not-found';
               }
             } else {
               if (objToStore.numbers.indexOf(decattResult.rows[0]['NUM_RG']) === -1) {
@@ -326,38 +329,42 @@ class JurinetUtils {
               }
               objToStore.numbers_dates[decattResult.rows[0]['NUM_RG']] = strDecatt;
               objToStore.numbers_affaires[decattResult.rows[0]['NUM_RG']] = objToStore.affaires[i];
-              res = 'decatt-not-found';
             }
-          } else {
-            res = 'no-decatt';
           }
         }
         objToStore.dates.sort();
+        for (let j = 0; j < objToStore.dates.length; j++) {
+          for (let number in objToStore.numbers_dates) {
+            if (objToStore.numbers_dates[number] === objToStore.dates[j]) {
+              if (objToStore.numbers_ids[number] !== undefined) {
+                const source = `${objToStore.numbers_ids[number]}`.split(':');
+                const published = await decisions.findOne({
+                  sourceId: parseInt(source[1]),
+                  sourceName: source[0],
+                  publishStatus: 'success',
+                });
+                if (published !== null) {
+                  objToStore.numbers_judilibreIds[number] = `${published._id}`;
+                } else {
+                  objToStore.numbers_judilibreIds[number] = undefined;
+                }
+              } else {
+                objToStore.numbers_judilibreIds[number] = undefined;
+              }
+            }
+          }
+        }
         if (objAlreadyStored === null) {
+          objToStore.updated = true;
           await jIndexAffaires.insertOne(objToStore, { bypassDocumentValidation: true });
         } else if (JSON.stringify(objToStore) !== JSON.stringify(objAlreadyStored)) {
+          objToStore.updated = true;
           await jIndexAffaires.replaceOne({ _id: objAlreadyStored._id }, objToStore, {
             bypassDocumentValidation: true,
           });
         }
-      } else {
-        res = 'no-affaire';
       }
-      for (let jj = 0; jj < objToStore.ids.length; jj++) {
-        if (objToStore.ids[jj] === `jurinet:${doc._id}`) {
-          const found = await jIndexMain.findOne({ _id: objToStore.ids[jj] });
-          if (found === null) {
-            const indexedDoc = await JudilibreIndex.buildJurinetDocument(doc);
-            const lastOperation = DateTime.fromJSDate(new Date());
-            indexedDoc.lastOperation = lastOperation.toISODate();
-            await jIndexMain.insertOne(indexedDoc, { bypassDocumentValidation: true });
-          }
-        }
-      }
-    } else {
-      res = 'no-data';
     }
-    return res;
   }
 
   static async Normalize(document, previousVersion, ignorePreviousContent) {
@@ -476,7 +483,7 @@ class JurinetUtils {
       codeMatiereCivil: null,
       recommandationOccultation: null,
       firstImportDate: previousVersion ? previousVersion.firstImportDate : now.toISOString(),
-      lastImportDate:  now.toISOString(),
+      lastImportDate: now.toISOString(),
       publishDate: previousVersion?.publishDate ?? null,
       unpublishDate: previousVersion?.unpublishDate ?? null,
       selection: false,

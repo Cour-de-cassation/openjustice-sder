@@ -525,9 +525,7 @@ class JuricaUtils {
     return juricaLocation;
   }
 
-  static async IndexAffaire(doc, jIndexMain, jIndexAffaires, jurinetConnection) {
-    const { JudilibreIndex } = require('./judilibre-index');
-    let res = 'done';
+  static async IndexAffaire(doc, jIndexAffaires, jurinetConnection, decisions) {
     if (
       doc.JDEC_HTML_SOURCE &&
       doc.JDEC_NUM_RG &&
@@ -535,6 +533,9 @@ class JuricaUtils {
       /^\d\d\d\d-\d\d-\d\d$/.test(`${doc.JDEC_DATE}`.trim())
     ) {
       let objAlreadyStored = await jIndexAffaires.findOne({ ids: `jurica:${doc._id}` });
+      if (objAlreadyStored !== null) {
+        delete objAlreadyStored.updated;
+      }
       let objToStore = {
         _id: objAlreadyStored !== null ? objAlreadyStored._id : new ObjectId(),
         numbers: objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers)) : [],
@@ -550,6 +551,10 @@ class JuricaUtils {
           objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_jurisdictions)) : {},
         dates_jurisdictions:
           objAlreadyStored !== null ? JSON.parse(JSON.stringify(objAlreadyStored.dates_jurisdictions)) : {},
+        numbers_judilibreIds:
+          objAlreadyStored !== null && objAlreadyStored.numbers_judilibreIds !== undefined
+            ? JSON.parse(JSON.stringify(objAlreadyStored.numbers_judilibreIds))
+            : {},
       };
       let dateForIndexing = `${doc.JDEC_DATE}`.trim();
       if (objToStore.ids.indexOf(`jurica:${doc._id}`) === -1) {
@@ -793,34 +798,38 @@ class JuricaUtils {
 
       if (hasPreced === true || objAlreadyStored !== null) {
         objToStore.dates.sort();
+        for (let j = 0; j < objToStore.dates.length; j++) {
+          for (let number in objToStore.numbers_dates) {
+            if (objToStore.numbers_dates[number] === objToStore.dates[j]) {
+              if (objToStore.numbers_ids[number] !== undefined) {
+                const source = `${objToStore.numbers_ids[number]}`.split(':');
+                const published = await decisions.findOne({
+                  sourceId: parseInt(source[1]),
+                  sourceName: source[0],
+                  publishStatus: 'success',
+                });
+                if (published !== null) {
+                  objToStore.numbers_judilibreIds[number] = `${published._id}`;
+                } else {
+                  objToStore.numbers_judilibreIds[number] = undefined;
+                }
+              } else {
+                objToStore.numbers_judilibreIds[number] = undefined;
+              }
+            }
+          }
+        }
         if (objAlreadyStored === null) {
+          objToStore.updated = true;
           await jIndexAffaires.insertOne(objToStore, { bypassDocumentValidation: true });
         } else if (JSON.stringify(objToStore) !== JSON.stringify(objAlreadyStored)) {
+          objToStore.updated = true;
           await jIndexAffaires.replaceOne({ _id: objAlreadyStored._id }, objToStore, {
             bypassDocumentValidation: true,
           });
         }
       }
-      if (hasPreced === true) {
-        res = 'decatt-found';
-      } else {
-        res = 'no-decatt';
-      }
-      for (let jj = 0; jj < objToStore.ids.length; jj++) {
-        if (objToStore.ids[jj] === `jurica:${doc._id}`) {
-          const found = await jIndexMain.findOne({ _id: objToStore.ids[jj] });
-          if (found === null) {
-            const indexedDoc = await JudilibreIndex.buildJuricaDocument(doc);
-            const lastOperation = DateTime.fromJSDate(new Date());
-            indexedDoc.lastOperation = lastOperation.toISODate();
-            await jIndexMain.insertOne(indexedDoc, { bypassDocumentValidation: true });
-          }
-        }
-      }
-    } else {
-      res = 'no-data';
     }
-    return res;
   }
 
   static async IsNonPublic(nac, np, publicCheckbox) {
@@ -1108,7 +1117,7 @@ class JuricaUtils {
       codeMatiereCivil: null,
       recommandationOccultation: JuricaUtils.GetRecommandationOccultation(document),
       firstImportDate: previousVersion ? previousVersion.firstImportDate : now.toISOString(),
-      lastImportDate:  now.toISOString(),
+      lastImportDate: now.toISOString(),
       publishDate: previousVersion?.publishDate ?? null,
       unpublishDate: previousVersion?.unpublishDate ?? null,
       selection: parseInt(`${document.JDEC_SELECTION}`, 10) === 1 ? true : false,
