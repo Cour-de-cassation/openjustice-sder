@@ -31,17 +31,11 @@
     "test": "jest",
     "start": "node src/index.js",
     "start:watch": "nodemon src/index.js",
-    "docker:start": "node oracle_local_init/replace.js && docker compose -f docker-compose.local.yml up -d",
-    "docker:stop": "docker compose -f docker-compose.local.yml stop",
-    "docker:logs": "docker compose -f docker-compose.local.yml logs --follow",
-    "docker:kill": "docker compose -f docker-compose.local.yml down --remove-orphans --volumes --rmi local && echo 'Removing oracles data persist' && sudo rm -r data/oracle/*",
-    "docker:oracle:env": "node oracle_local_init/replace.js",
-    "docker:oracle:up": "npm run docker:oracle:env && docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/migrate.js up",
-    "docker:oracle:down": "docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/migrate.js down",
-    "docker:oracle:seeds": "docker compose -f docker-compose.local.yml exec openjustice-sder node oracle_local_init/seed.js",
-    "docker:jobs:buildAffaires": "docker compose -f docker-compose.local.yml exec openjustice-sder node src/jobs/buildAffaires.js",
-    "docker:jobs:import": "docker compose -f docker-compose.local.yml exec openjustice-sder node src/jobs/import.js",
-    "docker:jobs:reinject": "docker compose -f docker-compose.local.yml exec openjustice-sder node src/jobs/reinject.js"
+    "start:docker": "docker compose up -d",
+    "stop:docker": "docker compose stop",
+    "buildAffaires:docker": "docker compose exec openjustice-sder node src/jobs/buildAffaires.js",
+    "import:docker": "docker compose exec openjustice-sder node src/jobs/import.js",
+    "reinject:docker": "docker compose exec openjustice-sder node src/jobs/reinject.js"
   },
   "repository": {
     "type": "git",

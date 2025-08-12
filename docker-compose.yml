@@ -1,0 +1,11 @@
+name: opendata
+services:
+
+  openjustice-sder:
+    build:
+      target: openjustice-sder-local
+    volumes:
+      - .:/home/node
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
