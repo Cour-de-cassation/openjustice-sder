@@ -1,14 +1,12 @@
 # Chaînage vertical des décisions
 
-## Nouveau système `judilibre-index/affaires`
-
-### Utilisation
+## API `judilibre-index/affaires` (implémentation actuelle, _soon to be deprecated_)
 
 ### Problématiques
 
 Le système d'information actuel n'est pas assez structuré pour résoudre le chaînage des décisions de manière fiable et efficace (tables disjointes, références hétérogènes et sous-optimales, en termes d'indexation comme de requêtage). Il en résulte des traitements longs, lourds et imprécis.
 
-Voici le schéma général du flot de requêtes permettant de partir d'une décision de CC pour aboutir à(aux) décision(s) de CA attaquée(s) : 
+Voici le schéma général du flot de requêtes permettant actuellement de partir d'une décision de CC pour aboutir à(aux) décision(s) de CA attaquée(s) : 
 
 ![image](https://github.com/Cour-de-cassation/openjustice-sder/blob/ba4617caa462a59bbb294dafa2600d9e26a52ace/doc/process_decatt.png?raw=true)
 
@@ -18,11 +16,11 @@ Non seulement cette résolution ne peut pas s'effectuer sous la forme d'une seul
 * Pas le même format de saisie des juridictions, par exemple : `cour d'appel de Saint Denis de la Reunion` dans un coin d'Oracle, mais  `Cour d'appel de Saint-Denis de la Réunion` dans un autre (il ne s'agit pas toujours d'une simple différence de casse).
 
 Les limitations actuelles sont :
-* Lourdeur du dispositif (batch `buildAffaires`) et obsolescence des éléments sur lesquels il repose (bases Oracle, ancien Index) ;
+* Lourdeur du dispositif (batch `buildAffaires` qui parcourt progressivement l'intégralité du stock Jurinet et Jurica tous les jours entre 3h et 23h, et job `import` qui alimente/met à jour la collection `judilibre-index/affaires` pour chaque décision reçue) et obsolescence des éléments sur lesquels il repose (bases Oracle, ancien Index) ;
 * Mécanisme de "chaînage arrière" seulement (de CC vers CA). Il faut étudier dans quelle mesure le système d'information Oracle permet déjà le "chaînage avant" (de CA vers CC, avant même que la décision CC n'existe dans sa propre base documentaire) ;
 * Présence et état des décisions de premières instances inconnus (on a noté durant des tests la présence de références à des décisions récentes de TJ, mais sans plus d'investigation) - aucune certitude quant à la possibilité de corréler les données d'Oracle avec celles issues des juridictions "APIfiées" (TJ, TCOM, CPH...).
 
-### Objectifs
+### Objectifs de l'implémentation actuelle (`judilibre-index/affaires`)
 
 Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en relation entre elles (d'après Nomos et d'après l'API de zonage), à la fois pour résoudre rapidement leur chaînage — quel que soit le point de départ et quel que soit le sens du chaînage (Index), pour simplifier la publication de frises chronologiques (Judilibre) et enfin pour envisager l'homogénéisation de la pseudonymisation des décisions associées (Label).
 
@@ -144,14 +142,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
 
 **Exemple d'usage pour Judilibre (frise chronologique)** : soit une décision Jurinet d'identifiant `1784323`, il suffit de faire une requête `db.getCollection('affaires').findOne({ _id: 'jurinet:1784323'})` pour récupérer le groupe de décisions qui lui sont associées et dont il faut afficher la frise chronologique, celle-ci étant construite directement à partir de la propriété `dates` du résultat. Pour chaque date on récupère la ou les décisions correspondantes (via `numbers_dates`, puis `numbers_ids` pour vérifier leur disponibilité en base) et en absence de décision référencée en base on peut toujours afficher la juridiction (via `dates_jurisdictions`).
 
-### Limitation actuelle
-
-L'alimentation de cette collection est un processus extrêmement long ! Aujourd'hui cette alimentation est accomplie en parallèle par deux processus :
-
-1. Par le job `buildAffaires` du projet `openjustice-sder`, qui parcourt l'intégralité du stock Jurinet et Jurica en partant des décisions les plus récentes (job exécuté en boucle tous les jours entre 3h et 23h) ;
-2. Via le job `import` du projet `openjustice-sder`, qui recherche et référencie le chaînage pour toutes les nouvelles décisions issues du flux (chaque jour entre 8h et 12h).
-
-## Chaînage arrière CC -> CA (ancien chaînage, obsolète)
+## Chaînage arrière CC -> CA (ancien chaînage, _deprecated_)
 
 **Objectif** : en partant d'une décision de la Cour de cassation, récupérer la décisions de la Cour d'appel qu'elle attaque (nécessairement antérieure).
 
