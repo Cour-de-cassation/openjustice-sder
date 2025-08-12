@@ -17,6 +17,11 @@ Non seulement cette résolution ne peut pas s'effectuer sous la forme d'une seul
 * Pas le même format de date d'une table à l'autre ;
 * Pas le même format de saisie des juridictions, par exemple : `cour d'appel de Saint Denis de la Reunion` dans un coin d'Oracle, mais  `Cour d'appel de Saint-Denis de la Réunion` dans un autre (il ne s'agit pas toujours d'une simple différence de casse).
 
+Les limitations actuelles sont :
+* Lourdeur du dispositif (batch `buildAffaires`) et obsolescence des éléments sur lesquels il repose (bases Oracle, ancien Index) ;
+* Mécanisme de "chaînage arrière" seulement (de CC vers CA). Il faut étudier dans quelle mesure le système d'information Oracle permet déjà le "chaînage avant" (de CA vers CC, avant même que la décision CC n'existe dans sa propre base documentaire) ;
+* Présence et état des décisions de premières instances inconnus (on a noté durant des tests la présence de références à des décisions récentes de TJ, mais sans plus d'investigation) - aucune certitude quant à la possibilité de corréler les données d'Oracle avec celles issues des juridictions "APIfiées" (TJ, TCOM, CPH...).
+
 ### Objectifs
 
 Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en relation entre elles (d'après Nomos et d'après l'API de zonage), à la fois pour résoudre rapidement leur chaînage — quel que soit le point de départ et quel que soit le sens du chaînage (Index), pour simplifier la publication de frises chronologiques (Judilibre) et enfin pour envisager l'homogénéisation de la pseudonymisation des décisions associées (Label).
