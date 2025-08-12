@@ -8,7 +8,7 @@
 
 Le système d'information actuel n'est pas assez structuré pour résoudre le chaînage des décisions de manière fiable et efficace (tables disjointes, références hétérogènes et sous-optimales, en termes d'indexation comme de requêtage). Il en résulte des traitements longs, lourds et imprécis.
 
-Voici le schéma général du flot de requêtes permettant de partit d'une décision de CC pour aller vers la(les) décision(s) de CA attaquée(s) : 
+Voici le schéma général du flot de requêtes permettant de partir d'une décision de CC pour aboutir à(aux) décision(s) de CA attaquée(s) : 
 
 ![image](https://github.com/Cour-de-cassation/openjustice-sder/blob/ba4617caa462a59bbb294dafa2600d9e26a52ace/doc/process_decatt.png?raw=true)
 
@@ -38,7 +38,8 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
   - `numbers_affaires` : mapping clé/valeur entre `numbers` et `affaires` - par exemple `{ "U8121289": 11122154 }` (note : s'il n'existe aucune `affaire` pour un `number` listé, c'est qu'il s'agit d'un chaînage non référencé dans Nomos et probablement résolu via le zonage) ;
   - `numbers_dates` : mapping clé/valeur entre `numbers` et `dates` - par exemple : `{ "U8121289": "2018-07-12" }` (note : on ne référencie dans la collection `affaires` que les décisions dont on connait la date) ;
   - `numbers_jurisdictions` : mapping clé/valeur entre `numbers` et `jurisdictions` - par exemple : `{ "09/01206": "Cour d'appel de Caen" }` ;
-  - `dates_jurisdictions` : mapping clé/valeur entre `dates` et `jurisdictions` - par exemple `{ "2018-07-12" : "Conseil de prud'hommes de Caen" }` (note : requis car certaines décisions détectées via le zonage n'ont pas de `number` et ne correspondent donc à rien dans nos bases de données).
+  - `dates_jurisdictions` : mapping clé/valeur entre `dates` et `jurisdictions` - par exemple `{ "2018-07-12" : "Conseil de prud'hommes de Caen" }` (note : requis car certaines décisions détectées via le zonage n'ont pas de `number` et ne correspondent donc à rien dans nos bases de données) ;
+  - `numbers_judilibreIds` : liste clé/valeur associant un `numbers` et l'identifnant de la décisions dans Judilibre (sous forme de `string`) - par exemple : `{ "09/01206": "684a6c0f3ec57bb95fcfd57d" }` - si la valeur est absente ou vaut `null` pour la clé donnée, alors cela signifie que la décision correspondante n'est pas publiée dans Judilibre.
 
 ### API REST
 
