@@ -97,11 +97,11 @@ async function patchJurinet() {
         if (row['TYPE_ARRET'] === 'CC') {
           await JurinetUtils.IndexAffaire(
             row,
-            jIndexMain,
             jIndexAffaires,
             rawJurica,
             jurinetSource.connection,
             GRCOMSource.connection,
+            decisions,
           );
         }
         let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
@@ -288,7 +288,7 @@ async function patchJurica() {
           }
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'import in rawJurica');
-          await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
+          await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
           const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,
