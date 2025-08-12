@@ -94,11 +94,11 @@ async function retryImportJurinet() {
           if (row['TYPE_ARRET'] === 'CC') {
             await JurinetUtils.IndexAffaire(
               row,
-              jIndexMain,
               jIndexAffaires,
               rawJurica,
               jurinetSource.connection,
               GRCOMSource.connection,
+              decisions,
             );
           }
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
@@ -137,11 +137,11 @@ async function retryImportJurinet() {
           if (row['TYPE_ARRET'] === 'CC') {
             await JurinetUtils.IndexAffaire(
               row,
-              jIndexMain,
               jIndexAffaires,
               rawJurica,
               jurinetSource.connection,
               GRCOMSource.connection,
+              decisions,
             );
           }
           let normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
@@ -336,7 +336,7 @@ async function retryImportJurica() {
             /* XXX
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #1');
-            await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
+            await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
             */
             const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
@@ -565,7 +565,7 @@ async function retryImportJurica() {
               bypassDocumentValidation: true,
             });
             await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #2');
-            await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
+            await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
             */
             const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,

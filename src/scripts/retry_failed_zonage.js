@@ -220,7 +220,7 @@ async function importJurica(id) {
           }
           await rawJurica.insertOne(row, { bypassDocumentValidation: true });
           await JudilibreIndex.indexJuricaDocument(row, duplicateId, 'retry import in rawJurica #1');
-          await JuricaUtils.IndexAffaire(row, jIndexMain, jIndexAffaires, jurinetSource.connection);
+          await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
           const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
             row.JDEC_CODNAC,
             row.JDEC_CODNACPART,

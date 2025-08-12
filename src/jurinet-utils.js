@@ -336,7 +336,7 @@ class JurinetUtils {
         for (let j = 0; j < objToStore.dates.length; j++) {
           for (let number in objToStore.numbers_dates) {
             if (objToStore.numbers_dates[number] === objToStore.dates[j]) {
-              if (objToStore.numbers_ids[number] !== undefined) {
+              if (objToStore.numbers_ids[number] !== undefined && objToStore.numbers_ids[number]) {
                 const source = `${objToStore.numbers_ids[number]}`.split(':');
                 const published = await decisions.findOne({
                   sourceId: parseInt(source[1]),
