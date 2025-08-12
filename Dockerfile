@@ -2,7 +2,7 @@ FROM node:18 AS openjustice-sder-prod
 ARG http_proxy
 ARG https_proxy
 ARG script_name
-ENV SCRIPT_NAME ${script_name}
+ENV SCRIPT_NAME=${script_name}
 
 RUN echo "Acquire::http::Proxy \"${http_proxy}/\";" > /etc/apt/apt.conf && \
     echo "Acquire::https::Proxy \"${http_proxy}/\";" >> /etc/apt/apt.conf

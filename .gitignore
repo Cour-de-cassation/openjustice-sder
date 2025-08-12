@@ -104,12 +104,13 @@ dist
 .tern-port
 
 *.history
-src/jobs/data/
+src/jobs/data/jurinet.lastDate
+src/jobs/data/jurica.lastDate
+
 *.zip
 .DS_Store
 
 .idea
-data
 
 oracle_local_init/oracle_init.sql
 oracle_local_init/jurinet_create_schema.sql
