@@ -42,7 +42,7 @@ Regrouper chronologiquement toutes les décisions (CC, CA, autres) qui sont en r
   - `numbers_dates` : mapping clé/valeur entre `numbers` et `dates` - par exemple : `{ "U8121289": "2018-07-12" }` (note : on ne référencie dans la collection `affaires` que les décisions dont on connait la date) ;
   - `numbers_jurisdictions` : mapping clé/valeur entre `numbers` et `jurisdictions` - par exemple : `{ "09/01206": "Cour d'appel de Caen" }` ;
   - `dates_jurisdictions` : mapping clé/valeur entre `dates` et `jurisdictions` - par exemple `{ "2018-07-12" : "Conseil de prud'hommes de Caen" }` (note : requis car certaines décisions détectées via le zonage n'ont pas de `number` et ne correspondent donc à rien dans nos bases de données) ;
-  - `numbers_judilibreIds` : liste clé/valeur associant un `numbers` et l'identifnant de la décisions dans Judilibre (sous forme de `string`) - par exemple : `{ "09/01206": "684a6c0f3ec57bb95fcfd57d" }` - si la valeur est absente ou vaut `null` pour la clé donnée, alors cela signifie que la décision correspondante n'est pas publiée dans Judilibre.
+  - `numbers_judilibreIds` : liste clé/valeur associant un `numbers` et l'identifiant de la décision dans Judilibre (sous forme de `string`) - par exemple : `{ "09/01206": "684a6c0f3ec57bb95fcfd57d" }` - si la valeur est absente ou vaut `null` pour la clé donnée, alors cela signifie que la décision correspondante n'est pas publiée dans Judilibre.
 
 ### API REST
 
