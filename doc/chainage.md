@@ -8,7 +8,14 @@
 
 Le système d'information actuel n'est pas assez structuré pour résoudre le chaînage des décisions de manière fiable et efficace (tables disjointes, références hétérogènes et sous-optimales, en termes d'indexation comme de requêtage). Il en résulte des traitements longs, lourds et imprécis.
 
-![image](process_decatt.png)
+Voici le schéma général du flot de requêtes permettant de partit d'une décision de CC pour aller vers la(les) décision(s) de CA attaquée(s) : 
+
+![image](https://github.com/Cour-de-cassation/openjustice-sder/blob/ba4617caa462a59bbb294dafa2600d9e26a52ace/doc/process_decatt.png?raw=true)
+
+Non seulement cette résolution ne peut pas s'effectuer sous la forme d'une seule requête, mais elle nécessite en outre la transformation empirique de certaines des données obtenus au cours du trajet :
+* Prise en compte des zéros non saisis dans `NUM_RG` mais présents dans `JDEC_NUM_RG` (ou inversement), on trouve par exemple `19/187` dans un coin d'Oracle mais `19/00187` dans un autre...
+* Pas le même format de date d'une table à l'autre ;
+* Pas le même format de saisie des juridictions, par exemple : `cour d'appel de Saint Denis de la Reunion` dans un coin d'Oracle, mais  `Cour d'appel de Saint-Denis de la Réunion` dans un autre (il ne s'agit pas toujours d'une simple différence de casse).
 
 ### Objectifs
 
