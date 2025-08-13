@@ -12,10 +12,11 @@ Voici le schéma général du flot de requêtes permettant actuellement de parti
 
 Non seulement cette résolution ne peut pas s'effectuer sous la forme d'une seule requête, mais elle nécessite en outre la transformation empirique de certaines des données obtenus au cours du trajet :
 * Prise en compte des zéros non saisis dans `NUM_RG` mais présents dans `JDEC_NUM_RG` (ou inversement), on trouve par exemple `19/187` dans un coin d'Oracle mais `19/00187` dans un autre...
-* Pas le même format de date d'une table à l'autre ;
-* Pas le même format de saisie des juridictions, par exemple : `cour d'appel de Saint Denis de la Reunion` dans un coin d'Oracle, mais  `Cour d'appel de Saint-Denis de la Réunion` dans un autre (il ne s'agit pas toujours d'une simple différence de casse).
+* Pas le même format de date d'une table à l'autre (et parfois pas la même date non plus, mais dans ce cas-là tant pis, la correspondance est perdue) ;
+* Pas le même format de saisie des juridictions, par exemple : `cour d'appel de Saint Denis de la Reunion` dans un coin d'Oracle, mais  `Cour d'appel de Saint-Denis de la Réunion` dans un autre (si ce n'est `CA_REUNION` ou autre... Il ne s'agit pas toujours que d'une simple différence de casse).
 
 Les limitations actuelles sont :
+* Pas de documentation du système mis en oeuvre en amont (bases Oracle et applications de saisie des affaires) ;
 * Lourdeur du dispositif (batch `buildAffaires` qui parcourt progressivement l'intégralité du stock Jurinet et Jurica tous les jours entre 3h et 23h, et job `import` qui alimente/met à jour la collection `judilibre-index/affaires` pour chaque décision reçue) et obsolescence des éléments sur lesquels il repose (bases Oracle, ancien Index) ;
 * Mécanisme de "chaînage arrière" seulement (de CC vers CA). Il faut étudier dans quelle mesure le système d'information Oracle permet déjà le "chaînage avant" (de CA vers CC, avant même que la décision CC n'existe dans sa propre base documentaire) ;
 * Présence et état des décisions de premières instances inconnus (on a noté durant des tests la présence de références à des décisions récentes de TJ, mais sans plus d'investigation) - aucune certitude quant à la possibilité de corréler les données d'Oracle avec celles issues des juridictions "APIfiées" (TJ, TCOM, CPH...).
