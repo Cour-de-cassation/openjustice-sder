@@ -4,7 +4,7 @@ const { Judifiltre } = require('../judifiltre');
 const { MongoClient } = require('mongodb');
 
 async function main() {
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);

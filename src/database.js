@@ -110,7 +110,7 @@ class Database {
     const handler = this.getHandler(collection);
     if (handler.isMongo === true) {
       if (handler.connected === false) {
-        handler.connection = new MongoClient(this.getDbURI(collection));
+        handler.connection = new MongoClient(this.getDbURI(collection), { directConnection: true });
         await handler.connection.connect();
         handler.client = handler.connection.db(this.getDbName(collection));
         for (let coll in handler.collections) {

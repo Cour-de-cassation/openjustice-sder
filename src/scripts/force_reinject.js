@@ -70,7 +70,7 @@ async function main() {
       }
     }
   } else {
-    const client = new MongoClient(process.env.MONGO_URI);
+    const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
     await client.connect();
     const database = client.db(process.env.MONGO_DBNAME);
     const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
@@ -104,7 +104,7 @@ async function main() {
 }
 
 async function reinjectJurinet(id) {
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
@@ -157,7 +157,7 @@ async function reinjectJurinet(id) {
 }
 
 async function reinjectJurica(id) {
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
