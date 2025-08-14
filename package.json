@@ -33,9 +33,9 @@
     "start:watch": "nodemon src/index.js",
     "start:docker": "docker compose up -d",
     "stop:docker": "docker compose stop",
-    "buildAffaires:docker": "docker compose exec openjustice-sder node src/jobs/buildAffaires.js",
-    "import:docker": "docker compose exec openjustice-sder node src/jobs/import.js",
-    "reinject:docker": "docker compose exec openjustice-sder node src/jobs/reinject.js"
+    "buildAffaires:docker": "docker compose run --rm openjustice-sder node src/jobs/buildAffaires.js",
+    "import:docker": "docker compose run --rm openjustice-sder node src/jobs/import.js",
+    "reinject:docker": "docker compose run --rm openjustice-sder node src/jobs/reinject.js"
   },
   "repository": {
     "type": "git",

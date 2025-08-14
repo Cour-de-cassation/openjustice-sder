@@ -90,7 +90,7 @@ async function importJurinet() {
   let errorCount = 0;
   let wincicaCount = 0;
 
-  let jurinetResult = await jurinetSource.getNew(1);
+  let jurinetResult = await jurinetSource.getNew(process.env.NODE_ENV === 'local' ? 999 : 1);
 
   try {
     const exceptions = await JudilibreIndex.find('exceptions', {
@@ -420,7 +420,7 @@ async function importJurica() {
   let duplicateCount = 0;
   let nonPublicCount = 0;
 
-  let juricaResult = await juricaSource.getNew(1);
+  let juricaResult = await juricaSource.getNew(process.env.NODE_ENV === 'local' ? 999 : 1);
 
   try {
     const exceptions = await JudilibreIndex.find('exceptions', {
