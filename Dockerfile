@@ -13,7 +13,7 @@ ADD https://download.oracle.com/otn_software/linux/instantclient/oracle-instantc
 RUN alien -i oracle-instantclient-basiclite-linuxx64.rpm
 RUN rm -rf oracle-instantclient-basiclite-linuxx64.rpm
 COPY . /app
-RUN mkdir src/jobs/data
+RUN mkdir -p src/jobs/data
 RUN npm config set proxy ${http_proxy}
 RUN npm config set https-proxy ${http_proxy}
 RUN npm install
