@@ -576,7 +576,7 @@ class JudilibreIndex {
 
   async connect() {
     if (this.getHandler().connected === false) {
-      this.getHandler().connection = new MongoClient(this.getDbURI());
+      this.getHandler().connection = new MongoClient(this.getDbURI(), { directConnection: true });
       await this.getHandler().connection.connect();
       this.getHandler().client = this.getHandler().connection.db(this.getDbName());
       for (let coll in this.getHandler().collections) {

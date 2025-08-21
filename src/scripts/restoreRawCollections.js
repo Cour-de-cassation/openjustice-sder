@@ -49,7 +49,7 @@ async function main() {
 }
 
 async function restoreJurinet(n, resetContent) {
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);
@@ -109,7 +109,7 @@ async function restoreJurinet(n, resetContent) {
 }
 
 async function restoreJurica() {
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
 
   const database = client.db(process.env.MONGO_DBNAME);

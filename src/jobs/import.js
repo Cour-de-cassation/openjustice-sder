@@ -64,14 +64,14 @@ async function main() {
 }
 
 async function importJurinet() {
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI);
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, { directConnection: true });
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexMain = jIndexClient.collection('mainIndex');
@@ -396,14 +396,14 @@ async function importJurinet() {
 }
 
 async function importJurica() {
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
 
   const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI);
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, { directConnection: true });
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexMain = jIndexClient.collection('mainIndex');
@@ -1067,7 +1067,7 @@ async function syncJurinet() {
   const jurinetResult = await jurinetSource.getModifiedSince(jurinetLastDate.toJSDate());
 
   if (jurinetResult) {
-    const client = new MongoClient(process.env.MONGO_URI);
+    const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
     await client.connect();
 
     const juricaSource = new JuricaOracle();
@@ -1078,7 +1078,7 @@ async function syncJurinet() {
     const rawJurica = database.collection(process.env.MONGO_JURICA_COLLECTION);
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
-    const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI);
+    const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, { directConnection: true });
     await jIndexConnection.connect();
     const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
     const jIndexMain = jIndexClient.collection('mainIndex');
@@ -1673,7 +1673,7 @@ async function syncJurica() {
   const juricaResult = await juricaSource.getModifiedSince(juricaLastDate.toJSDate());
 
   if (juricaResult) {
-    const client = new MongoClient(process.env.MONGO_URI);
+    const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
     await client.connect();
 
     const database = client.db(process.env.MONGO_DBNAME);

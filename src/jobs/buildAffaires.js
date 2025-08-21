@@ -49,11 +49,11 @@ async function main() {
     connectString: process.env.DB_HOST,
   });
   const { MongoClient } = require('mongodb');
-  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI);
+  const jIndexConnection = new MongoClient(process.env.INDEX_DB_URI, { directConnection: true });
   await jIndexConnection.connect();
   const jIndexClient = jIndexConnection.db(process.env.INDEX_DB_NAME);
   const jIndexAffaires = jIndexClient.collection('affaires');
-  const DBSDERConnection = new MongoClient(process.env.MONGO_URI);
+  const DBSDERConnection = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await DBSDERConnection.connect();
   const DBSDERClient = DBSDERConnection.db(process.env.MONGO_DBNAME);
   const rawJurinet = DBSDERClient.collection('rawJurinet');

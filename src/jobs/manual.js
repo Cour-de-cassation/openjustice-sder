@@ -52,7 +52,7 @@ async function processJurinet(status) {
   await juricaSource.connect();
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
   const rawJurinet = database.collection(process.env.MONGO_JURINET_COLLECTION);
