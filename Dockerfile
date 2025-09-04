@@ -1,4 +1,4 @@
-FROM node:24-alpine AS openjustice-sder-prod
+FROM node:24-slim AS openjustice-sder-prod
 ARG http_proxy
 ARG https_proxy
 ARG script_name
@@ -20,7 +20,7 @@ RUN npm install
 
 CMD ["npm", "run", "start"]
 
-FROM node:24-alpine AS openjustice-sder-local
+FROM node:24-slim AS openjustice-sder-local
 
 RUN apt update
 RUN apt install alien libaio1 -y
