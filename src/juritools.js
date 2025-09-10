@@ -3,24 +3,35 @@ const needle = require('needle');
 class Juritools {
   static async GetZones(id, source, text, host) {
     if (host === undefined) {
-      // host = `${process.env.ZONING_PROTOCOL}://${process.env.ZONING_URI}`;
       host = `http://${process.env.ZONING_URI}`;
     }
-    // if (`${process.env.ZONING_NORMALIZE_SOURCE}` === 'true') {
     switch (`${source}`.toLowerCase()) {
       case 'ca':
       case 'jurica':
         source = 'ca';
         break;
+      case 'cc':
+      case 'jurinet':
+      case 'juricc':
+        source = 'cc';
+        break;
       case 'tj':
       case 'juritj':
         source = 'tj';
+        break;
+      case 'tcom':
+      case 'juritcom':
+        source = 'tcom';
+        break;
+      case 'cph':
+      case 'portalis':
+      case 'juricph':
+        source = 'cph';
         break;
       default:
         source = 'cc';
         break;
     }
-    // }
     const zoneData = {
       arret_id: id,
       source: source,
@@ -32,12 +43,9 @@ class Juritools {
         json: true,
         rejectUnauthorized: false,
       });
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (_) {}
     if (!response || !response.body || !response.body.zones) {
       delete zoneData.text;
-      console.error('GetZones failed for the given document.', zoneData, response);
       return null;
     }
     delete response.body.arret_id;
@@ -57,11 +65,8 @@ class Juritools {
         json: true,
         rejectUnauthorized: false,
       });
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (_) {}
     if (!response || !response.body) {
-      console.error('GetMetaJurinet failed for the given data', data, response);
       return null;
     }
     return response.body;
@@ -80,11 +85,8 @@ class Juritools {
         json: true,
         rejectUnauthorized: false,
       });
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (_) {}
     if (!response || !response.body) {
-      console.error('GetMetaJurica failed for the given data', data, response);
       return null;
     }
     return response.body;
