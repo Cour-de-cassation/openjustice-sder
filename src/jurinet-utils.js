@@ -383,11 +383,10 @@ class JurinetUtils {
           toLowerCase: true,
         });
         originalText = cleanedXml.texte_arret;
-      } catch (e) {
+      } catch (_) {
         console.warn(
           `JurinetUtils.Normalize: Could not properly clean the original text of document '${document._id}'.`,
         );
-        console.warn(e);
       }
     }
 
@@ -400,11 +399,10 @@ class JurinetUtils {
           toLowerCase: true,
         });
         pseudoText = cleanedXmla.texte_arret;
-      } catch (e) {
+      } catch (_) {
         console.warn(
           `JurinetUtils.Normalize: Could not properly clean the pseudonymized text of document '${document._id}'.`,
         );
-        console.warn(e);
       }
     }
 
@@ -521,9 +519,7 @@ class JurinetUtils {
           }
         }
       }
-    } catch (e) {
-      console.warn(e);
-    }
+    } catch (_) {}
 
     try {
       if (cleanedXml && cleanedXml.analyses) {
@@ -577,9 +573,7 @@ class JurinetUtils {
           }
         }
       }
-    } catch (e) {
-      console.warn(e);
-    }
+    } catch (_) {}
 
     if (document._titrage && document._titrage.length) {
       document._titrage.forEach((reference) => {
