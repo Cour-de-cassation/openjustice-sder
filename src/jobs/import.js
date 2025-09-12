@@ -105,7 +105,6 @@ async function importJurinet() {
       }
       for (let i = 0; i < exceptions.length; i++) {
         try {
-          console.log(`found exception ${exceptions[i].decisionId}`);
           const _row = await jurinetSource.getDecisionByID(exceptions[i].decisionId.split(':')[1]);
           if (_row) {
             console.log(`adding exception ${_row._id}`);
@@ -435,7 +434,6 @@ async function importJurica() {
       }
       for (let i = 0; i < exceptions.length; i++) {
         try {
-          console.log(`found exception ${exceptions[i].decisionId} `);
           const _row = await juricaSource.getDecisionByID(exceptions[i].decisionId.split(':')[1]);
           if (_row) {
             console.log(`adding exception ${_row._id} `);
