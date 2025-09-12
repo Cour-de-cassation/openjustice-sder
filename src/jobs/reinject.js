@@ -53,7 +53,6 @@ async function reinjectJurinet() {
   const jurinetSource = new JurinetOracle();
   await jurinetSource.connect();
 
-  console.log('Retrieve all "done" decisions for Jurinet...');
   let decision,
     successCount = 0,
     errorCount = 0;
@@ -63,13 +62,10 @@ async function reinjectJurinet() {
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
-        console.log(`check CC decision ${decision.sourceId} for reinjection...`);
         let raw = await rawJurinet.findOne({ _id: decision.sourceId });
         if (raw) {
           console.log(`reinject CC decision ${decision.sourceId}...`);
           await jurinetSource.reinject(decision);
-        } else {
-          console.log(`skip reinject CC decision ${decision.sourceId}...`);
         }
         const reinjected = await jurinetSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;
@@ -153,13 +149,10 @@ async function reinjectJurica() {
   while ((decision = await cursor.next())) {
     try {
       if (decision && decision[process.env.MONGO_ID]) {
-        console.log(`check CA decision ${decision.sourceId} for reinjection...`);
         let raw = await rawJurica.findOne({ _id: decision.sourceId });
         if (raw) {
           console.log(`reinject CA decision ${decision.sourceId}...`);
           await juricaSource.reinject(decision);
-        } else {
-          console.log(`skip reinject CA decision ${decision.sourceId}...`);
         }
         const reinjected = await juricaSource.getDecisionByID(decision.sourceId);
         reinjected._indexed = null;

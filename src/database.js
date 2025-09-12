@@ -281,12 +281,10 @@ class Database {
     let row;
     const result = [];
     const [query, params] = this.buildOracleReadQuery(collection, args);
-    console.log(`execute Oracle query`, query, params);
     const rs = await handler.connection.execute(query, params, {
       resultSet: true,
     });
     const rows = rs.resultSet;
-    console.log(`converting result from Oracle`);
     while ((row = await rows.getRow())) {
       result.push(await this.convertFromOracle(row));
     }
