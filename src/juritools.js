@@ -91,6 +91,17 @@ class Juritools {
     }
     return response.body;
   }
+
+  static async InsertDecision(decision) {
+    const response = await needle('put', `${process.env.DBSDER_API_URL}/decisions`, decision, {
+      headers: {
+        "x-api-key": process.env.DBSDER_API_KEY
+      },
+      json: true,
+      rejectUnauthorized: false,
+    });
+    return response.body;
+  }
 }
 
 exports.Juritools = Juritools;
