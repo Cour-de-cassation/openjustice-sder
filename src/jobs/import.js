@@ -213,8 +213,8 @@ async function importJurinet() {
               normDec._version = decisionsVersion;
               normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
               if (normalized === null) {
-                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-                normDec._id = insertResult.insertedId;
+                const insertResult = await Juritools.InsertDecision(normDec);
+                normDec._id = insertResult._id;
                 await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
                 await jurinetSource.markAsImported(row._id);
                 if (row['TYPE_ARRET'] !== 'CC') {
@@ -299,8 +299,8 @@ async function importJurinet() {
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
             newCount++;
             if (normalized === null) {
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normDec._id = insertResult.insertedId;
+              const insertResult = await Juritools.InsertDecision(normDec);
+              normDec._id = insertResult._id;
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
               await jurinetSource.markAsImported(row._id);
               if (row['TYPE_ARRET'] !== 'CC') {
@@ -678,8 +678,8 @@ async function importJurica() {
               }
               normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
               if (normalized === null) {
-                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-                normDec._id = insertResult.insertedId;
+                const insertResult = await Juritools.InsertDecision(normDec);
+                normDec._id = insertResult._id;
                 await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
                 await juricaSource.markAsImported(row._id);
                 newCount++;
@@ -940,8 +940,8 @@ async function importJurica() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized === null) {
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normDec._id = insertResult.insertedId;
+              const insertResult = await Juritools.InsertDecision(normDec);
+              normDec._id = insertResult._id;
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
               await juricaSource.markAsImported(row._id);
             } else {
@@ -1463,8 +1463,8 @@ async function syncJurinet() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
             if (normalized === null) {
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normDec._id = insertResult.insertedId;
+              const insertResult = await Juritools.InsertDecision(normDec);
+              normDec._id = insertResult._id;
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (sync2)');
               normalizeCount++;
             } else {
@@ -2118,8 +2118,8 @@ async function syncJurica() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized === null) {
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
-              normDec._id = insertResult.insertedId;
+              const insertResult = await Juritools.InsertDecision(normDec);
+              normDec._id = insertResult._id;
               await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (sync2)');
               normalizeCount++;
             } else {
