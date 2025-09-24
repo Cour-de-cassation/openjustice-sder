@@ -30,6 +30,7 @@ data:
   INDEX_DB_NAME: 'judilibre-index'
   PENAL_DB_HOST: '10.14.78.202:1521/PROD'
   API_PORT: '54345'
+  API_ZONAGE_URI: 'http://172.16.118.98:8090'
   ZONING_URI: 'nlp-jurizonage-api-service.nlp.svc.cluster.local:8090'
   ZONING_PORT: '8090'
   ZONING_PROTOCOL: 'https'
