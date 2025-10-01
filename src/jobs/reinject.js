@@ -9,7 +9,7 @@ const { MongoClient } = require('mongodb');
 const ms = require('ms');
 const { CustomLog } = require('./../utils/logger')
 
-let selfKill = setTimeout(cancel, ms('1h'));
+let selfKill = setTimeout(cancel, ms('15m'));
 
 function end() {
   clearTimeout(selfKill);
