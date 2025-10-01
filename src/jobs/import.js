@@ -17,7 +17,7 @@ const ms = require('ms');
 
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
-let selfKill = setTimeout(cancel, ms('1h'));
+let selfKill = setTimeout(cancel, ms('15m'));
 
 const CCLimitDate = new Date('2021-09-30');
 

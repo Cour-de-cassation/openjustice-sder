@@ -1,4 +1,4 @@
-const limit = 100;
+const limit = 10;
 const sort = -1;
 
 const path = require('path');
@@ -7,7 +7,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const { parentPort } = require('worker_threads');
 const ms = require('ms');
 
-let selfKill = setTimeout(cancel, ms('1h'));
+let selfKill = setTimeout(cancel, ms('15m'));
 
 function end() {
   clearTimeout(selfKill);
