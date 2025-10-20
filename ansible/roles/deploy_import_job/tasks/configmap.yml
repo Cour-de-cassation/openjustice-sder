@@ -47,3 +47,6 @@
         JUDIFILTRE_PROTOCOL: "{{ judifiltre_protocol }}"
         NODE_ENV: "{{ node_env }}"
         TZ: "Europe/Paris"
+        COLLECTION_JURINET_RAWFILES: "{{ collection_jurinet_rawfiles }}"
+        COLLECTION_JURICA_RAWFILES: "{{ collection_jurica_rawfiles }}"
+        MONGO_URI_RAWFILES: "{{ mongo_uri_rawfiles }}"
