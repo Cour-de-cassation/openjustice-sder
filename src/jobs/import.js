@@ -12,6 +12,7 @@ const { JudilibreIndex } = require('../judilibre-index');
 const { MongoClient } = require('mongodb');
 const { Juritools } = require('../juritools');
 const { DateTime } = require('luxon');
+const { sendToJurinorm } = require('../jurinorm');
 
 const ms = require('ms');
 
@@ -213,7 +214,7 @@ async function importJurinet() {
               normDec._version = decisionsVersion;
               normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
               if (normalized === null) {
-                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                const insertResult = await sendToJurinorm('CC', normDec);
                 normDec._id = insertResult.insertedId;
                 await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
                 await jurinetSource.markAsImported(row._id);
@@ -299,7 +300,7 @@ async function importJurinet() {
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
             newCount++;
             if (normalized === null) {
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              const insertResult = await sendToJurinorm('CC', normDec);
               normDec._id = insertResult.insertedId;
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
               await jurinetSource.markAsImported(row._id);
@@ -317,9 +318,7 @@ async function importJurinet() {
               normDec.labelStatus = 'toBeTreated';
               normDec.publishStatus = 'toBePublished';
               normDec.labelTreatments = [];
-              await decisions.replaceOne({ _id: normalized._id }, normDec, {
-                bypassDocumentValidation: true,
-              });
+              await sendToJurinorm('CC', normDec);
               await jurinetSource.markAsImported(row._id);
               // @todo-oddj-dashboard: decision CC normalisée (normDec.sourceName, normDec.sourceId)
               CustomLog.log('info', {
@@ -678,7 +677,7 @@ async function importJurica() {
               }
               normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
               if (normalized === null) {
-                const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+                const insertResult = await sendToJurinorm('CA', normDec);
                 normDec._id = insertResult.insertedId;
                 await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
                 await juricaSource.markAsImported(row._id);
@@ -940,7 +939,7 @@ async function importJurica() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized === null) {
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              const insertResult = await sendToJurinorm('CA', normDec);
               normDec._id = insertResult.insertedId;
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
               await juricaSource.markAsImported(row._id);
@@ -962,9 +961,7 @@ async function importJurica() {
                 await juricaSource.markAsImported(row._id);
               }
               normDec.labelTreatments = [];
-              await decisions.replaceOne({ _id: normalized._id }, normDec, {
-                bypassDocumentValidation: true,
-              });
+              await sendToJurinorm('CA', normDec);
             }
             // @todo-oddj-dashboard: decision CA normalisée (normDec.sourceName, normDec.sourceId)
             CustomLog.log('info', {
@@ -1463,7 +1460,7 @@ async function syncJurinet() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
             if (normalized === null) {
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              const insertResult = await sendToJurinorm('CC', normDec);
               normDec._id = insertResult.insertedId;
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (sync2)');
               normalizeCount++;
@@ -1520,9 +1517,7 @@ async function syncJurinet() {
                 normDec.labelTreatments = [];
                 await jurinetSource.markAsImported(row._id);
               }
-              await decisions.replaceOne({ _id: normalized._id }, normDec, {
-                bypassDocumentValidation: true,
-              });
+              await sendToJurinorm('CC', normDec);
               normDec._id = normalized._id;
               if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
                 // @todo-oddj-dashboard: mise à jour de la décision CC normalisée et retraitement par Label (normDec.sourceName, normDec.sourceId, changelog)
@@ -2118,7 +2113,7 @@ async function syncJurica() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized === null) {
-              const insertResult = await decisions.insertOne(normDec, { bypassDocumentValidation: true });
+              const insertResult = await sendToJurinorm('CA', normDec);
               normDec._id = insertResult.insertedId;
               await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (sync2)');
               normalizeCount++;
@@ -2186,9 +2181,7 @@ async function syncJurica() {
                   normDec.labelStatus = 'exported';
                 }
               }
-              await decisions.replaceOne({ _id: normalized._id }, normDec, {
-                bypassDocumentValidation: true,
-              });
+              await sendToJurinorm('CA', normDec);
               normDec._id = normalized._id;
               if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
                 // @todo-oddj-dashboard: mise à jour de la décision CA normalisée et retraitement par Label (normDec.sourceName, normDec.sourceId, changelog)
