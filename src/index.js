@@ -26,6 +26,10 @@ if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
         name: 'buildAffaires',
         interval: 'every 17 minute after 3:00pm and before 11:00pm',
       },
+      {
+        name: 'getSderId',
+        interval: 'every 1 hours after 3:00pm and before 11:00pm',
+      },
     ],
   });
 
