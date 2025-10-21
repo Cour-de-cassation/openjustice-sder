@@ -35,7 +35,7 @@ async function importDbsder() {
     const decisions = database.collection(process.env.MONGO_DECISIONS_COLLECTION);
 
     return decisions.find({ 
-        sourceName: { $in: ["jurinet", "jurica"] }, 
+        sourceName: { $in: ["jurinet", "jurica"] },
         firstImportDate: { $gte: YESTERDAY.toISOString().split('T')[0] } })
 }
 
