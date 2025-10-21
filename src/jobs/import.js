@@ -214,8 +214,7 @@ async function importJurinet() {
               normDec._version = decisionsVersion;
               normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
               if (normalized === null) {
-                const insertResult = await sendToJurinorm('CC', normDec);
-                normDec._id = insertResult.insertedId;
+                await sendToJurinorm('CC', normDec);
                 await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
                 await jurinetSource.markAsImported(row._id);
                 if (row['TYPE_ARRET'] !== 'CC') {
@@ -233,7 +232,6 @@ async function importJurinet() {
                 operationName: 'ImportJurinet',
                 msg: `decision jurinet normalised ${normDec.sourceName}, ${normDec.sourceId}`,
                 data: {
-                  _id: normDec._id,
                   sourceId: normDec.sourceId,
                   sourceName: normDec.sourceName,
                   registerNumber: normDec.registerNumber,
@@ -300,8 +298,7 @@ async function importJurinet() {
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
             newCount++;
             if (normalized === null) {
-              const insertResult = await sendToJurinorm('CC', normDec);
-              normDec._id = insertResult.insertedId;
+              await sendToJurinorm('CC', normDec);
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
               await jurinetSource.markAsImported(row._id);
               if (row['TYPE_ARRET'] !== 'CC') {
@@ -325,7 +322,6 @@ async function importJurinet() {
                 operationName: 'ImportJurinet',
                 msg: `Jurinet decision normalised ${normDec.sourceName}, ${normDec.sourceId}`,
                 data: {
-                  _id: normDec._id,
                   sourceId: normDec.sourceId,
                   sourceName: normDec.sourceName,
                   registerNumber: normDec.registerNumber,
@@ -677,8 +673,7 @@ async function importJurica() {
               }
               normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
               if (normalized === null) {
-                const insertResult = await sendToJurinorm('CA', normDec);
-                normDec._id = insertResult.insertedId;
+                await sendToJurinorm('CA', normDec);
                 await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
                 await juricaSource.markAsImported(row._id);
                 newCount++;
@@ -694,7 +689,6 @@ async function importJurica() {
                 operationName: 'ImportJurica',
                 msg: `Jurica decision normalised ${normDec.sourceName}, ${normDec.sourceId}`,
                 data: {
-                  _id: normDec._id,
                   sourceId: normDec.sourceId,
                   sourceName: normDec.sourceName,
                   registerNumber: normDec.registerNumber,
@@ -939,8 +933,7 @@ async function importJurica() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized === null) {
-              const insertResult = await sendToJurinorm('CA', normDec);
-              normDec._id = insertResult.insertedId;
+              await sendToJurinorm('CA', normDec);
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions');
               await juricaSource.markAsImported(row._id);
             } else {
@@ -968,7 +961,6 @@ async function importJurica() {
               operationName: 'ImportJurica',
               msg: `Jurica normalised decision ${normDec.sourceName}, ${normDec.sourceId})`,
               data: {
-                _id: normDec._id,
                 sourceId: normDec.sourceId,
                 sourceName: normDec.sourceName,
                 jurisdictionId: normDec.jurisdictionId,
@@ -1460,8 +1452,7 @@ async function syncJurinet() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
             if (normalized === null) {
-              const insertResult = await sendToJurinorm('CC', normDec);
-              normDec._id = insertResult.insertedId;
+              await sendToJurinorm('CC', normDec);
               await JudilibreIndex.indexDecisionDocument(normDec, null, 'import in decisions (sync2)');
               normalizeCount++;
             } else {
@@ -1473,7 +1464,6 @@ async function syncJurinet() {
               operationName: 'ImportJurinet',
               msg: `Jurinet normalised decision updating ${normDec.sourceName} ${normDec.sourceId}`,
               data: {
-                _id: normDec._id,
                 sourceId: normDec.sourceId,
                 sourceName: normDec.sourceName,
                 jurisdictionId: normDec.jurisdictionId,
@@ -1518,14 +1508,12 @@ async function syncJurinet() {
                 await jurinetSource.markAsImported(row._id);
               }
               await sendToJurinorm('CC', normDec);
-              normDec._id = normalized._id;
               if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
                 // @todo-oddj-dashboard: mise à jour de la décision CC normalisée et retraitement par Label (normDec.sourceName, normDec.sourceId, changelog)
                 CustomLog.log('info', {
                   operationName: 'ImportJurinet',
                   msg: `Normalized Jurinet decision updated and reprocessed by Label ${normDec.sourceName} ${normDec.sourceId}  - changelog : ${changelog}`,
                   data: {
-                    _id: normDec._id,
                     sourceId: normDec.sourceId,
                     sourceName: normDec.sourceName,
                     jurisdictionId: normDec.jurisdictionId,
@@ -1545,7 +1533,6 @@ async function syncJurinet() {
                   operationName: 'ImportJurinet',
                   msg: `Normalized Jurinet decision updated without reprocessed by Label ${normDec.sourceName} ${normDec.sourceId}  - changelog : ${changelog}`,
                   data: {
-                    _id: normDec._id,
                     sourceId: normDec.sourceId,
                     sourceName: normDec.sourceName,
                     jurisdictionId: normDec.jurisdictionId,
@@ -2113,8 +2100,7 @@ async function syncJurica() {
             }
             normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
             if (normalized === null) {
-              const insertResult = await sendToJurinorm('CA', normDec);
-              normDec._id = insertResult.insertedId;
+              await sendToJurinorm('CA', normDec);
               await JudilibreIndex.indexDecisionDocument(normDec, duplicateId, 'import in decisions (sync2)');
               normalizeCount++;
             } else {
@@ -2182,14 +2168,12 @@ async function syncJurica() {
                 }
               }
               await sendToJurinorm('CA', normDec);
-              normDec._id = normalized._id;
               if (reprocessUpdated === true && ((tooOld === false && tooEarly === false) || hasException === true)) {
                 // @todo-oddj-dashboard: mise à jour de la décision CA normalisée et retraitement par Label (normDec.sourceName, normDec.sourceId, changelog)
                 CustomLog.log('info', {
                   operationName: 'ImportJurica',
                   msg: `Normalized Jurinca decision updated and reprocessed by Label ${normDec.sourceId} ${normDec.sourceName} changelog : ${changelog} `,
                   data: {
-                    _id: normDec._id,
                     sourceId: normDec.sourceId,
                     sourceName: normDec.sourceName,
                     jurisdictionId: normDec.jurisdictionId,
@@ -2209,7 +2193,6 @@ async function syncJurica() {
                   operationName: 'ImportJurica',
                   msg: `Normalized Jurinet decision updated without reprocessed by Label ${normDec.sourceId} ${normDec.sourceName} changelog : ${changelog} `,
                   data: {
-                    _id: normDec._id,
                     sourceId: normDec.sourceId,
                     sourceName: normDec.sourceName,
                     jurisdictionId: normDec.jurisdictionId,

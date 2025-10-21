@@ -35,7 +35,8 @@
     "stop:docker": "docker compose stop",
     "buildAffaires:docker": "docker compose run --rm openjustice-sder node src/jobs/buildAffaires.js",
     "import:docker": "docker compose run --rm openjustice-sder node src/jobs/import.js",
-    "reinject:docker": "docker compose run --rm openjustice-sder node src/jobs/reinject.js"
+    "reinject:docker": "docker compose run --rm openjustice-sder node src/jobs/reinject.js",
+    "getSderId:docker": "docker compose run --rm openjustice-sder node src/jobs/getSderId.js"
   },
   "repository": {
     "type": "git",
