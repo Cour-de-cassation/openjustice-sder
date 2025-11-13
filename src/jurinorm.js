@@ -19,5 +19,5 @@ module.exports.sendToJurinorm = async function sendToJurinorm(sourceName, normDe
         undefined
     );
 
-    return decisions.insertOne({ path: null, events: [{ type: 'create', date: new Date() }], metadatas: normDec })
+    return decisions.insertOne({ path: null, events: [{ type: 'created', date: new Date() }], metadatas: normDec })
 }
