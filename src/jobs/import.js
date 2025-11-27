@@ -20,7 +20,7 @@ const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION);
 
 let selfKill = setTimeout(cancel, ms('15m'));
 
-const CCLimitDate = new Date('2021-09-30');
+const CCLimitDate = process.env.NODE_ENV === 'local' ? new Date('0000-00-00') : new Date('2021-09-30');
 
 function end() {
   clearTimeout(selfKill);
