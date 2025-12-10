@@ -462,6 +462,7 @@ class JurinetOracle {
       const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
+        AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} != 4 
         AND ${process.env.DB_TABLE}.DT_MODIF > TO_DATE('${strDate}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
 
@@ -687,21 +688,11 @@ class JurinetOracle {
     if (!id) {
       throw new Error(`Jurinet.markAsImported: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
-      // 1. Get the original decision from Jurinet:
-      const readQuery = `SELECT *
-        FROM ${process.env.DB_TABLE}
-        WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-      const readResult = await this.connection.execute(readQuery, [id]);
-      if (readResult && readResult.rows && readResult.rows.length > 0) {
-        // 2. Update query:
-        const updateQuery = `UPDATE ${process.env.DB_TABLE}
-          SET ${process.env.DB_STATE_FIELD}=:pending
-          WHERE ${process.env.DB_ID_FIELD}=:id`;
-        await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
-        return true;
-      } else {
-        throw new Error(`Jurinet.markAsImported: original decision '${id}' not found.`);
-      }
+      const updateQuery = `UPDATE ${process.env.DB_TABLE}
+        SET ${process.env.DB_STATE_FIELD}=:pending
+        WHERE ${process.env.DB_ID_FIELD}=:id`;
+      await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+      return true;
     } else {
       throw new Error('Jurinet.markAsImported: not connected.');
     }
@@ -718,21 +709,11 @@ class JurinetOracle {
     if (!id) {
       throw new Error(`Jurinet.markAsErroneous: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
-      // 1. Get the original decision from Jurinet:
-      const readQuery = `SELECT *
-        FROM ${process.env.DB_TABLE}
-        WHERE ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} = :id`;
-      const readResult = await this.connection.execute(readQuery, [id]);
-      if (readResult && readResult.rows && readResult.rows.length > 0) {
-        // 2. Update query:
-        const updateQuery = `UPDATE ${process.env.DB_TABLE}
-          SET ${process.env.DB_STATE_FIELD}=:error
-          WHERE ${process.env.DB_ID_FIELD}=:id`;
-        await this.connection.execute(updateQuery, [4, id], { autoCommit: true });
-        return true;
-      } else {
-        throw new Error(`Jurinet.markAsErroneous: original decision '${id}' not found.`);
-      }
+      const updateQuery = `UPDATE ${process.env.DB_TABLE}
+        SET ${process.env.DB_STATE_FIELD}=:error
+        WHERE ${process.env.DB_ID_FIELD}=:id`;
+      await this.connection.execute(updateQuery, [4, id], { autoCommit: true });
+      return true;
     } else {
       throw new Error('Jurinet.markAsErroneous: not connected.');
     }

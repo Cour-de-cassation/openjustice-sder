@@ -1048,7 +1048,7 @@ class JuricaUtils {
 
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
-      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
+      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION || 1.0),
       sourceId: document._id,
       sourceName: 'jurica',
       jurisdictionId: document.JDEC_ID_JURIDICTION,

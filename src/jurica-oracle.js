@@ -261,6 +261,7 @@ class JuricaOracle {
       const query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+        AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} != 4
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_MAJ > '${strDate}'
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
 
@@ -302,7 +303,7 @@ class JuricaOracle {
       let strAgo = ago.getFullYear();
       strAgo = `${strAgo}${ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1}`;
       strAgo = `${strAgo}${ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate()}`;
-      
+
       const query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
@@ -464,21 +465,11 @@ class JuricaOracle {
     if (!id) {
       throw new Error(`Jurica.markAsImported: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
-      // 1. Get the original decision from Jurica:
-      const readQuery = `SELECT *
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
-      const readResult = await this.connection.execute(readQuery, [id]);
-      if (readResult && readResult.rows && readResult.rows.length > 0) {
-        // 2. Update query:
-        const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
-          SET ${process.env.DB_STATE_FIELD_JURICA}=:pending
-          WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
-        await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
-        return true;
-      } else {
-        throw new Error(`Jurica.markAsImported: original decision '${id}' not found.`);
-      }
+      const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
+        SET ${process.env.DB_STATE_FIELD_JURICA}=:pending
+        WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
+      await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+      return true;
     } else {
       throw new Error('Jurica.markAsImported: not connected.');
     }
@@ -495,21 +486,11 @@ class JuricaOracle {
     if (!id) {
       throw new Error(`Jurica.markAsErroneous: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
-      // 1. Get the original decision from Jurica:
-      const readQuery = `SELECT *
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
-      const readResult = await this.connection.execute(readQuery, [id]);
-      if (readResult && readResult.rows && readResult.rows.length > 0) {
-        // 2. Update query:
-        const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
-          SET ${process.env.DB_STATE_FIELD_JURICA}=:error
-          WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
-        await this.connection.execute(updateQuery, [4, id], { autoCommit: true });
-        return true;
-      } else {
-        throw new Error(`Jurica.markAsErroneous: original decision '${id}' not found.`);
-      }
+      const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
+        SET ${process.env.DB_STATE_FIELD_JURICA}=:error
+        WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
+      await this.connection.execute(updateQuery, [4, id], { autoCommit: true });
+      return true;
     } else {
       throw new Error('Jurica.markAsErroneous: not connected.');
     }
