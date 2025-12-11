@@ -969,7 +969,7 @@ class JuricaUtils {
     return str;
   }
 
-  static async Normalize(document, previousVersion, ignorePreviousContent) {
+  static async Normalize(document, previousVersion, keepPreviousPseudoContent) {
     let originalText = undefined;
     let pseudoText = undefined;
     let pseudoStatus = document.IND_ANO;
@@ -994,7 +994,7 @@ class JuricaUtils {
       }
     }
 
-    if (previousVersion && !ignorePreviousContent) {
+    if (previousVersion && keepPreviousPseudoContent) {
       if (previousVersion.pseudoText) {
         pseudoText = previousVersion.pseudoText;
       }
@@ -1168,14 +1168,14 @@ class JuricaUtils {
     } catch (_) {}
 
     if (previousVersion) {
-      if (previousVersion.labelStatus) {
-        normalizedDecision.labelStatus = previousVersion.labelStatus;
-      }
-      if (previousVersion.labelTreatments) {
-        normalizedDecision.labelTreatments = previousVersion.labelTreatments;
-      }
       if (previousVersion._version) {
         normalizedDecision._version = previousVersion._version;
+      }
+      if (previousVersion.labelStatus && keepPreviousPseudoContent) {
+        normalizedDecision.labelStatus = previousVersion.labelStatus;
+      }
+      if (previousVersion.labelTreatments && keepPreviousPseudoContent) {
+        normalizedDecision.labelTreatments = previousVersion.labelTreatments;
       }
     }
 

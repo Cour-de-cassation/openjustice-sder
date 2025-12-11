@@ -391,24 +391,16 @@ class JurinetOracle {
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
-
       const rs = result.resultSet;
-      let rows = [];
+      const rows = [];
       let resultRow;
-
       while ((resultRow = await rs.getRow())) {
         if (this.filter(resultRow)) {
           rows.push(await this.buildRawData(resultRow, true));
         }
       }
-
       await rs.close();
-
-      if (rows.length > 0) {
-        return rows;
-      } else {
-        return null;
-      }
+      return rows;
     } else {
       throw new Error('Jurinet.getNew: not connected.');
     }
@@ -469,24 +461,16 @@ class JurinetOracle {
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
-
       const rs = result.resultSet;
-      let rows = [];
+      const rows = [];
       let resultRow;
-
       while ((resultRow = await rs.getRow())) {
         if (this.filter(resultRow)) {
           rows.push(await this.buildRawData(resultRow, true));
         }
       }
-
       await rs.close();
-
-      if (rows.length > 0) {
-        return rows;
-      } else {
-        return null;
-      }
+      return rows;
     } else {
       throw new Error('Jurinet.getModifiedSince: not connected.');
     }

@@ -188,27 +188,18 @@ class JuricaOracle {
           ${query}
         ) a WHERE rownum <= 250
       ) WHERE rnum >= 0`;
-
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
-
       const rs = result.resultSet;
-      let rows = [];
+      const rows = [];
       let resultRow;
-
       while ((resultRow = await rs.getRow())) {
         const data = await this.buildRawData(resultRow, true);
         rows.push(data);
       }
-
       await rs.close();
-
-      if (rows.length > 0) {
-        return rows;
-      } else {
-        return null;
-      }
+      return rows;
     } else {
       throw new Error('Jurica.getNew: not connected.');
     }
@@ -268,23 +259,15 @@ class JuricaOracle {
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
-
       const rs = result.resultSet;
-      let rows = [];
+      const rows = [];
       let resultRow;
-
       while ((resultRow = await rs.getRow())) {
         const data = await this.buildRawData(resultRow, true);
         rows.push(data);
       }
-
       await rs.close();
-
-      if (rows.length > 0) {
-        return rows;
-      } else {
-        return null;
-      }
+      return rows;
     } else {
       throw new Error('Jurica.getModifiedSince: not connected.');
     }
