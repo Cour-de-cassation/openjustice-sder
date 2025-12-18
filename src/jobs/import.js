@@ -825,7 +825,7 @@ async function syncJurinet() {
             skipCount++;
           }
         } else {
-          // Do not "mark" the decision in this case
+          await jurinetSource.markAsErroneous(row._id);
           CustomLog.log('info', {
             operationName: 'SyncJurinetSkip',
             msg: `Jurinet skip non existing CC decision ${row._id}`,
@@ -1204,7 +1204,7 @@ async function syncJurica() {
             skipCount++;
           }
         } else {
-          // Do not "mark" the decision in this case
+          await juricaSource.markAsErroneous(row._id);
           CustomLog.log('info', {
             operationName: 'SyncJuricaSkip',
             msg: `Jurica skip non existing CA decision ${row._id}`,
