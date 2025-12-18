@@ -22,7 +22,7 @@
 const { MongoClient } = require("mongodb");
 const { CustomLog } = require("../utils/logger");
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+require('dotenv').config({ quiet: true, path: path.join(__dirname, '..', '..', '.env') });
 
 const dbsderClient = new MongoClient(process.env.MONGO_URI, { directConnection: true });
 const indexClient = new MongoClient(process.env.INDEX_DB_URI, { directConnection: true });
