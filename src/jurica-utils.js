@@ -1,5 +1,5 @@
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ quiet: true, path: path.join(__dirname, '..', '.env') });
 
 const { XMLParser, XMLValidator } = require('fast-xml-parser');
 const he = require('he');
