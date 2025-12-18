@@ -971,6 +971,7 @@ async function syncJurica() {
   await juricaSource.connect();
   let updateCount = 0;
   let nonPublicCount = 0;
+  let skipCount = 0;
   let errorCount = 0;
   let now = DateTime.now();
   let juricaLastDate;
