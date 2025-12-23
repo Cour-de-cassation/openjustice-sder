@@ -952,9 +952,11 @@ async function syncJurica() {
     'JDEC_OCC_COMP',
     'JDEC_HTML_SOURCE',
     'JDEC_OCC_COMP_LIBRE',
+    'JDEC_SOMMAIRE',
+    'JDEC_SELECTION',
     '_bloc_occultation',
   ];
-  const sensitive = ['JDEC_HTML_SOURCE', 'JDEC_COLL_PARTIES', 'JDEC_OCC_COMP_LIBRE'];
+  const sensitive = ['JDEC_HTML_SOURCE', 'JDEC_COLL_PARTIES', 'JDEC_OCC_COMP_LIBRE', 'JDEC_SOMMAIRE'];
   const doNotCount = ['IND_ANO', 'AUT_ANO', 'DT_ANO', 'DT_MODIF_ANO', 'JDEC_DATE_MAJ', 'DT_ENVOI_ABONNES'];
   const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
