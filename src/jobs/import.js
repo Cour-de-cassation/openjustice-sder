@@ -112,7 +112,9 @@ async function importJurinet() {
             inDate.setHours(inDate.getHours() + 2);
             if (inDate.getTime() < CCLimitDate.getTime()) {
               throw new Error(
-                `Cannot import decision ${row._id} because it is too old (${row.DT_DECISION.toISOString()}).`,
+                `Cannot import decision ${
+                  row._id
+                } because it is too old (${row.DT_DECISION.toISOString()} < ${CCLimitDate}).`,
               );
             }
             const dateDiff2 = DateTime.fromJSDate(inDate).diffNow('days').toObject();
@@ -245,6 +247,7 @@ async function importJurinet() {
 }
 
 async function importJurica() {
+  const CALimitMonth = process.env.NODE_ENV === 'local' ? 0 : 6;
   const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
@@ -321,17 +324,17 @@ async function importJurica() {
           inDate.setMilliseconds(0);
           inDate = DateTime.fromJSDate(inDate);
           const dateDiff = inDate.diffNow('months').toObject();
-          if (dateDiff.months <= -6) {
+          if (CALimitMonth && dateDiff.months <= -CALimitMonth) {
             throw new Error(
-              `Cannot import decision ${row._id} because it is too old(${Math.round(
+              `Cannot import decision ${row._id} because it is too old (${Math.round(
                 Math.abs(dateDiff.months),
-              )} months).`,
+              )} months > ${CALimitMonth}).`,
             );
           }
           const dateDiff2 = inDate.diffNow('days').toObject();
           if (dateDiff2.days > 1) {
             throw new Error(
-              `Cannot import decision ${row._id} because it is too early(${Math.round(dateDiff2.days)} days).`,
+              `Cannot import decision ${row._id} because it is too early (${Math.round(dateDiff2.days)} days).`,
             );
           }
         }
@@ -952,9 +955,9 @@ async function syncJurica() {
     'JDEC_OCC_COMP',
     'JDEC_HTML_SOURCE',
     'JDEC_OCC_COMP_LIBRE',
-    'JDEC_SOMMAIRE',
-    'JDEC_SELECTION',
     '_bloc_occultation',
+    'JDEC_SOMMAIRE',  // @XXX to be decided
+    'JDEC_SELECTION', // @XXX to be decided
   ];
   const sensitive = ['JDEC_HTML_SOURCE', 'JDEC_COLL_PARTIES', 'JDEC_OCC_COMP_LIBRE', 'JDEC_SOMMAIRE'];
   const doNotCount = ['IND_ANO', 'AUT_ANO', 'DT_ANO', 'DT_MODIF_ANO', 'JDEC_DATE_MAJ', 'DT_ENVOI_ABONNES'];
