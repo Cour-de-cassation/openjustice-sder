@@ -1119,7 +1119,7 @@ class JuricaUtils {
       publishDate: previousVersion?.publishDate ?? null,
       unpublishDate: previousVersion?.unpublishDate ?? null,
       selection: parseInt(`${document.JDEC_SELECTION}`, 10) === 1 ? true : false,
-      sommaire: document.JDEC_SOMMAIRE || null, // @XXX requires an update of the UnIdentifiedDecisionCa model
+      sommaire: document.JDEC_SOMMAIRE || null,
     };
 
     try {
