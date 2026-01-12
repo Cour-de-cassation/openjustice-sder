@@ -247,7 +247,6 @@ async function importJurinet() {
 }
 
 async function importJurica() {
-  const CALimitMonth = process.env.NODE_ENV === 'local' ? 0 : 6;
   const client = new MongoClient(process.env.MONGO_URI, { directConnection: true });
   await client.connect();
   const database = client.db(process.env.MONGO_DBNAME);
@@ -323,6 +322,8 @@ async function importJurica() {
           inDate.setSeconds(0);
           inDate.setMilliseconds(0);
           inDate = DateTime.fromJSDate(inDate);
+          /* It has been disabled in production, don't remember why...
+          const CALimitMonth = process.env.NODE_ENV === 'local' ? 0 : 6;
           const dateDiff = inDate.diffNow('months').toObject();
           if (CALimitMonth && dateDiff.months <= -CALimitMonth) {
             throw new Error(
@@ -331,6 +332,7 @@ async function importJurica() {
               )} months > ${CALimitMonth}).`,
             );
           }
+          */
           const dateDiff2 = inDate.diffNow('days').toObject();
           if (dateDiff2.days > 1) {
             throw new Error(
