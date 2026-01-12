@@ -367,7 +367,7 @@ class JurinetUtils {
     }
   }
 
-  static async Normalize(document, previousVersion, ignorePreviousContent) {
+  static async Normalize(document, previousVersion, keepPreviousPseudoContent) {
     let cleanedXml = null;
     let cleanedXmla = null;
     let originalText = undefined;
@@ -406,7 +406,7 @@ class JurinetUtils {
       }
     }
 
-    if (previousVersion && !ignorePreviousContent) {
+    if (previousVersion && keepPreviousPseudoContent) {
       if (previousVersion.pseudoText) {
         pseudoText = previousVersion.pseudoText;
       }
@@ -419,7 +419,7 @@ class JurinetUtils {
 
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
-      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
+      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION || 1.0),
       sourceId: document._id,
       sourceName: 'jurinet',
       jurisdictionId: undefined,
@@ -488,14 +488,14 @@ class JurinetUtils {
     };
 
     if (previousVersion) {
-      if (previousVersion.labelStatus) {
-        normalizedDecision.labelStatus = previousVersion.labelStatus;
-      }
-      if (previousVersion.labelTreatments) {
-        normalizedDecision.labelTreatments = previousVersion.labelTreatments;
-      }
       if (previousVersion._version) {
         normalizedDecision._version = previousVersion._version;
+      }
+      if (previousVersion.labelStatus && keepPreviousPseudoContent) {
+        normalizedDecision.labelStatus = previousVersion.labelStatus;
+      }
+      if (previousVersion.labelTreatments && keepPreviousPseudoContent) {
+        normalizedDecision.labelTreatments = previousVersion.labelTreatments;
       }
     }
 

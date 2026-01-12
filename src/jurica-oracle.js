@@ -188,27 +188,18 @@ class JuricaOracle {
           ${query}
         ) a WHERE rownum <= 250
       ) WHERE rnum >= 0`;
-
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
-
       const rs = result.resultSet;
-      let rows = [];
+      const rows = [];
       let resultRow;
-
       while ((resultRow = await rs.getRow())) {
         const data = await this.buildRawData(resultRow, true);
         rows.push(data);
       }
-
       await rs.close();
-
-      if (rows.length > 0) {
-        return rows;
-      } else {
-        return null;
-      }
+      return rows;
     } else {
       throw new Error('Jurica.getNew: not connected.');
     }
@@ -261,29 +252,22 @@ class JuricaOracle {
       const query = `SELECT *
         FROM ${process.env.DB_TABLE_JURICA}
         WHERE ${process.env.DB_TABLE_JURICA}.JDEC_HTML_SOURCE IS NOT NULL
+        AND ${process.env.DB_TABLE_JURICA}.${process.env.DB_STATE_FIELD_JURICA} != 4
         AND ${process.env.DB_TABLE_JURICA}.JDEC_DATE_MAJ > '${strDate}'
         ORDER BY ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} ASC`;
 
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
-
       const rs = result.resultSet;
-      let rows = [];
+      const rows = [];
       let resultRow;
-
       while ((resultRow = await rs.getRow())) {
         const data = await this.buildRawData(resultRow, true);
         rows.push(data);
       }
-
       await rs.close();
-
-      if (rows.length > 0) {
-        return rows;
-      } else {
-        return null;
-      }
+      return rows;
     } else {
       throw new Error('Jurica.getModifiedSince: not connected.');
     }
@@ -464,21 +448,11 @@ class JuricaOracle {
     if (!id) {
       throw new Error(`Jurica.markAsImported: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
-      // 1. Get the original decision from Jurica:
-      const readQuery = `SELECT *
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
-      const readResult = await this.connection.execute(readQuery, [id]);
-      if (readResult && readResult.rows && readResult.rows.length > 0) {
-        // 2. Update query:
-        const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
-          SET ${process.env.DB_STATE_FIELD_JURICA}=:pending
-          WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
-        await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
-        return true;
-      } else {
-        throw new Error(`Jurica.markAsImported: original decision '${id}' not found.`);
-      }
+      const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
+        SET ${process.env.DB_STATE_FIELD_JURICA}=:pending
+        WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
+      await this.connection.execute(updateQuery, [1, id], { autoCommit: true });
+      return true;
     } else {
       throw new Error('Jurica.markAsImported: not connected.');
     }
@@ -495,21 +469,11 @@ class JuricaOracle {
     if (!id) {
       throw new Error(`Jurica.markAsErroneous: invalid ID '${id}'.`);
     } else if (this.connected === true && this.connection !== null) {
-      // 1. Get the original decision from Jurica:
-      const readQuery = `SELECT *
-        FROM ${process.env.DB_TABLE_JURICA}
-        WHERE  ${process.env.DB_TABLE_JURICA}.${process.env.DB_ID_FIELD_JURICA} = :id`;
-      const readResult = await this.connection.execute(readQuery, [id]);
-      if (readResult && readResult.rows && readResult.rows.length > 0) {
-        // 2. Update query:
-        const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
-          SET ${process.env.DB_STATE_FIELD_JURICA}=:error
-          WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
-        await this.connection.execute(updateQuery, [4, id], { autoCommit: true });
-        return true;
-      } else {
-        throw new Error(`Jurica.markAsErroneous: original decision '${id}' not found.`);
-      }
+      const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
+        SET ${process.env.DB_STATE_FIELD_JURICA}=:error
+        WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
+      await this.connection.execute(updateQuery, [4, id], { autoCommit: true });
+      return true;
     } else {
       throw new Error('Jurica.markAsErroneous: not connected.');
     }

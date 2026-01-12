@@ -969,7 +969,7 @@ class JuricaUtils {
     return str;
   }
 
-  static async Normalize(document, previousVersion, ignorePreviousContent) {
+  static async Normalize(document, previousVersion, keepPreviousPseudoContent) {
     let originalText = undefined;
     let pseudoText = undefined;
     let pseudoStatus = document.IND_ANO;
@@ -994,7 +994,7 @@ class JuricaUtils {
       }
     }
 
-    if (previousVersion && !ignorePreviousContent) {
+    if (previousVersion && keepPreviousPseudoContent) {
       if (previousVersion.pseudoText) {
         pseudoText = previousVersion.pseudoText;
       }
@@ -1048,7 +1048,7 @@ class JuricaUtils {
 
     let normalizedDecision = {
       _rev: previousVersion ? previousVersion._rev + 1 : 0,
-      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION),
+      _version: parseFloat(process.env.MONGO_DECISIONS_VERSION || 1.0),
       sourceId: document._id,
       sourceName: 'jurica',
       jurisdictionId: document.JDEC_ID_JURIDICTION,
@@ -1119,6 +1119,7 @@ class JuricaUtils {
       publishDate: previousVersion?.publishDate ?? null,
       unpublishDate: previousVersion?.unpublishDate ?? null,
       selection: parseInt(`${document.JDEC_SELECTION}`, 10) === 1 ? true : false,
+      sommaire: document.JDEC_SOMMAIRE || null,
     };
 
     try {
@@ -1168,14 +1169,14 @@ class JuricaUtils {
     } catch (_) {}
 
     if (previousVersion) {
-      if (previousVersion.labelStatus) {
-        normalizedDecision.labelStatus = previousVersion.labelStatus;
-      }
-      if (previousVersion.labelTreatments) {
-        normalizedDecision.labelTreatments = previousVersion.labelTreatments;
-      }
       if (previousVersion._version) {
         normalizedDecision._version = previousVersion._version;
+      }
+      if (previousVersion.labelStatus && keepPreviousPseudoContent) {
+        normalizedDecision.labelStatus = previousVersion.labelStatus;
+      }
+      if (previousVersion.labelTreatments && keepPreviousPseudoContent) {
+        normalizedDecision.labelTreatments = previousVersion.labelTreatments;
       }
     }
 
