@@ -7,7 +7,7 @@
     "@ladjs/graceful": "^5.0.0",
     "bree": "^8.0.5",
     "dotenv": "^17.2.3",
-    "fast-xml-parser": "^5.3.3",
+    "fast-xml-parser": "^5.3.4",
     "he": "1.2.0",
     "iconv-lite": "^0.7.1",
     "luxon": "^3.7.2",
