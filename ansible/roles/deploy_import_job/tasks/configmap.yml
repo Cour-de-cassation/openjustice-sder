@@ -50,3 +50,4 @@
         COLLECTION_JURINET_RAWFILES: "{{ collection_jurinet_rawfiles }}"
         COLLECTION_JURICA_RAWFILES: "{{ collection_jurica_rawfiles }}"
         MONGO_URI_RAWFILES: "{{ mongo_uri_rawfiles }}"
+        DBSDER_API_KEY: "{{ DBSDER_API_KEY }}"
