@@ -1,6 +1,9 @@
 const needle = require('needle');
 
 module.exports.findAffaire = async function findAffaire(id) {
+  if(!id){
+    return undefined
+  }
   const route = `${process.env.DBSDER_API_URL}/affaires?decisionId=${id}`;
   try {
     const response = await needle('get', route, null, {
@@ -8,7 +11,7 @@ module.exports.findAffaire = async function findAffaire(id) {
     });
     
     if (response.statusCode === 404) {
-      return null;
+      return undefined;
     }
     
     if (response.statusCode !== 200) {
