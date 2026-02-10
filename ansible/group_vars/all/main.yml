@@ -39,3 +39,5 @@ api_zonage_uri: "http://172.16.118.98:8090"
 
 collection_jurinet_rawfiles: "cc-raw"
 collection_jurica_rawfiles: "ca-raw"
+
+dbsder_api_url: "http://api-service.dbsder:3000"

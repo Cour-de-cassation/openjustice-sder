@@ -460,7 +460,7 @@ class JurinetUtils {
       parties: [],
       decatt: null,
       locked: false,
-      labelStatus: pseudoText ? 'done' : 'toBeTreated',
+      labelStatus: pseudoText && keepPreviousPseudoContent ? 'done' : 'toBeTreated',
       publishStatus: 'toBePublished',
       labelTreatments: [],
       zoning: undefined,
