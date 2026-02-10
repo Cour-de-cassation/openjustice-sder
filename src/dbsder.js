@@ -1,7 +1,7 @@
 const needle = require('needle');
 
 module.exports.findAffaire = async function findAffaire(id) {
-  const route = `${process.env.DBSDER_API_URL}/affaires?decisionId=${decisionId}`;
+  const route = `${process.env.DBSDER_API_URL}/affaires?decisionId=${id}`;
   try {
     const response = await needle('get', route, null, {
       headers: { 'x-api-key': process.env.DBSDER_API_KEY }
@@ -22,5 +22,3 @@ module.exports.findAffaire = async function findAffaire(id) {
     throw err;
   }
 }
-
-module.exports = { findAffaire };

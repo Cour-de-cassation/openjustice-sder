@@ -12,6 +12,7 @@ const { MongoClient } = require('mongodb');
 const { Juritools } = require('../juritools');
 const { DateTime } = require('luxon');
 const { sendToJurinorm } = require('../jurinorm');
+const { findAffaire } = require('../dbsder');
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION || 1.0);
 
 async function main() {
@@ -150,7 +151,10 @@ async function importJurinet() {
 
           // Normalization
           const normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
-          const keepPreviousPseudoContent = !hasException || (hasException && exception.resetPseudo === false);
+          const affaire = await findAffaire(decisions._id)
+          keepPreviousPseudoContent = 
+            (!hasException || (hasException && exception.resetPseudo === false)) &&
+            affaire.replacementTerms && affaire.replacementTerms.length > 0
           const normDec = await JurinetUtils.Normalize(row, normalized, keepPreviousPseudoContent);
           normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
           normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
@@ -470,7 +474,9 @@ async function importJurica() {
 
           // Normalization
           const normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-          const keepPreviousPseudoContent = !hasException || (hasException && exception.resetPseudo === false);
+          keepPreviousPseudoContent = 
+            (!hasException || (hasException && exception.resetPseudo === false)) &&
+            affaire.replacementTerms && affaire.replacementTerms.length > 0
           const normDec = await JuricaUtils.Normalize(row, normalized, keepPreviousPseudoContent);
           normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
           normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
@@ -774,7 +780,9 @@ async function syncJurinet() {
 
             // Normalization
             const normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurinet' });
-            const keepPreviousPseudoContent = reprocessUpdated === false;
+            const keepPreviousPseudoContent = 
+              reprocessUpdated === false &&
+              affaire.replacementTerms && affaire.replacementTerms.length > 0
             const normDec = await JurinetUtils.Normalize(row, normalized, keepPreviousPseudoContent);
             normDec.originalText = JurinetUtils.removeMultipleSpace(normDec.originalText);
             normDec.originalText = JurinetUtils.replaceErroneousChars(normDec.originalText);
@@ -1147,7 +1155,9 @@ async function syncJurica() {
 
             // Normalization
             const normalized = await decisions.findOne({ sourceId: row._id, sourceName: 'jurica' });
-            const keepPreviousPseudoContent = reprocessUpdated === false;
+            const keepPreviousPseudoContent = 
+              reprocessUpdated === false &&
+              affaire.replacementTerms && affaire.replacementTerms.length > 0
             const normDec = await JuricaUtils.Normalize(row, normalized, keepPreviousPseudoContent);
             normDec.originalText = JuricaUtils.removeMultipleSpace(normDec.originalText);
             normDec.originalText = JuricaUtils.replaceErroneousChars(normDec.originalText);
