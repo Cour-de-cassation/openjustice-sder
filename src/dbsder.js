@@ -12,7 +12,7 @@ module.exports.findAffaire = async function findAffaire(id) {
     }
     
     if (response.statusCode !== 200) {
-      throw new UnexpectedError(
+      throw new Error(
         `Call GET - ${route} response with code ${response.statusCode}: ${response.body.message}`
       );
     }
