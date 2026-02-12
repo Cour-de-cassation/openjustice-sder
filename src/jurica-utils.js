@@ -93,6 +93,7 @@ class JuricaUtils {
         )
         .sort();
     } catch (e) {
+      console.error(e);
       return [
         '11A',
         '11B',
@@ -323,6 +324,7 @@ class JuricaUtils {
         })
         .sort();
     } catch (e) {
+      console.error(e);
       return [
         '2AA',
         '2AB',
