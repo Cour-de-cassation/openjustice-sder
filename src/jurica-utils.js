@@ -66,6 +66,18 @@ class JuricaUtils {
     return found;
   }
 
+  static async fetchCodeNACs(params) {
+    const response = await fetch(`${DBSDER_API_URL}/codenacs?${params}`, {
+      headers: {
+        'X-API-Key': `${DBSDER_API_KEY}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  }
+
   static async GetUnconditionalNonPublicNAC() {
     const filters = {
       decisionsPubliques: { $in: ['décisions non publiques', 'décisions mixtes'] },
@@ -76,15 +88,7 @@ class JuricaUtils {
     });
 
     try {
-      const response = await fetch(`${DBSDER_API_URL}/codenacs?${params}`, {
-        headers: {
-          'X-API-Key': `${DBSDER_API_KEY}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const nacs = await response.json();
+      const nacs = await this.fetchCodeNACs(params);
       return ['0', '000', '00A', '00X']
         .concat(
           nacs.map((item) => {
@@ -271,15 +275,7 @@ class JuricaUtils {
     });
 
     try {
-      const response = await fetch(`${DBSDER_API_URL}/codenacs?${params}`, {
-        headers: {
-          'X-API-Key': `${DBSDER_API_KEY}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const nacs = await response.json();
+      const nacs = await this.fetchCodeNACs(params);
       return nacs
         .map((item) => {
           return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
@@ -309,15 +305,7 @@ class JuricaUtils {
     });
 
     try {
-      const response = await fetch(`${DBSDER_API_URL}/codenacs?${params}`, {
-        headers: {
-          'X-API-Key': `${DBSDER_API_KEY}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const nacs = await response.json();
+      const nacs = await this.fetchCodeNACs(params);
       return nacs
         .map((item) => {
           return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
