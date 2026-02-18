@@ -79,14 +79,7 @@ class JuricaUtils {
   }
 
   static async GetUnconditionalNonPublicNAC() {
-    const filters = {
-      decisionsPubliques: { $in: ['décisions non publiques', 'décisions mixtes'] },
-      debatsPublics: { $in: ['débats non publics', 'débats mixtes'] },
-    };
-    const params = new URLSearchParams({
-      filters: JSON.stringify(filters),
-    });
-
+    const params = 'filters=unconditionalNonPublic'; //tag unconditionalNonPublic from dbsder-api
     try {
       const nacs = await this.fetchCodeNACs(params);
       return ['0', '000', '00A', '00X']
@@ -266,14 +259,7 @@ class JuricaUtils {
   }
 
   static async GetConditionalNonPublicNAC() {
-    const filters = {
-      decisionsPubliques: { $in: ['décisions non publiques', 'décisions mixtes'] },
-      debatsPublics: 'débats publics',
-    };
-    const params = new URLSearchParams({
-      filters: JSON.stringify(filters),
-    });
-
+    const params = 'filters=conditionalNonPublic'; //tag conditionalNonPublic from dbsder-api
     try {
       const nacs = await this.fetchCodeNACs(params);
       return nacs
@@ -288,22 +274,7 @@ class JuricaUtils {
   }
 
   static async GetPartiallyPublicNAC() {
-    const filters = {
-      $or: [
-        {
-          decisionsPubliques: 'décisions publiques',
-          debatsPublics: { $in: ['débats non publics', 'débats mixtes'] },
-        },
-        {
-          decisionsPubliques: { $ne: { $in: ['décisions non publiques', 'décisions mixtes'] } },
-          debatsPublics: { $in: ['débats non publics', 'débats mixtes'] },
-        },
-      ],
-    };
-    const params = new URLSearchParams({
-      filters: JSON.stringify(filters),
-    });
-
+    const params = 'filters=partiallyPublic'; //tag partiallyPublic from dbsder-api
     try {
       const nacs = await this.fetchCodeNACs(params);
       return nacs
