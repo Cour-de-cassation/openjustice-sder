@@ -67,9 +67,9 @@ class JuricaUtils {
   }
 
   static async fetchCodeNACs(params) {
-    const response = await fetch(`${DBSDER_API_URL}/codenacs?${params}`, {
+    const response = await fetch(`${process.env.DBSDER_API_URL}/codenacs?${params}`, {
       headers: {
-        'X-API-Key': `${DBSDER_API_KEY}`,
+        'X-API-Key': `${process.env.DBSDER_API_KEY}`,
       },
     });
     if (!response.ok) {
