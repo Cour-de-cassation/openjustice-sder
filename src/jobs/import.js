@@ -13,6 +13,7 @@ const { Juritools } = require('../juritools');
 const { DateTime } = require('luxon');
 const { sendToJurinorm } = require('../jurinorm');
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION || 1.0);
+const { parentPort } = require('worker_threads');
 
 async function main() {
   console.log(`OpenJustice - Start collect job:`, new Date().toLocaleString());
@@ -38,7 +39,8 @@ async function main() {
   }
   console.log('OpenJustice - End collect job:', new Date().toLocaleString());
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  process.exit(0);
+  if (parentPort) parentPort.postMessage('done');
+  else process.exit(0);
 }
 
 async function importJurinet() {
@@ -958,7 +960,7 @@ async function syncJurica() {
     'JDEC_HTML_SOURCE',
     'JDEC_OCC_COMP_LIBRE',
     '_bloc_occultation',
-    'JDEC_SOMMAIRE',  // @XXX to be decided
+    'JDEC_SOMMAIRE', // @XXX to be decided
     'JDEC_SELECTION', // @XXX to be decided
   ];
   const sensitive = ['JDEC_HTML_SOURCE', 'JDEC_COLL_PARTIES', 'JDEC_OCC_COMP_LIBRE', 'JDEC_SOMMAIRE'];
