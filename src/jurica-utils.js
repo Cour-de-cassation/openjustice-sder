@@ -66,12 +66,22 @@ class JuricaUtils {
     return found;
   }
 
+  static async fetchCodeNACs(params) {
+    const response = await fetch(`${process.env.DBSDER_API_URL}/codenacs?${params}`, {
+      headers: {
+        'X-API-Key': `${process.env.DBSDER_API_KEY}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  }
+
   static async GetUnconditionalNonPublicNAC() {
+    const params = 'filters=unconditionalNonPublic'; //tag unconditionalNonPublic from dbsder-api
     try {
-      const nacs = await Database.find('sder.codenacs', {
-        indicateurDecisionRenduePubliquement: false,
-        indicateurDebatsPublics: false,
-      });
+      const nacs = await this.fetchCodeNACs(params);
       return ['0', '000', '00A', '00X']
         .concat(
           nacs.map((item) => {
@@ -80,6 +90,7 @@ class JuricaUtils {
         )
         .sort();
     } catch (e) {
+      console.error(e);
       return [
         '11A',
         '11B',
@@ -248,42 +259,31 @@ class JuricaUtils {
   }
 
   static async GetConditionalNonPublicNAC() {
+    const params = 'filters=conditionalNonPublic'; //tag conditionalNonPublic from dbsder-api
     try {
-      const nacs = await Database.find('sder.codenacs', {
-        indicateurDecisionRenduePubliquement: false,
-        indicateurDebatsPublics: true,
-      });
+      const nacs = await this.fetchCodeNACs(params);
       return nacs
         .map((item) => {
           return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
         })
         .sort();
     } catch (e) {
+      console.error(e);
       return ['4AC', '4AD', '4AE', '4AF', '4AL', '4AM', '4AN', '4AO', '4AP', '4EC'].sort();
     }
   }
 
   static async GetPartiallyPublicNAC() {
+    const params = 'filters=partiallyPublic'; //tag partiallyPublic from dbsder-api
     try {
-      const nacs = await Database.find('sder.codenacs', {
-        $or: [
-          {
-            indicateurDecisionRenduePubliquement: true,
-            indicateurDebatsPublics: false,
-          },
-          {
-            indicateurDecisionRenduePubliquement: { $ne: false },
-            indicateurDebatsPublics: false,
-            indicateurAffaireSignalee: true,
-          },
-        ],
-      });
+      const nacs = await this.fetchCodeNACs(params);
       return nacs
         .map((item) => {
           return `${item.codeNAC}`.replace(/\W/gim, '').toUpperCase().trim();
         })
         .sort();
     } catch (e) {
+      console.error(e);
       return [
         '2AA',
         '2AB',
@@ -764,9 +764,8 @@ class JuricaUtils {
                       if (objToStore.numbers.indexOf(pourvoiResult2.rows[iii]['LIB']) === -1) {
                         objToStore.numbers.push(pourvoiResult2.rows[iii]['LIB']);
                       }
-                      objToStore.numbers_ids[
-                        pourvoiResult2.rows[iii]['LIB']
-                      ] = `jurinet:${pourvoiResult.rows[0].ID_DOCUMENT}`;
+                      objToStore.numbers_ids[pourvoiResult2.rows[iii]['LIB']] =
+                        `jurinet:${pourvoiResult.rows[0].ID_DOCUMENT}`;
                       objToStore.numbers_dates[pourvoiResult2.rows[iii]['LIB']] = datesToCheck[ee];
                       objToStore.numbers_jurisdictions[pourvoiResult2.rows[iii]['LIB']] = 'Cour de cassation';
                       const affaireQuery = `SELECT GPCIV.AFF.ID_AFFAIRE
@@ -1108,8 +1107,8 @@ class JuricaUtils {
         parseInt(`${document.JDEC_IND_DEC_PUB}`, 10) === 1
           ? true
           : parseInt(`${document.JDEC_IND_DEC_PUB}`, 10) === 0
-          ? false
-          : null,
+            ? false
+            : null,
       natureAffaireCivil: null,
       natureAffairePenal: null,
       codeMatiereCivil: null,
