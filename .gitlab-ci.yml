@@ -34,7 +34,7 @@ build_openjustice_sder:
       -t $docker_image .
     - docker push $docker_image
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "feature/request-nac-dbsder-api"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
     - if: '$CI_COMMIT_TAG'
   tags:
     - docker
@@ -62,7 +62,7 @@ deploy_dev:
     ENV: dev
   extends: .deploy_template
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "feature/request-nac-dbsder-api"'
+    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_TAG'
       when: on_success
   needs:
     - build_openjustice_sder
@@ -72,7 +72,7 @@ deploy_preprod:
     ENV: preprod
   extends: .deploy_template
   rules:
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "feature/request-nac-dbsder-api"'
+    - if: '$CI_COMMIT_TAG'
       when: manual
   needs:
     - deploy_dev
