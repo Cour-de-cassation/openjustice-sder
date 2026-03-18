@@ -192,7 +192,7 @@ class JuricaOracle {
         resultSet: true,
       });
       const rs = result.resultSet;
-      const rows = [];
+      let rows = [];
       let resultRow;
       while ((resultRow = await rs.getRow())) {
         const data = await this.buildRawData(resultRow, true);
@@ -260,7 +260,7 @@ class JuricaOracle {
         resultSet: true,
       });
       const rs = result.resultSet;
-      const rows = [];
+      let rows = [];
       let resultRow;
       while ((resultRow = await rs.getRow())) {
         const data = await this.buildRawData(resultRow, true);

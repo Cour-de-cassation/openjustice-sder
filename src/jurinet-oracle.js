@@ -399,12 +399,13 @@ class JurinetOracle {
         resultSet: true,
       });
       const rs = result.resultSet;
-      const rows = [];
+      let rows = [];
       let resultRow;
       while ((resultRow = await rs.getRow())) {
+        console.log('getNew, got:', resultRow[process.env.DB_ID_FIELD])
         if (this.filter(resultRow)) {
           rows.push(await this.buildRawData(resultRow, true));
-          console.log('getNew, got:', resultRow[process.env.DB_ID_FIELD])
+          console.log('getNew, add:', resultRow[process.env.DB_ID_FIELD])
         }
       }
       await rs.close();
@@ -470,7 +471,7 @@ class JurinetOracle {
         resultSet: true,
       });
       const rs = result.resultSet;
-      const rows = [];
+      let rows = [];
       let resultRow;
       while ((resultRow = await rs.getRow())) {
         if (this.filter(resultRow)) {

@@ -284,7 +284,7 @@ class Database {
     const rs = await handler.connection.execute(query, params, {
       resultSet: true,
     });
-    const rows = rs.resultSet;
+    let rows = rs.resultSet;
     while ((row = await rows.getRow())) {
       result.push(await this.convertFromOracle(row));
     }
