@@ -15,6 +15,11 @@ class JurinetOracle {
 
   async connect() {
     if (this.connected === false) {
+      console.log('connect:', JSON.stringify({
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        connectString: process.env.DB_HOST,
+      }))
       this.connection = await oracledb.getConnection({
         user: process.env.DB_USER,
         password: process.env.DB_PASS,
@@ -388,6 +393,8 @@ class JurinetOracle {
         AND ${process.env.DB_TABLE}.DT_CREATION >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} DESC`;
 
+      console.log('getNew:', query)
+
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
@@ -397,6 +404,7 @@ class JurinetOracle {
       while ((resultRow = await rs.getRow())) {
         if (this.filter(resultRow)) {
           rows.push(await this.buildRawData(resultRow, true));
+          console.log('getNew, got:', resultRow[process.env.DB_ID_FIELD])
         }
       }
       await rs.close();

@@ -84,6 +84,7 @@ async function importJurinet() {
     }
   } catch (ignore) {}
 
+  console.log('Got "new" decisions count:', jurinetResult.length)
   for (let i = 0; i < jurinetResult.length; i++) {
     let row = jurinetResult[i];
     let exception = null;
@@ -186,6 +187,8 @@ async function importJurinet() {
             );
           }
         } catch (e) {
+          console.log('reject decision', row._id)
+          console.error(e)
           await jurinetSource.markAsErroneous(row._id);
           CustomLog.log('error', {
             operationName: 'ImportJurinetError',
@@ -842,6 +845,8 @@ async function syncJurinet() {
           skipCount++;
         }
       } catch (e) {
+        console.log('reject sync decision', row._id)
+        console.error(e)
         await jurinetSource.markAsErroneous(row._id);
         CustomLog.log('error', {
           operationName: 'SyncJurinetError',
