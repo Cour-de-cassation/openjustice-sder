@@ -15,11 +15,6 @@ class JurinetOracle {
 
   async connect() {
     if (this.connected === false) {
-      console.log('connect:', JSON.stringify({
-        user: process.env.DB_USER,
-        password: process.env.DB_PASS,
-        connectString: process.env.DB_HOST,
-      }))
       this.connection = await oracledb.getConnection({
         user: process.env.DB_USER,
         password: process.env.DB_PASS,
@@ -393,8 +388,6 @@ class JurinetOracle {
         AND ${process.env.DB_TABLE}.DT_CREATION >= TO_DATE('${strAgo}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} DESC`;
 
-      console.log('getNew:', query)
-
       const result = await this.connection.execute(query, [], {
         resultSet: true,
       });
@@ -402,10 +395,8 @@ class JurinetOracle {
       let rows = [];
       let resultRow;
       while ((resultRow = await rs.getRow())) {
-        console.log('getNew, got:', resultRow[process.env.DB_ID_FIELD])
         if (this.filter(resultRow)) {
           rows.push(await this.buildRawData(resultRow, true));
-          console.log('getNew, add:', resultRow[process.env.DB_ID_FIELD])
         }
       }
       await rs.close();
@@ -463,7 +454,6 @@ class JurinetOracle {
       const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
-        AND ${process.env.DB_TABLE}.${process.env.DB_STATE_FIELD} != 4 
         AND ${process.env.DB_TABLE}.DT_MODIF > TO_DATE('${strDate}', 'DD/MM/YYYY')
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
 
