@@ -84,7 +84,6 @@ async function importJurinet() {
     }
   } catch (ignore) {}
 
-  console.log('Got "new" decisions count:', jurinetResult.length)
   for (let i = 0; i < jurinetResult.length; i++) {
     let row = jurinetResult[i];
     let exception = null;
@@ -187,22 +186,21 @@ async function importJurinet() {
             );
           }
         } catch (e) {
-          console.log('reject decision', row._id)
-          console.error(e)
           await jurinetSource.markAsErroneous(row._id);
-          CustomLog.log('error', {
+          CustomLog.log('warn', {
             operationName: 'ImportJurinetError',
-            msg: `Error collecting Jurinet CC decision ${row._id}, ${e}`,
+            msg: `Error collecting Jurinet CC decision ${row._id}`,
             data: {
               sourceId: row._id,
               sourceName: 'jurinet',
+              error: e,
             },
           });
           errorCount++;
         }
       } else {
         await jurinetSource.markAsErroneous(row._id);
-        CustomLog.log('info', {
+        CustomLog.log('warn', {
           operationName: 'ImportJurinetSkip',
           msg: `Jurinet skip already inserted CC decision ${row._id}`,
           data: {
@@ -225,7 +223,7 @@ async function importJurinet() {
       }
     } else {
       await jurinetSource.markAsErroneous(row._id);
-      CustomLog.log('info', {
+      CustomLog.log('warn', {
         operationName: 'ImportJurinetSkip',
         msg: `Jurinet skip non CC decision ${row._id}`,
         data: {
@@ -516,7 +514,7 @@ async function importJurica() {
           await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
         } else {
           await juricaSource.markAsErroneous(row._id);
-          CustomLog.log('info', {
+          CustomLog.log('warn', {
             operationName: 'ImportJuricaRejected',
             msg: `Jurica import reject CA decision ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
             data: {
@@ -531,19 +529,20 @@ async function importJurica() {
         }
       } catch (e) {
         await juricaSource.markAsErroneous(row._id);
-        CustomLog.log('error', {
+        CustomLog.log('warn', {
           operationName: 'ImportJuricaError',
-          msg: `Error collecting Jurica CA decision ${row._id}, ${e})`,
+          msg: `Error collecting Jurica CA decision ${row._id}`,
           data: {
             sourceId: row._id,
             sourceName: 'jurica',
+            error: e,
           },
         });
         errorCount++;
       }
     } else {
       await juricaSource.markAsErroneous(row._id);
-      CustomLog.log('error', {
+      CustomLog.log('warn', {
         operationName: 'ImportJuricaSkip',
         msg: `Jurica skip already inserted CA decision ${row._id}`,
         data: {
@@ -822,7 +821,7 @@ async function syncJurinet() {
             }
           } else {
             await jurinetSource.markAsErroneous(row._id);
-            CustomLog.log('info', {
+            CustomLog.log('warn', {
               operationName: 'SyncJurinetSkip',
               msg: `Jurinet skip no diff CC decision ${row._id}`,
               data: {
@@ -834,7 +833,7 @@ async function syncJurinet() {
           }
         } else {
           await jurinetSource.markAsErroneous(row._id);
-          CustomLog.log('info', {
+          CustomLog.log('warn', {
             operationName: 'SyncJurinetSkip',
             msg: `Jurinet skip non existing CC decision ${row._id}`,
             data: {
@@ -845,22 +844,21 @@ async function syncJurinet() {
           skipCount++;
         }
       } catch (e) {
-        console.log('reject sync decision', row._id)
-        console.error(e)
         await jurinetSource.markAsErroneous(row._id);
-        CustomLog.log('error', {
+        CustomLog.log('warn', {
           operationName: 'SyncJurinetError',
-          msg: `Error syncing Jurinet CC decision ${row._id}, ${e}`,
+          msg: `Error syncing Jurinet CC decision ${row._id}`,
           data: {
             sourceId: row._id,
             sourceName: 'jurinet',
+            error: e,
           },
         });
         errorCount++;
       }
     } else {
       await jurinetSource.markAsErroneous(row._id);
-      CustomLog.log('info', {
+      CustomLog.log('warn', {
         operationName: 'SyncJurinetSkip',
         msg: `Jurinet skip non CC decision ${row._id}`,
         data: {
@@ -963,7 +961,7 @@ async function syncJurica() {
     'JDEC_HTML_SOURCE',
     'JDEC_OCC_COMP_LIBRE',
     '_bloc_occultation',
-    'JDEC_SOMMAIRE',  // @XXX to be decided
+    'JDEC_SOMMAIRE', // @XXX to be decided
     'JDEC_SELECTION', // @XXX to be decided
   ];
   const sensitive = ['JDEC_HTML_SOURCE', 'JDEC_COLL_PARTIES', 'JDEC_OCC_COMP_LIBRE', 'JDEC_SOMMAIRE'];
@@ -1205,7 +1203,7 @@ async function syncJurica() {
             await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
           } else {
             await juricaSource.markAsErroneous(row._id);
-            CustomLog.log('info', {
+            CustomLog.log('warn', {
               operationName: 'SyncJuricaSkip',
               msg: `Jurica skip no diff CA decision ${row._id}`,
               data: {
@@ -1217,7 +1215,7 @@ async function syncJurica() {
           }
         } else {
           await juricaSource.markAsErroneous(row._id);
-          CustomLog.log('info', {
+          CustomLog.log('warn', {
             operationName: 'SyncJuricaSkip',
             msg: `Jurica skip non existing CA decision ${row._id}`,
             data: {
@@ -1229,19 +1227,20 @@ async function syncJurica() {
         }
       } catch (e) {
         await juricaSource.markAsErroneous(row._id);
-        CustomLog.log('error', {
+        CustomLog.log('warn', {
           operationName: 'SyncJuricaError',
-          msg: `Error syncing Jurica CA decision ${row._id}, ${e}`,
+          msg: `Error syncing Jurica CA decision ${row._id}`,
           data: {
             sourceId: row._id,
             sourceName: 'jurica',
+            error: e,
           },
         });
         errorCount++;
       }
     } else {
       await juricaSource.markAsErroneous(row._id);
-      CustomLog.log('info', {
+      CustomLog.log('warn', {
         operationName: 'SyncJuricaRejected',
         msg: `Jurica sync reject CA decision ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
         data: {

@@ -3,7 +3,6 @@ const he = require('he');
 
 const { JuricaUtils } = require('./jurica-utils');
 const { Juritools } = require('./juritools');
-const { DateTime } = require('luxon');
 const { ObjectId } = require('mongodb');
 
 const parserOptions = {
