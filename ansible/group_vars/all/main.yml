@@ -2,6 +2,8 @@
 ansible_user: iliasaaguida
 ansible_python_interpreter: "/home/{{ ansible_user }}/ansible_venv/bin/python"
 
+api_service: "api-service"
+
 db_table: "DOCUMENT"
 db_id_field: "ID_DOCUMENT"
 db_ano_text_field: "XMLA"
@@ -39,3 +41,4 @@ api_zonage_uri: "http://172.16.118.98:8090"
 
 collection_jurinet_rawfiles: "cc-raw"
 collection_jurica_rawfiles: "ca-raw"
+dbsder_api_url: "http://{{ api_service }}.dbsder:3000"
