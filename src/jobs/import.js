@@ -832,10 +832,10 @@ async function syncJurinet() {
             skipCount++;
           }
         } else {
-          await jurinetSource.markAsErroneous(row._id);
+          await jurinetSource.markAsNew(row._id);
           CustomLog.log('warn', {
-            operationName: 'SyncJurinetSkip',
-            msg: `Jurinet skip non existing CC decision ${row._id}`,
+            operationName: 'SyncJurinetReset',
+            msg: `Jurinet reset non existing CC decision ${row._id}`,
             data: {
               sourceId: row._id,
               sourceName: 'jurinet',
@@ -1214,10 +1214,10 @@ async function syncJurica() {
             skipCount++;
           }
         } else {
-          await juricaSource.markAsErroneous(row._id);
+          await juricaSource.markAsNew(row._id);
           CustomLog.log('warn', {
-            operationName: 'SyncJuricaSkip',
-            msg: `Jurica skip non existing CA decision ${row._id}`,
+            operationName: 'SyncJuricaReset',
+            msg: `Jurica reset non existing CA decision ${row._id}`,
             data: {
               sourceId: row._id,
               sourceName: 'jurica',

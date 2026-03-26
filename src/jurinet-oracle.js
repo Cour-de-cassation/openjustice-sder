@@ -703,6 +703,27 @@ class JurinetOracle {
   }
 
   /**
+   * Method to mark a Jurinet document as "new".
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+  async markAsNew(id) {
+    if (!id) {
+      throw new Error(`Jurinet.markAsNew: invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      const updateQuery = `UPDATE ${process.env.DB_TABLE}
+        SET ${process.env.DB_STATE_FIELD}=:new
+        WHERE ${process.env.DB_ID_FIELD}=:id`;
+      await this.connection.execute(updateQuery, [0, id], { autoCommit: true });
+      return true;
+    } else {
+      throw new Error('Jurinet.markAsNew: not connected.');
+    }
+  }
+
+  /**
    * Method to retrieve the info about the Jurica decision
    * contested by a Jurinet decision (using its ID).
    *

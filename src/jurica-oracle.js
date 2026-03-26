@@ -479,6 +479,27 @@ class JuricaOracle {
   }
 
   /**
+   * Method to mark a Jurica document as "new".
+   *
+   * @param {*} id
+   * @returns
+   * @throws
+   */
+  async markAsNew(id) {
+    if (!id) {
+      throw new Error(`Jurica.markAsNew: invalid ID '${id}'.`);
+    } else if (this.connected === true && this.connection !== null) {
+      const updateQuery = `UPDATE ${process.env.DB_TABLE_JURICA}
+        SET ${process.env.DB_STATE_FIELD_JURICA}=:new
+        WHERE ${process.env.DB_ID_FIELD_JURICA}=:id`;
+      await this.connection.execute(updateQuery, [0, id], { autoCommit: true });
+      return true;
+    } else {
+      throw new Error('Jurica.markAsNew: not connected.');
+    }
+  }
+
+  /**
    * Method to retrieve a decision using the "decatt" info.
    * e.g:
    * {
