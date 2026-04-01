@@ -199,7 +199,6 @@ async function importJurinet() {
           errorCount++;
         }
       } else {
-        await jurinetSource.markAsErroneous(row._id);
         CustomLog.log('warn', {
           operationName: 'ImportJurinetSkip',
           msg: `Jurinet skip already inserted CC decision ${row._id}`,
@@ -222,7 +221,6 @@ async function importJurinet() {
         } catch (ignore) {}
       }
     } else {
-      await jurinetSource.markAsErroneous(row._id);
       CustomLog.log('warn', {
         operationName: 'ImportJurinetSkip',
         msg: `Jurinet skip non CC decision ${row._id}`,
@@ -541,7 +539,6 @@ async function importJurica() {
         errorCount++;
       }
     } else {
-      await juricaSource.markAsErroneous(row._id);
       CustomLog.log('warn', {
         operationName: 'ImportJuricaSkip',
         msg: `Jurica skip already inserted CA decision ${row._id}`,
@@ -820,7 +817,6 @@ async function syncJurinet() {
               );
             }
           } else {
-            await jurinetSource.markAsErroneous(row._id);
             CustomLog.log('warn', {
               operationName: 'SyncJurinetSkip',
               msg: `Jurinet skip no diff CC decision ${row._id}`,
@@ -857,7 +853,6 @@ async function syncJurinet() {
         errorCount++;
       }
     } else {
-      await jurinetSource.markAsErroneous(row._id);
       CustomLog.log('warn', {
         operationName: 'SyncJurinetSkip',
         msg: `Jurinet skip non CC decision ${row._id}`,
@@ -1202,7 +1197,6 @@ async function syncJurica() {
 
             await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
           } else {
-            await juricaSource.markAsErroneous(row._id);
             CustomLog.log('warn', {
               operationName: 'SyncJuricaSkip',
               msg: `Jurica skip no diff CA decision ${row._id}`,
