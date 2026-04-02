@@ -788,10 +788,10 @@ async function syncJurinet() {
               normDec.pseudoStatus = 0;
               normDec.labelStatus = 'toBeTreated';
               normDec.labelTreatments = [];
+              await jurinetSource.markAsImported(row._id);
             }
             updateCount++;
             await sendToJurinorm('CC', normDec);
-            await jurinetSource.markAsImported(row._id);
 
             CustomLog.log('info', {
               operationName: 'SyncJurinetNormalize',
@@ -1172,15 +1172,16 @@ async function syncJurica() {
                   jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
                 },
               });
+              await juricaSource.markAsImported(row._id);
             } else if (reprocessUpdated === true) {
               normDec.pseudoText = undefined;
               normDec.pseudoStatus = 0;
               normDec.labelStatus = 'toBeTreated';
               normDec.labelTreatments = [];
+              await juricaSource.markAsImported(row._id);
             }
             updateCount++;
             await sendToJurinorm('CA', normDec);
-            await juricaSource.markAsImported(row._id);
 
             CustomLog.log('info', {
               operationName: 'SyncJuricaNormalize',
