@@ -1,64 +1,80 @@
-const pino = require("pino");
+const pino = require('pino');
 // Configuration pour Pino en local
 const pinoPrettyConf = {
-    transport: {
-        target: "pino-pretty",
-        options: {
-            singleLine: true,
-            colorize: true,
-            translateTime: "SYS:dd-mm-yyyy - HH:MM:ss Z",
-        },
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      singleLine: true,
+      colorize: true,
+      translateTime: 'SYS:dd-mm-yyyy - HH:MM:ss Z',
     },
+  },
 };
 
 // Configuration principale pour Pino
 const PinoConfig = {
-    base: { appName: "OpenJustice-sder" },
-    formatters: {
-        level: (label) => ({
-            logLevel: label.toUpperCase(),
-        }),
-    },
-    timestamp: () => `,"timestamp":"${new Date(Date.now()).toLocaleString()}"`,
-    redact: {
-        paths: ["req", "res", "headers", "ip", "responseTime", "pid", "level"],
-        censor: "",
-        remove: true,
-    },
-    transport: process.env.NODE_ENV === "local" ? pinoPrettyConf.transport : undefined,
-    autoLogging: false,
+  base: { appName: 'OpenJustice-sder' },
+  formatters: {
+    level: (label) => ({
+      logLevel: label.toUpperCase(),
+    }),
+  },
+  timestamp: () => `,"timestamp":"${new Date(Date.now()).toLocaleString()}"`,
+  redact: {
+    paths: ['req', 'res', 'headers', 'ip', 'responseTime', 'pid', 'level'],
+    censor: '',
+    remove: true,
+  },
+  transport: process.env.NODE_ENV === 'local' ? pinoPrettyConf.transport : undefined,
+  autoLogging: false,
 };
 
 // Initialisation du logger Pino
 const logger = pino(PinoConfig);
+// types definition for log details
+/**
+ * @typedef {Object} DecisionLog
+ * @property {Object} decision
+ * @property {string} [decision._id]
+ * @property {string} decision.sourceId
+ * @property {string} decision.sourceName
+ * @property {string} [decision.publishStatus]
+ * @property {string} [decision.labelStatus]
+ * @property {string} [decision.jurisdictionId]
+ * @property {string} [decision.jurisdictionName]
+ * @property {string} path
+ * @property {[('collect'|'extraction'|'normalization'|'other'), string]} operations
+ * @property {string} [message]
+ */
+
+/**
+ * @typedef {Object} TechLog
+ * @property {string} path
+ * @property {[('collect'|'extraction'|'normalization'|'other'), string]} operations
+ * @property {string} [message]
+ */
 
 class CustomLog {
-    // Méthode pour générer un objet de log structuré
-    static createLog({
-        operationName,
-        msg,
-        data,
-        httpMethod,
-        path,
-        correlationId,
-        statusCode,
-    } = {}) {
-        return {
-            operationName,
-            msg,
-            data,
-            httpMethod,
-            path,
-            correlationId,
-            statusCode,
-        };
-    }
+  /**
+   * @param {DecisionLog | TechLog} data
+   */
+  static info(data) {
+    logger.info(data);
+  }
 
-    // Méthode utilitaire pour journaliser avec un format structuré
-    static log(level = "info", logDetails = {}) {
-        const logEntry = this.createLog(logDetails);
-        logger[level](logEntry);
-    }
+  /**
+   * @param {TechLog & {stack?: string}} data
+   */
+  static error(data) {
+    logger.error(data);
+  }
+
+  /**
+   * @param {DecisionLog | TechLog} data
+   */
+  static warn(data) {
+    logger.warn(data);
+  }
 }
 
-module.exports = { CustomLog };
+module.exports = { CustomLog, logger };
