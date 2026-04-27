@@ -2,9 +2,10 @@ const path = require('path');
 require('dotenv').config({ quiet: true, path: path.join(__dirname, '..', '.env') });
 const { CustomLog } = require('./utils/logger');
 
-CustomLog.log('info', {
-  operationName: `Start`,
-  msg: `Start main script : ${new Date().toLocaleString()}`,
+CustomLog.info({
+  operations: ['other', `Start`],
+  path: 'src/index.js',
+  message: `Start main script : ${new Date().toLocaleString()}`,
 });
 
 if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
@@ -29,21 +30,24 @@ if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
     ],
   });
 
-  CustomLog.log('info', {
-    operationName: 'Start',
-    msg: 'Start jobs scheduler...',
+  CustomLog.info({
+    operations: ['other', 'Start'],
+    path: 'src/index.js',
+    message: 'Start jobs scheduler...',
   });
   const graceful = new Graceful({ brees: [bree] });
   graceful.listen();
   bree.start();
-  CustomLog.log('info', {
-    operationName: 'Start',
-    msg: 'Start jobs.',
+  CustomLog.info({
+    operations: ['other', 'Start'],
+    path: 'src/index.js',
+    message: 'Start jobs.',
   });
 } else {
-  CustomLog.log('info', {
-    operationName: 'Start',
-    msg: 'Skip jobs.',
+  CustomLog.info({
+    operations: ['other', 'Start'],
+    path: 'src/index.js',
+    message: 'Skip jobs.',
   });
   setInterval(() => {
     // nope

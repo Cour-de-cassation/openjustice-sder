@@ -128,20 +128,22 @@ async function importJurinet() {
           row._indexed = null;
           if (raw === null) {
             await rawJurinet.insertOne(row, { bypassDocumentValidation: true });
-            CustomLog.log('info', {
-              operationName: 'ImportJurinetNew',
-              msg: `Jurinet insert new CC decision ${row._id})`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'ImportJurinetNew'],
+              path: 'src/jobs/import.js',
+              message: `Jurinet insert new CC decision ${row._id})`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurinet',
               },
             });
           } else {
             await rawJurinet.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-            CustomLog.log('info', {
-              operationName: 'ImportJurinetAlreadyInserted',
-              msg: `Jurinet overwrite already inserted CC decision ${row._id}`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'ImportJurinetAlreadyInserted'],
+              path: 'src/jobs/import.js',
+              message: `Jurinet overwrite already inserted CC decision ${row._id}`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurinet',
               },
@@ -161,10 +163,11 @@ async function importJurinet() {
           await sendToJurinorm('CC', normDec);
           await jurinetSource.markAsImported(row._id);
 
-          CustomLog.log('info', {
-            operationName: 'ImportJurinetNormalize',
-            msg: `Jurinet CC decision normalized ${normDec.sourceName}, ${normDec.sourceId}`,
-            data: {
+          CustomLog.info({
+            operations: ['other', 'ImportJurinetNormalize'],
+            path: 'src/jobs/import.js',
+            message: `Jurinet CC decision normalized ${normDec.sourceName}, ${normDec.sourceId}`,
+            decision: {
               sourceId: normDec.sourceId,
               sourceName: normDec.sourceName,
               registerNumber: normDec.registerNumber,
@@ -187,22 +190,23 @@ async function importJurinet() {
           }
         } catch (e) {
           await jurinetSource.markAsErroneous(row._id);
-          CustomLog.log('warn', {
-            operationName: 'ImportJurinetError',
-            msg: `Error collecting Jurinet CC decision ${row._id}`,
-            data: {
+          CustomLog.warn({
+            operations: ['other', 'ImportJurinetError'],
+            path: 'src/jobs/import.js',
+            message: `Error collecting Jurinet CC decision ${row._id} - Error: ${e}`,
+            decision: {
               sourceId: row._id,
               sourceName: 'jurinet',
-              error: e,
             },
           });
           errorCount++;
         }
       } else {
-        CustomLog.log('warn', {
-          operationName: 'ImportJurinetSkip',
-          msg: `Jurinet skip already inserted CC decision ${row._id}`,
-          data: {
+        CustomLog.warn({
+          operations: ['other', 'ImportJurinetSkip'],
+          path: 'src/jobs/import.js',
+          message: `Jurinet skip already inserted CC decision ${row._id}`,
+          decision: {
             sourceId: row._id,
             sourceName: 'jurinet',
           },
@@ -221,10 +225,11 @@ async function importJurinet() {
         } catch (ignore) {}
       }
     } else {
-      CustomLog.log('warn', {
-        operationName: 'ImportJurinetSkip',
-        msg: `Jurinet skip non CC decision ${row._id}`,
-        data: {
+      CustomLog.warn({
+        operations: ['other', 'ImportJurinetSkip'],
+        path: 'src/jobs/import.js',
+        message: `Jurinet skip non CC decision ${row._id}`,
+        decision: {
           sourceId: row._id,
           sourceName: 'jurinet',
         },
@@ -238,9 +243,10 @@ async function importJurinet() {
   await jurinetSource.close();
   await juricaSource.close();
   await GRCOMSource.close();
-  CustomLog.log('info', {
-    operationName: 'ImportJurinetDone',
-    msg: `Done collect Jurinet - New: ${newCount}, Error: ${errorCount}, Skip: ${skipCount}.`,
+  CustomLog.info({
+    operations: ['other', 'ImportJurinetDone'],
+    path: 'src/jobs/import.js',
+    message: `Done collect Jurinet - New: ${newCount}, Error: ${errorCount}, Skip: ${skipCount}.`,
   });
   return true;
 }
@@ -441,20 +447,22 @@ async function importJurica() {
           row._indexed = null;
           if (raw === null) {
             await rawJurica.insertOne(row, { bypassDocumentValidation: true });
-            CustomLog.log('info', {
-              operationName: 'ImportJuricaNew',
-              msg: `Jurica insert new CA decision ${row._id})`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'ImportJuricaNew'],
+              path: 'src/jobs/import.js',
+              message: `Jurica insert new CA decision ${row._id})`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurica',
               },
             });
           } else {
             await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-            CustomLog.log('info', {
-              operationName: 'ImportJuricaAlreadyInserted',
-              msg: `Jurica overwrite already inserted CA decision ${row._id}`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'ImportJuricaAlreadyInserted'],
+              path: 'src/jobs/import.js',
+              message: `Jurica overwrite already inserted CA decision ${row._id}`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurica',
               },
@@ -479,15 +487,15 @@ async function importJurica() {
           if (ShouldBeSentToJudifiltre === true) {
             normDec.labelStatus = 'ignored_controleRequis';
             normDec.publishStatus = 'blocked';
-            CustomLog.log('info', {
-              operationName: 'ImportJuricaBlocked',
-              msg: `Jurica CA decision blocked ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'ImportJuricaBlocked'],
+              path: 'src/jobs/import.js',
+              message: `Jurica CA decision blocked ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurica',
-                jdec_codnac: row.JDEC_CODNAC,
-                jdec_codnacpart: row.JDEC_CODNACPART,
-                jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
+                publishStatus: normDec.publishStatus,
+                labelStatus: normDec.labelStatus,
               },
             });
           }
@@ -495,13 +503,14 @@ async function importJurica() {
           await sendToJurinorm('CA', normDec);
           await juricaSource.markAsImported(row._id);
 
-          CustomLog.log('info', {
-            operationName: 'ImportJuricaNormalize',
-            msg: `Jurica CA decision normalized ${normDec.sourceName}, ${normDec.sourceId}`,
-            data: {
+          CustomLog.info({
+            operations: ['other', 'ImportJuricaNormalize'],
+            path: 'src/jobs/import.js',
+            message: `Jurica CA decision normalized ${normDec.sourceName}, ${normDec.sourceId}, 
+              registerNumber: ${normDec.registerNumber}`,
+            decision: {
               sourceId: normDec.sourceId,
               sourceName: normDec.sourceName,
-              registerNumber: normDec.registerNumber,
               labelStatus: normDec.labelStatus,
               publishStatus: normDec.publishStatus,
               jurisdictionName: normDec.jurisdictionName,
@@ -512,10 +521,11 @@ async function importJurica() {
           await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
         } else {
           await juricaSource.markAsErroneous(row._id);
-          CustomLog.log('warn', {
-            operationName: 'ImportJuricaRejected',
-            msg: `Jurica import reject CA decision ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
-            data: {
+          CustomLog.warn({
+            operations: ['other', 'ImportJuricaRejected'],
+            path: 'src/jobs/import.js',
+            message: `Jurica import reject CA decision ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
+            decision: {
               sourceId: row._id,
               sourceName: 'jurica',
               jdec_codnac: row.JDEC_CODNAC,
@@ -527,22 +537,23 @@ async function importJurica() {
         }
       } catch (e) {
         await juricaSource.markAsErroneous(row._id);
-        CustomLog.log('warn', {
-          operationName: 'ImportJuricaError',
-          msg: `Error collecting Jurica CA decision ${row._id}`,
-          data: {
+        CustomLog.warn({
+          operations: ['other', 'ImportJuricaError'],
+          path: 'src/jobs/import.js',
+          message: `Error collecting Jurica CA decision ${row._id} - Error: ${e}`,
+          decision: {
             sourceId: row._id,
             sourceName: 'jurica',
-            error: e,
           },
         });
         errorCount++;
       }
     } else {
-      CustomLog.log('warn', {
-        operationName: 'ImportJuricaSkip',
-        msg: `Jurica skip already inserted CA decision ${row._id}`,
-        data: {
+      CustomLog.warn({
+        operations: ['other', 'ImportJuricaSkip'],
+        path: 'src/jobs/import.js',
+        message: `Jurica skip already inserted CA decision ${row._id}`,
+        decision: {
           sourceId: row._id,
           sourceName: 'jurica',
         },
@@ -566,9 +577,10 @@ async function importJurica() {
   await jIndexConnection.close();
   await juricaSource.close();
   await jurinetSource.close();
-  CustomLog.log('info', {
-    operationName: 'ImportJuricaDone',
-    msg: `Done collect Jurica - New: ${newCount}, Non-public: ${nonPublicCount}, Error: ${errorCount}, Skip: ${skipCount}.`,
+  CustomLog.info({
+    operations: ['other', 'ImportJuricaDone'],
+    path: 'src/jobs/import.js',
+    message: `Done collect Jurica - New: ${newCount}, Non-public: ${nonPublicCount}, Error: ${errorCount}, Skip: ${skipCount}.`,
   });
   return true;
 }
@@ -761,13 +773,13 @@ async function syncJurinet() {
               row.XMLA = null;
             }
             await rawJurinet.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-            CustomLog.log('info', {
-              operationName: 'SyncJurinet',
-              msg: `Jurinet update CC decision ${row._id}`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'SyncJurinet'],
+              path: 'src/jobs/import.js',
+              message: `Jurinet update CC decision ${row._id} - Diff: ${JSON.stringify(changelog)}`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurinet',
-                changelog: changelog,
               },
             });
 
@@ -793,10 +805,11 @@ async function syncJurinet() {
             updateCount++;
             await sendToJurinorm('CC', normDec);
 
-            CustomLog.log('info', {
-              operationName: 'SyncJurinetNormalize',
-              msg: `Jurinet update normalized CC decision ${normDec.sourceName}, ${normDec.sourceId}`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'SyncJurinetNormalize'],
+              path: 'src/jobs/import.js',
+              message: `Jurinet update normalized CC decision ${normDec.sourceName}, ${normDec.sourceId}`,
+              decision: {
                 sourceId: normDec.sourceId,
                 sourceName: normDec.sourceName,
                 jurisdictionId: normDec.jurisdictionId,
@@ -817,10 +830,11 @@ async function syncJurinet() {
               );
             }
           } else {
-            CustomLog.log('warn', {
-              operationName: 'SyncJurinetSkip',
-              msg: `Jurinet skip no diff CC decision ${row._id}`,
-              data: {
+            CustomLog.warn({
+              operations: ['other', 'SyncJurinetSkip'],
+              path: 'src/jobs/import.js',
+              message: `Jurinet skip no diff CC decision ${row._id}`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurinet',
               },
@@ -829,10 +843,11 @@ async function syncJurinet() {
           }
         } else {
           await jurinetSource.markAsNew(row._id);
-          CustomLog.log('warn', {
-            operationName: 'SyncJurinetReset',
-            msg: `Jurinet reset non existing CC decision ${row._id}`,
-            data: {
+          CustomLog.warn({
+            operations: ['other', 'SyncJurinetReset'],
+            path: 'src/jobs/import.js',
+            message: `Jurinet reset non existing CC decision ${row._id}`,
+            decision: {
               sourceId: row._id,
               sourceName: 'jurinet',
             },
@@ -841,22 +856,23 @@ async function syncJurinet() {
         }
       } catch (e) {
         await jurinetSource.markAsErroneous(row._id);
-        CustomLog.log('warn', {
-          operationName: 'SyncJurinetError',
-          msg: `Error syncing Jurinet CC decision ${row._id}`,
-          data: {
+        CustomLog.warn({
+          operations: ['other', 'SyncJurinetError'],
+          path: 'src/jobs/import.js',
+          message: `Error syncing Jurinet CC decision ${row._id}, Error: ${e}`,
+          decision: {
             sourceId: row._id,
             sourceName: 'jurinet',
-            error: e,
           },
         });
         errorCount++;
       }
     } else {
-      CustomLog.log('warn', {
-        operationName: 'SyncJurinetSkip',
-        msg: `Jurinet skip non CC decision ${row._id}`,
-        data: {
+      CustomLog.warn({
+        operations: ['other', 'SyncJurinetSkip'],
+        path: 'src/jobs/import.js',
+        message: `Jurinet skip non CC decision ${row._id}`,
+        decision: {
           sourceId: row._id,
           sourceName: 'jurinet',
         },
@@ -880,9 +896,10 @@ async function syncJurinet() {
   await jurinetSource.close();
   await juricaSource.close();
   await GRCOMSource.close();
-  CustomLog.log('info', {
-    operationName: 'SyncJurinetDone',
-    msg: `Done syncing Jurinet - Update: ${updateCount}, Error: ${errorCount}, Skip: ${skipCount}.`,
+  CustomLog.info({
+    operations: ['other', 'SyncJurinetDone'],
+    path: 'src/jobs/import.js',
+    message: `Done syncing Jurinet - Update: ${updateCount}, Error: ${errorCount}, Skip: ${skipCount}.`,
   });
   return true;
 }
@@ -1133,13 +1150,13 @@ async function syncJurica() {
               row.HTMLA = null;
             }
             await rawJurica.replaceOne({ _id: row._id }, row, { bypassDocumentValidation: true });
-            CustomLog.log('info', {
-              operationName: 'SyncJurica',
-              msg: `Jurica update CA decision ${row._id}`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'SyncJurica'],
+              path: 'src/jobs/import.js',
+              message: `Jurica update CA decision ${row._id} - Diff: ${JSON.stringify(changelog)}`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurica',
-                changelog: changelog,
               },
             });
 
@@ -1161,15 +1178,13 @@ async function syncJurica() {
               normDec.labelStatus = 'ignored_controleRequis';
               normDec.publishStatus = 'blocked';
               normDec.labelTreatments = [];
-              CustomLog.log('info', {
-                operationName: 'SyncJuricaBlocked',
-                msg: `Jurica CA decision blocked following an update ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
-                data: {
+              CustomLog.info({
+                operations: ['other', 'SyncJuricaBlocked'],
+                path: 'src/jobs/import.js',
+                message: `Jurica CA decision blocked following an update ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
+                decision: {
                   sourceId: row._id,
                   sourceName: 'jurica',
-                  jdec_codnac: row.JDEC_CODNAC,
-                  jdec_codnacpart: row.JDEC_CODNACPART,
-                  jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
                 },
               });
               await juricaSource.markAsImported(row._id);
@@ -1183,10 +1198,11 @@ async function syncJurica() {
             updateCount++;
             await sendToJurinorm('CA', normDec);
 
-            CustomLog.log('info', {
-              operationName: 'SyncJuricaNormalize',
-              msg: `Jurica update normalized CA decision ${normDec.sourceName} ${normDec.sourceId}`,
-              data: {
+            CustomLog.info({
+              operations: ['other', 'SyncJuricaNormalize'],
+              path: 'src/jobs/import.js',
+              message: `Jurica update normalized CA decision ${normDec.sourceName} ${normDec.sourceId}`,
+              decision: {
                 sourceId: normDec.sourceId,
                 sourceName: normDec.sourceName,
                 labelStatus: normDec.labelStatus,
@@ -1198,10 +1214,11 @@ async function syncJurica() {
 
             await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
           } else {
-            CustomLog.log('warn', {
-              operationName: 'SyncJuricaSkip',
-              msg: `Jurica skip no diff CA decision ${row._id}`,
-              data: {
+            CustomLog.warn({
+              operations: ['other', 'SyncJuricaSkip'],
+              path: 'src/jobs/import.js',
+              message: `Jurica skip no diff CA decision ${row._id}`,
+              decision: {
                 sourceId: row._id,
                 sourceName: 'jurica',
               },
@@ -1210,10 +1227,11 @@ async function syncJurica() {
           }
         } else {
           await juricaSource.markAsNew(row._id);
-          CustomLog.log('warn', {
-            operationName: 'SyncJuricaReset',
-            msg: `Jurica reset non existing CA decision ${row._id}`,
-            data: {
+          CustomLog.warn({
+            operations: ['other', 'SyncJuricaReset'],
+            path: 'src/jobs/import.js',
+            message: `Jurica reset non existing CA decision ${row._id}`,
+            decision: {
               sourceId: row._id,
               sourceName: 'jurica',
             },
@@ -1222,28 +1240,26 @@ async function syncJurica() {
         }
       } catch (e) {
         await juricaSource.markAsErroneous(row._id);
-        CustomLog.log('warn', {
-          operationName: 'SyncJuricaError',
-          msg: `Error syncing Jurica CA decision ${row._id}`,
-          data: {
+        CustomLog.warn({
+          operations: ['other', 'SyncJuricaError'],
+          path: 'src/jobs/import.js',
+          message: `Error syncing Jurica CA decision ${row._id} - Error: ${e}`,
+          decision: {
             sourceId: row._id,
             sourceName: 'jurica',
-            error: e,
           },
         });
         errorCount++;
       }
     } else {
       await juricaSource.markAsErroneous(row._id);
-      CustomLog.log('warn', {
-        operationName: 'SyncJuricaRejected',
-        msg: `Jurica sync reject CA decision ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
-        data: {
+      CustomLog.warn({
+        operations: ['other', 'SyncJuricaRejected'],
+        path: 'src/jobs/import.js',
+        message: `Jurica sync reject CA decision ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
+        decision: {
           sourceId: row._id,
           sourceName: 'jurica',
-          jdec_codnac: row.JDEC_CODNAC,
-          jdec_codnacpart: row.JDEC_CODNACPART,
-          jdec_ind_dec_pub: row.JDEC_IND_DEC_PUB,
         },
       });
       nonPublicCount++;
@@ -1264,9 +1280,10 @@ async function syncJurica() {
   await jIndexConnection.close();
   await juricaSource.close();
   await jurinetSource.close();
-  CustomLog.log('info', {
-    operationName: 'SyncJuricaDone',
-    msg: `Done syncing Jurica - Update: ${updateCount}, Non-public: ${nonPublicCount}, Error: ${errorCount}, Skip: ${skipCount}.`,
+  CustomLog.info({
+    operations: ['other', 'SyncJuricaDone'],
+    path: 'src/jobs/import.js',
+    message: `Done syncing Jurica - Update: ${updateCount}, Non-public: ${nonPublicCount}, Error: ${errorCount}, Skip: ${skipCount}.`,
   });
   return true;
 }
