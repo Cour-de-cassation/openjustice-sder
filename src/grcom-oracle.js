@@ -4,6 +4,9 @@ require('dotenv').config({ quiet: true, path: path.join(__dirname, '..', '.env')
 const iconv = require('iconv-lite');
 const oracledb = require('oracledb');
 
+// Switch to "Thick Mode" (because Jurica uses an archaic version of Oracle, cf. https://node-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#enabling-node-oracledb-thick-mode-on-linux-and-related-platforms):
+oracledb.initOracleClient();
+
 iconv.skipDecodeWarning = true;
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
