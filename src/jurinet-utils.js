@@ -136,6 +136,9 @@ class JurinetUtils {
 
   static replaceErroneousChars(str) {
     if (typeof str === 'string') {
+      str = str.replace(/\s(c|d|j|l|m|n|qu|s|t)¿(\w)/gim, " $1'$2");
+      str = str.replace(/\s¿\s/gim, ' ');
+      str = str.replace(/\s`\s/gim, ' ');
       return str.replace(/\x91/gm, '‘').replace(/\x92/gm, '’').replace(/\x80/gm, '€').replace(/\x96/gm, '–');
     }
     return str;
