@@ -22,8 +22,7 @@ async function main() {
     console.error('Jurinet collect error', e);
   }
   try {
-    console.log('skip importJurica');
-    // await importJurica();
+    await importJurica();
   } catch (e) {
     console.error('Jurica collect error', e);
   }
@@ -33,8 +32,7 @@ async function main() {
     console.error('Jurinet sync error', e);
   }
   try {
-    console.log('skip syncJurica');
-    // await syncJurica();
+    await syncJurica();
   } catch (e) {
     console.error('Jurica sync error', e);
   }
