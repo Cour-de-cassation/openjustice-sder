@@ -1006,136 +1006,139 @@ async function syncJurica() {
 
   for (let i = 0; i < juricaResult.length; i++) {
     let row = juricaResult[i];
-
-    // Only process "public" CA decisions
-    const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
-      row.JDEC_CODNAC,
-      row.JDEC_CODNACPART,
-      row.JDEC_IND_DEC_PUB,
-    );
-    if (ShouldBeRejected === false) {
-      let updated = false;
-      let diffCount = 0;
-      let reprocessUpdated = false;
-      let raw = await rawJurica.findOne({ _id: row._id });
-      try {
-        if (raw !== null) {
-          let partiallyPublic = false;
-          try {
-            partiallyPublic = await JuricaUtils.IsPartiallyPublic(
-              row.JDEC_CODNAC,
-              row.JDEC_CODNACPART,
-              row.JDEC_IND_DEC_PUB,
-            );
-          } catch (ignore) {}
-          if (partiallyPublic) {
-            let trimmedText;
-            let zoning;
-            try {
-              trimmedText = JuricaUtils.CleanHTML(row.JDEC_HTML_SOURCE);
-              trimmedText = trimmedText
-                .replace(/\*DEB[A-Z]*/gm, '')
-                .replace(/\*FIN[A-Z]*/gm, '')
-                .trim();
-            } catch (e) {
-              throw new Error(
-                `Cannot process partially - public decision ${
-                  row._id
-                } because its text is empty or invalid: ${JSON.stringify(
-                  e,
-                  e ? Object.getOwnPropertyNames(e) : null,
-                )}.`,
-              );
+    let updated = false;
+    let diffCount = 0;
+    let reprocessUpdated = false;
+    let raw = await rawJurica.findOne({ _id: row._id });
+    try {
+      if (raw !== null) {
+        const changelog = {};
+        diff.forEach((key) => {
+          if (JSON.stringify(row[key]) !== JSON.stringify(raw[key])) {
+            if (doNotCount.indexOf(key) === -1) {
+              diffCount++;
             }
+            updated = true;
+            if (sensitive.indexOf(key) !== -1) {
+              changelog[key] = {
+                old: '[SENSITIVE]',
+                new: '[SENSITIVE]',
+              };
+            } else {
+              changelog[key] = {
+                old: JSON.stringify(raw[key]),
+                new: JSON.stringify(row[key]),
+              };
+            }
+            if (reprocess.indexOf(key) !== -1) {
+              reprocessUpdated = true;
+            }
+          }
+        });
+
+        if (updated === true && diffCount > 0) {
+          // Only process modified "public" CA decisions
+          const ShouldBeRejected = await JuricaUtils.ShouldBeRejected(
+            row.JDEC_CODNAC,
+            row.JDEC_CODNACPART,
+            row.JDEC_IND_DEC_PUB,
+          );
+          if (ShouldBeRejected === false) {
+            let partiallyPublic = false;
             try {
-              zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
-              if (!zoning || zoning.detail) {
+              partiallyPublic = await JuricaUtils.IsPartiallyPublic(
+                row.JDEC_CODNAC,
+                row.JDEC_CODNACPART,
+                row.JDEC_IND_DEC_PUB,
+              );
+            } catch (ignore) {}
+            if (partiallyPublic) {
+              let trimmedText;
+              let zoning;
+              try {
+                trimmedText = JuricaUtils.CleanHTML(row.JDEC_HTML_SOURCE);
+                trimmedText = trimmedText
+                  .replace(/\*DEB[A-Z]*/gm, '')
+                  .replace(/\*FIN[A-Z]*/gm, '')
+                  .trim();
+              } catch (e) {
+                throw new Error(
+                  `Cannot process partially - public decision ${
+                    row._id
+                  } because its text is empty or invalid: ${JSON.stringify(
+                    e,
+                    e ? Object.getOwnPropertyNames(e) : null,
+                  )}.`,
+                );
+              }
+              try {
+                zoning = await Juritools.GetZones(row._id, 'ca', trimmedText);
+                if (!zoning || zoning.detail) {
+                  throw new Error(
+                    `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                      zoning,
+                      zoning ? Object.getOwnPropertyNames(zoning) : null,
+                    )}.`,
+                  );
+                }
+              } catch (e) {
                 throw new Error(
                   `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
+                    e,
+                    e ? Object.getOwnPropertyNames(e) : null,
+                  )}.`,
+                );
+              }
+              if (!zoning.zones) {
+                throw new Error(
+                  `Cannot process partially - public decision ${row._id} because it has no zone: ${JSON.stringify(
                     zoning,
                     zoning ? Object.getOwnPropertyNames(zoning) : null,
                   )}.`,
                 );
               }
-            } catch (e) {
-              throw new Error(
-                `Cannot process partially - public decision ${row._id} because its zoning failed: ${JSON.stringify(
-                  e,
-                  e ? Object.getOwnPropertyNames(e) : null,
-                )}.`,
-              );
-            }
-            if (!zoning.zones) {
-              throw new Error(
-                `Cannot process partially - public decision ${row._id} because it has no zone: ${JSON.stringify(
-                  zoning,
-                  zoning ? Object.getOwnPropertyNames(zoning) : null,
-                )}.`,
-              );
-            }
-            if (!zoning.zones.introduction) {
-              throw new Error(
-                `Cannot process partially - public decision ${row._id} because it has no introduction: ${JSON.stringify(
-                  zoning.zones,
-                  zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
-                )}.`,
-              );
-            }
-            if (!zoning.zones.dispositif) {
-              throw new Error(
-                `Cannot process partially - public decision ${row._id} because it has no dispositif: ${JSON.stringify(
-                  zoning.zones,
-                  zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
-                )}.`,
-              );
-            }
-            let parts = [];
-            if (Array.isArray(zoning.zones.introduction)) {
-              for (let ii = 0; ii < zoning.zones.introduction.length; ii++) {
-                parts.push(
-                  trimmedText.substring(zoning.zones.introduction[ii].start, zoning.zones.introduction[ii].end).trim(),
+              if (!zoning.zones.introduction) {
+                throw new Error(
+                  `Cannot process partially - public decision ${row._id} because it has no introduction: ${JSON.stringify(
+                    zoning.zones,
+                    zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
+                  )}.`,
                 );
               }
-            } else {
-              parts.push(trimmedText.substring(zoning.zones.introduction.start, zoning.zones.introduction.end).trim());
-            }
-            if (Array.isArray(zoning.zones.dispositif)) {
-              for (let ii = 0; ii < zoning.zones.dispositif.length; ii++) {
-                parts.push(
-                  trimmedText.substring(zoning.zones.dispositif[ii].start, zoning.zones.dispositif[ii].end).trim(),
+              if (!zoning.zones.dispositif) {
+                throw new Error(
+                  `Cannot process partially - public decision ${row._id} because it has no dispositif: ${JSON.stringify(
+                    zoning.zones,
+                    zoning.zones ? Object.getOwnPropertyNames(zoning.zones) : null,
+                  )}.`,
                 );
               }
-            } else {
-              parts.push(trimmedText.substring(zoning.zones.dispositif.start, zoning.zones.dispositif.end).trim());
-            }
-            row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
-          }
-
-          const changelog = {};
-          diff.forEach((key) => {
-            if (JSON.stringify(row[key]) !== JSON.stringify(raw[key])) {
-              if (doNotCount.indexOf(key) === -1) {
-                diffCount++;
-              }
-              updated = true;
-              if (sensitive.indexOf(key) !== -1) {
-                changelog[key] = {
-                  old: '[SENSITIVE]',
-                  new: '[SENSITIVE]',
-                };
+              let parts = [];
+              if (Array.isArray(zoning.zones.introduction)) {
+                for (let ii = 0; ii < zoning.zones.introduction.length; ii++) {
+                  parts.push(
+                    trimmedText
+                      .substring(zoning.zones.introduction[ii].start, zoning.zones.introduction[ii].end)
+                      .trim(),
+                  );
+                }
               } else {
-                changelog[key] = {
-                  old: JSON.stringify(raw[key]),
-                  new: JSON.stringify(row[key]),
-                };
+                parts.push(
+                  trimmedText.substring(zoning.zones.introduction.start, zoning.zones.introduction.end).trim(),
+                );
               }
-              if (reprocess.indexOf(key) !== -1) {
-                reprocessUpdated = true;
+              if (Array.isArray(zoning.zones.dispositif)) {
+                for (let ii = 0; ii < zoning.zones.dispositif.length; ii++) {
+                  parts.push(
+                    trimmedText.substring(zoning.zones.dispositif[ii].start, zoning.zones.dispositif[ii].end).trim(),
+                  );
+                }
+              } else {
+                parts.push(trimmedText.substring(zoning.zones.dispositif.start, zoning.zones.dispositif.end).trim());
               }
+              row.JDEC_HTML_SOURCE = parts.join('\n\n[...]\n\n');
             }
-          });
 
-          if (updated === true && diffCount > 0) {
             const ShouldBeSentToJudifiltre = await JuricaUtils.ShouldBeSentToJudifiltre(
               row.JDEC_CODNAC,
               row.JDEC_CODNACPART,
@@ -1214,23 +1217,23 @@ async function syncJurica() {
 
             await JuricaUtils.IndexAffaire(row, jIndexAffaires, jurinetSource.connection, decisions);
           } else {
+            await juricaSource.markAsErroneous(row._id);
             CustomLog.warn({
-              operations: ['other', 'SyncJuricaSkip'],
+              operations: ['other', 'SyncJuricaRejected'],
               path: 'src/jobs/import.js',
-              message: `Jurica skip no diff CA decision ${row._id}`,
+              message: `Jurica sync reject CA decision ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
               decision: {
                 sourceId: row._id,
                 sourceName: 'jurica',
               },
             });
-            skipCount++;
+            nonPublicCount++;
           }
         } else {
-          await juricaSource.markAsNew(row._id);
           CustomLog.warn({
-            operations: ['other', 'SyncJuricaReset'],
+            operations: ['other', 'SyncJuricaSkip'],
             path: 'src/jobs/import.js',
-            message: `Jurica reset non existing CA decision ${row._id}`,
+            message: `Jurica skip no diff CA decision ${row._id}`,
             decision: {
               sourceId: row._id,
               sourceName: 'jurica',
@@ -1238,31 +1241,31 @@ async function syncJurica() {
           });
           skipCount++;
         }
-      } catch (e) {
-        await juricaSource.markAsErroneous(row._id);
+      } else {
+        await juricaSource.markAsNew(row._id);
         CustomLog.warn({
-          operations: ['other', 'SyncJuricaError'],
+          operations: ['other', 'SyncJuricaReset'],
           path: 'src/jobs/import.js',
-          message: `Error syncing Jurica CA decision ${row._id} - Error: ${e}`,
+          message: `Jurica reset non existing CA decision ${row._id}`,
           decision: {
             sourceId: row._id,
             sourceName: 'jurica',
           },
         });
-        errorCount++;
+        skipCount++;
       }
-    } else {
+    } catch (e) {
       await juricaSource.markAsErroneous(row._id);
       CustomLog.warn({
-        operations: ['other', 'SyncJuricaRejected'],
+        operations: ['other', 'SyncJuricaError'],
         path: 'src/jobs/import.js',
-        message: `Jurica sync reject CA decision ${row._id}, ${row.JDEC_CODNAC}, ${row.JDEC_CODNACPART}, ${row.JDEC_IND_DEC_PUB}`,
+        message: `Error syncing Jurica CA decision ${row._id} - Error: ${e}`,
         decision: {
           sourceId: row._id,
           sourceName: 'jurica',
         },
       });
-      nonPublicCount++;
+      errorCount++;
     }
 
     // Update last date marker
