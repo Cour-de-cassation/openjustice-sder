@@ -31,11 +31,13 @@ async function main() {
   } catch (e) {
     console.error('Jurinet sync error', e);
   }
+  /* Too many "false" updates: JDEC_DATE_MAJ is not reliable anymore
   try {
     await syncJurica();
   } catch (e) {
     console.error('Jurica sync error', e);
   }
+  */
   console.log('OpenJustice - End collect job:', new Date().toLocaleString());
   await new Promise((resolve) => setTimeout(resolve, 1000));
   process.exit(0);
