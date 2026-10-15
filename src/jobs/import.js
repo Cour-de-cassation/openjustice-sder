@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ quiet: true, path: path.join(__dirname, '..', '..', '.env') });
 const { CustomLog } = require('./../utils/logger');
+const { parentPort } = require('worker_threads');
 const { JurinetOracle } = require('../jurinet-oracle');
 const { JurinetUtils } = require('../jurinet-utils');
 const { JuricaOracle } = require('../jurica-oracle');
@@ -12,7 +13,26 @@ const { MongoClient } = require('mongodb');
 const { Juritools } = require('../juritools');
 const { DateTime } = require('luxon');
 const { sendToJurinorm } = require('../jurinorm');
+const ms = require('ms');
 const decisionsVersion = parseFloat(process.env.MONGO_DECISIONS_VERSION || 1.0);
+
+let selfKill = setTimeout(cancel, ms('15m'));
+
+function end() {
+  clearTimeout(selfKill);
+  if (parentPort) parentPort.postMessage('done');
+  kill(0);
+}
+
+function cancel() {
+  clearTimeout(selfKill);
+  if (parentPort) parentPort.postMessage('cancelled');
+  kill(1);
+}
+
+function kill(code) {
+  process.exit(code);
+}
 
 async function main() {
   console.log(`OpenJustice - Start collect job:`, new Date().toLocaleString());
@@ -39,8 +59,7 @@ async function main() {
   }
   */
   console.log('OpenJustice - End collect job:', new Date().toLocaleString());
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  process.exit(0);
+  setTimeout(end, ms('1s'));
 }
 
 async function importJurinet() {
