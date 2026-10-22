@@ -699,7 +699,7 @@ async function syncJurinet() {
   } catch (ignore) {
     jurinetLastDate = now.minus({ days: 2 });
   }
-  const jurinetResult = await jurinetSource.getModifiedSince(jurinetLastDate.toJSDate());
+  const jurinetResult = await jurinetSource.getModifiedSince(jurinetLastDate.minus({ hours: 2 }).toJSDate());
 
   for (let i = 0; i < jurinetResult.length; i++) {
     let row = jurinetResult[i];

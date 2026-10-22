@@ -17,7 +17,7 @@ if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
     jobs: [
       {
         name: 'import',
-        interval: 'every 2 minutes after 7:00am and before 6:00pm',
+        interval: 'every 2 minutes after 6:00am and before 8:00pm',
       },
       {
         name: 'buildAffaires',

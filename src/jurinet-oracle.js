@@ -455,11 +455,12 @@ class JurinetOracle {
       let strDate = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
       strDate += '/' + (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
       strDate += '/' + date.getFullYear();
+      strDate += ' ' + date.getHours() + ':00:00';
 
       const query = `SELECT *
         FROM ${process.env.DB_TABLE}
         WHERE ${process.env.DB_TABLE}.XML IS NOT NULL
-        AND ${process.env.DB_TABLE}.DT_MODIF > TO_DATE('${strDate}', 'DD/MM/YYYY')
+        AND ${process.env.DB_TABLE}.DT_MODIF > TO_DATE('${strDate}', 'DD/MM/YYYY HH24:MI:SS')
         AND ${process.env.DB_TABLE}.AUT_CREATION != 'WINCI'
         ORDER BY ${process.env.DB_TABLE}.${process.env.DB_ID_FIELD} ASC`;
 
