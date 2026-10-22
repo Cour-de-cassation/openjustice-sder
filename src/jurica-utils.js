@@ -9,6 +9,11 @@ const { ObjectId } = require('mongodb');
 
 const fs = require('fs');
 
+const { NodeCache } = require('@cacheable/node-cache');
+const codeNACCache = new NodeCache({
+  stdTTL: '1h',
+});
+
 const parserOptions = {
   attributeNamePrefix: '',
   attrNodeName: 'attributes',
@@ -65,15 +70,20 @@ class JuricaUtils {
   }
 
   static async fetchCodeNACs(params) {
-    const response = await fetch(`${process.env.DBSDER_API_URL}/codenacs?${params}`, {
-      headers: {
-        'X-API-Key': `${process.env.DBSDER_API_KEY}`,
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let codeNACInfos = await codeNACCache.get(params);
+    if (codeNACInfos === undefined) {
+      const response = await fetch(`${process.env.DBSDER_API_URL}/codenacs?${params}`, {
+        headers: {
+          'X-API-Key': `${process.env.DBSDER_API_KEY}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      codeNACInfos = await response.json();
+      await codeNACCache.set(params, codeNACInfos);
     }
-    return response.json();
+    return codeNACInfos;
   }
 
   static async GetUnconditionalNonPublicNAC() {
