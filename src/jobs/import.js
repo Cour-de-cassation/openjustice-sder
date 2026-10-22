@@ -257,7 +257,7 @@ async function importJurinet() {
       });
       skipCount++;
     }
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
   await client.close();
   await jIndexConnection.close();
@@ -592,7 +592,7 @@ async function importJurica() {
         });
       } catch (ignore) {}
     }
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
   await client.close();
   await jIndexConnection.close();
@@ -904,7 +904,7 @@ async function syncJurinet() {
     // Update last date marker
     let modifTime = DateTime.fromJSDate(row.DT_MODIF);
     jurinetLastDate = DateTime.max(jurinetLastDate, modifTime);
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
 
   // Store last date marker
@@ -1289,7 +1289,7 @@ async function syncJurica() {
     // Update last date marker
     let modifTime = DateTime.fromISO(row.JDEC_DATE_MAJ);
     juricaLastDate = DateTime.max(juricaLastDate, modifTime);
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
 
   // Store last date marker

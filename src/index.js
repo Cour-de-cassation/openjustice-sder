@@ -17,15 +17,15 @@ if (process.env.SKIP_JOBS === 'false' || process.env.SKIP_JOBS === false) {
     jobs: [
       {
         name: 'import',
-        interval: 'every 7 minutes after 7:00am and before 6:00pm',
+        interval: 'every 2 minutes after 7:00am and before 6:00pm',
       },
       {
         name: 'buildAffaires',
-        interval: 'every 17 minute after 3:00pm and before 11:00pm',
+        interval: 'every 37 minutes after 3:00pm and before 11:00pm',
       },
       {
         name: 'getSderId',
-        interval: 'every 1 hours after 3:00pm and before 11:00pm',
+        interval: 'every 61 minutes after 3:00pm and before 11:00pm',
       },
     ],
   });
