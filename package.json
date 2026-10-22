@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/Cour-de-cassation/openjustice-sder#readme",
   "dependencies": {
+    "@cacheable/node-cache": "3.0.1",
     "@ladjs/graceful": "5.0.0",
     "bree": "9.2.9",
     "dotenv": "17.4.2",
