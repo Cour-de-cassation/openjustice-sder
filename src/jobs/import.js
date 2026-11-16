@@ -343,7 +343,7 @@ async function importJurica() {
           inDate.setFullYear(parseInt(dateDecisionElements[0], 10));
           inDate.setMonth(parseInt(dateDecisionElements[1], 10) - 1);
           inDate.setDate(parseInt(dateDecisionElements[2], 10));
-          inDate.setHours(0);
+          inDate.setUTCHours(0);
           inDate.setMinutes(0);
           inDate.setSeconds(0);
           inDate.setMilliseconds(0);

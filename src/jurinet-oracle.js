@@ -378,7 +378,7 @@ class JurinetOracle {
       // (Sword used '01/06/2016' as date limit):
       let ago = new Date();
       ago.setMonth(ago.getMonth() - monthAgo);
-      ago.setHours(0, 0, 0, 0);
+      ago.setUTCHours(0, 0, 0, 0);
       let strAgo = ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '/' + ago.getFullYear();
@@ -491,7 +491,7 @@ class JurinetOracle {
     if (this.connected === true && this.connection !== null) {
       let ago = new Date();
       ago.setMonth(ago.getMonth() - NMonth);
-      ago.setHours(0, 0, 0, 0);
+      ago.setUTCHours(0, 0, 0, 0);
       let strAgo = ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate();
       strAgo += '/' + (ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1);
       strAgo += '/' + ago.getFullYear();

@@ -254,7 +254,7 @@ class JudilibreIndex {
         dateDecision.setFullYear(parseInt(dateDecisionElements[0], 10));
         dateDecision.setMonth(parseInt(dateDecisionElements[1], 10) - 1);
         dateDecision.setDate(parseInt(dateDecisionElements[2], 10));
-        dateDecision.setHours(0);
+        dateDecision.setUTCHours(0);
         dateDecision.setMinutes(0);
         dateDecision.setSeconds(0);
         dateDecision.setMilliseconds(0);
