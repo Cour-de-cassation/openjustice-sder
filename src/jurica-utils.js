@@ -1020,7 +1020,7 @@ class JuricaUtils {
       dateDecision.setFullYear(parseInt(dateDecisionElements[0], 10));
       dateDecision.setMonth(parseInt(dateDecisionElements[1], 10) - 1);
       dateDecision.setDate(parseInt(dateDecisionElements[2], 10));
-      dateDecision.setHours(0);
+      dateDecision.setUTCHours(0);
       dateDecision.setMinutes(0);
       dateDecision.setSeconds(0);
       dateDecision.setMilliseconds(0);
@@ -1039,7 +1039,7 @@ class JuricaUtils {
       dateCreation.setFullYear(parseInt(dateCreationElements.substring(0, 4), 10));
       dateCreation.setMonth(parseInt(dateCreationElements.substring(4, 6), 10) - 1);
       dateCreation.setDate(parseInt(dateCreationElements.substring(6), 10));
-      dateCreation.setHours(0);
+      dateCreation.setUTCHours(0);
       dateCreation.setMinutes(0);
       dateCreation.setSeconds(0);
       dateCreation.setMilliseconds(0);

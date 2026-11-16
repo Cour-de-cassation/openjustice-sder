@@ -170,7 +170,7 @@ class JuricaOracle {
       // (Sword used '2015-07-17' as date limit):
       let ago = new Date();
       ago.setMonth(ago.getMonth() - monthAgo);
-      ago.setHours(0, 0, 0, 0);
+      ago.setUTCHours(0, 0, 0, 0);
       let strAgo = ago.getFullYear();
       strAgo = `${strAgo}${ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1}`;
       strAgo = `${strAgo}${ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate()}`;
@@ -281,7 +281,7 @@ class JuricaOracle {
     if (this.connected === true && this.connection !== null) {
       let ago = new Date();
       ago.setMonth(ago.getMonth() - NMonth);
-      ago.setHours(0, 0, 0, 0);
+      ago.setUTCHours(0, 0, 0, 0);
       let strAgo = ago.getFullYear();
       strAgo = `${strAgo}${ago.getMonth() + 1 < 10 ? '0' + (ago.getMonth() + 1) : ago.getMonth() + 1}`;
       strAgo = `${strAgo}${ago.getDate() < 10 ? '0' + ago.getDate() : ago.getDate()}`;
